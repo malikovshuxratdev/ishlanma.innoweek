@@ -22,6 +22,7 @@ import {
 import type { MenuProps } from 'antd';
 import { TokenService } from '../../utils/storage';
 import { useUserProfileQuery } from '../../hooks/useOauthScienceIdMutate';
+import logoImage from '../../assets/icons/logo.svg';
 
 const ImageUrl = import.meta.env.VITE_BASE_URI;
 
@@ -91,14 +92,20 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
         <Header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-lg px-6 lg:px-8 flex justify-between items-center border-b border-gray-100 h-16">
             {/* Left: Logo */}
             <div className="flex items-center">
-                <div className="text-xl lg:text-2xl font-bold text-gray-800 mr-6 lg:mr-10 flex items-center select-none">
-                    <div className="mr-3 p-2 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
-                        <ExperimentOutlined className="text-blue-600 text-lg lg:text-xl" />
-                    </div>
-                    <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent hidden sm:inline font-light">
+                <Link
+                    to="/"
+                    aria-label="Bosh sahifa"
+                    className="flex items-center"
+                >
+                    <img
+                        src={logoImage}
+                        alt="Platforma logotipi"
+                        className="!w-8 !h-12 lg:!w-10 lg:!h-14"
+                    />
+                    <span className="text-xl lg:text-2xl font-semibold ml-4">
                         Loyiha
                     </span>
-                </div>
+                </Link>
             </div>
 
             {/* Right: Menu + Controls */}

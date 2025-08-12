@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
 import { Row, Col, Card, Switch, Tooltip as AntTooltip } from 'antd';
-import {
-    GlobalOutlined,
-    RiseOutlined,
-    ArrowDownOutlined,
-} from '@ant-design/icons';
+import { GlobalOutlined, RiseOutlined } from '@ant-design/icons';
 import {
     PieChart,
     Pie,
@@ -18,8 +14,10 @@ import {
     Tooltip,
 } from 'recharts';
 import InformationRegion from '../components/InformationRegion';
+import heroBg from '../assets/images/bgImage.webp';
 
 const HomePage: React.FC = () => {
+    // Sector (pie/bar) data
     const sectorData = [
         { name: 'Information Technology', value: 320, color: '#3B82F6' },
         { name: 'Biotechnology', value: 245, color: '#10B981' },
@@ -28,7 +26,7 @@ const HomePage: React.FC = () => {
         { name: 'Agriculture', value: 89, color: '#8B5CF6' },
         { name: 'Manufacturing', value: 67, color: '#06B6D4' },
     ];
-
+    // Region bar data
     const regionData = [
         { region: 'Tashkent', developments: 456 },
         { region: 'Samarkand', developments: 234 },
@@ -37,110 +35,88 @@ const HomePage: React.FC = () => {
         { region: 'Andijan', developments: 134 },
         { region: 'Namangan', developments: 98 },
     ];
-
-    // Chart view toggle (Pie / Bar)
+    // Chart type toggle
     const [sectorAsBar, setSectorAsBar] = useState(false);
-
-    const scrollToStats = () => {
-        document
-            .getElementById('stats')
-            ?.scrollIntoView({ behavior: 'smooth' });
-    };
 
     return (
         <div className="animate-fade-in">
-            {/* === Beautiful Hero Banner === */}
-            <div className="relative w-full min-h-screen overflow-hidden flex items-center justify-center">
-                {/* Background Banner Image */}
-                <div className="absolute inset-0 z-0">
-                    <div className="w-full h-full bg-gradient-to-br from-blue-900/80 via-indigo-900/80 to-purple-900/80"></div>
-                    {/* Background image with overlay */}
-                    <div
-                        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40"
-                        style={{
-                            backgroundImage: `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern><radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(59,130,246,0.3)"/><stop offset="100%" stop-color="transparent"/></radialGradient></defs><rect width="100%" height="100%" fill="url(%23grid)"/><circle cx="300" cy="200" r="100" fill="url(%23glow)"/><circle cx="900" cy="600" r="150" fill="url(%23glow)"/><circle cx="600" cy="400" r="80" fill="url(%23glow)"/></svg>')`,
-                        }}
-                    ></div>
-
-                    {/* Floating geometric elements */}
-                    <div className="absolute top-20 left-20 w-32 h-32 border-2 border-blue-300/30 rounded-lg rotate-45 animate-pulse"></div>
-                    <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-indigo-400/20 to-purple-400/20 rounded-full animate-bounce"></div>
-                    <div className="absolute bottom-1/4 left-1/3 w-20 h-20 border-2 border-purple-300/30 rounded-full animate-pulse animation-delay-1000"></div>
-                    <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-blue-400/20 to-cyan-400/20 rounded-lg rotate-12 animate-pulse animation-delay-3000"></div>
+            {/* === Gentle Hero Section === */}
+            <section
+                aria-labelledby="hero-heading"
+                className="relative w-full min-h-[85vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden"
+            >
+                {/* Background */}
+                <div className="absolute inset-0 z-10">
+                    <img
+                        src={heroBg}
+                        alt="Background"
+                        className="w-full h-full object-cover"
+                    />
                 </div>
 
-                {/* Content */}
-                <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
-                    <div className="backdrop-blur-md bg-white/90 border border-white/30 rounded-3xl p-8 md:p-16 shadow-2xl">
-                        {/* Main Heading */}
-                        <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold leading-tight tracking-tight mb-8">
-                            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
-                                Yangi ishlanmalar elektron bazasi axborot
-                                tizimi.
-                            </span>
-                            <span className="mt-4 block text-gray-700 font-light text-sm sm:text-lg lg:text-xl"></span>
+                {/* Content Wrapper */}
+                <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-10">
+                    <div className="mx-auto max-w-4xl text-center">
+                        <h1
+                            id="hero-heading"
+                            className="font-semibold tracking-tight mt-10 sm:mt-0 text-2xl sm:text-4xl lg:text-6xl text-white drop-shadow-[0_4px_10px_rgba(0,0,0,5)]"
+                        >
+                            Yangi ishlanmalar elektron bazasi <br /> axborot
+                            tizimi
                         </h1>
+                        <p className="mt-6 text-sm sm:text-xl text-slate-300 leading-relaxed font-medium shadow-md">
+                            Innovatsion g‘oyalar va ilmiy ishlanmalaringizni
+                            yagona platformada jamlang. Ariza topshiring,
+                            jarayonni kuzating va natijalarni tahlil qiling.
+                        </p>
 
-                        {/* Enhanced Stats Preview */}
-                        <div className="grid grid-cols-1 sm:grid-cols-5 gap-8">
+                        {/* Stats */}
+                        <div
+                            className="mt-14 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6"
+                            aria-label="platform statistics"
+                        >
                             {[
                                 {
-                                    label: 'Kelib tushgan arizalar soni',
+                                    label: 'Kelib tushgan arizalar',
                                     value: 1200,
-                                    suffix: '+',
                                 },
                                 {
-                                    label: 'Moderatsiya arizalar soni',
+                                    label: 'Moderatsiyadagi arizalar',
                                     value: 450,
-                                    suffix: '+',
                                 },
+                                { label: 'Qabul qilingan', value: 89 },
                                 {
-                                    label: 'qabul qilingan arizalar soni',
-                                    value: 89,
-                                    suffix: '+',
-                                },
-                                {
-                                    label: 'Sohalar kesimida  ishlanmalar soni',
+                                    label: 'Sohalar bo‘yicha ishlanmalar',
                                     value: 67,
-                                    suffix: '+',
                                 },
                                 {
-                                    label: 'Hududlar kesimida  ishlanmalar soni',
+                                    label: 'Hududlar bo‘yicha ishlanmalar',
                                     value: 67,
-                                    suffix: '+',
                                 },
-                            ].map((stat) => (
+                            ].map((s) => (
                                 <div
-                                    key={stat.label}
-                                    className="text-center p-6 rounded-2xl bg-white/80 border border-white/40 hover:bg-white hover:shadow-lg transition-all duration-300 hover:scale-105"
+                                    key={s.label}
+                                    className="group relative overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70 hover:ring-indigo-300 transition-all p-4 flex flex-col items-center shadow-sm hover:shadow-md"
                                 >
-                                    <div className="text-xl font-bold text-gray-800 mb-2">
-                                        {stat.value}
-                                        {stat.suffix}
+                                    <div className="text-2xl font-semibold text-slate-800 tracking-tight">
+                                        {s.value}
+                                        <span className="text-indigo-500">
+                                            +
+                                        </span>
                                     </div>
-                                    <div className="text-lg font-semibold text-gray-700 mb-2">
-                                        {stat.label}
+                                    <div className="mt-1 text-[11px] sm:text-xs font-medium text-slate-600 text-center leading-snug">
+                                        {s.label}
                                     </div>
+                                    <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-indigo-400 via-blue-400 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </div>
                             ))}
                         </div>
                     </div>
                 </div>
-
-                {/* Scroll Indicator */}
-                <button
-                    onClick={scrollToStats}
-                    className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white hover:text-blue-200 flex flex-col items-center gap-2 group transition-all duration-300"
-                >
-                    <span className="text-sm font-medium">Discover More</span>
-                    <div className="w-6 h-10 rounded-full border-2 border-white/50 group-hover:border-blue-300 flex items-start justify-center p-1 transition-colors duration-300">
-                        <ArrowDownOutlined className="text-white group-hover:text-blue-200 animate-bounce" />
-                    </div>
-                </button>
-            </div>
+            </section>
 
             {/* Main Content */}
-            <div className="container mx-auto px-6 py-20">
+            <div id="stats" className="container mx-auto px-6 py-20">
                 {/* Charts Section */}
                 <Row gutter={[32, 32]} className="mb-20">
                     <Col xs={24} lg={12}>
