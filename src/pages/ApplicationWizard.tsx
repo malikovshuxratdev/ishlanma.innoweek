@@ -7,9 +7,11 @@ import Step5FinancialPerformance from './application-steps/Step5FinancialPerform
 
 const ApplicationWizard: React.FC = () => {
     const [currentStep, setCurrentStep] = useState(1);
-    const [formData, setFormData] = useState<any>({});
+    // Use a broad index signature for now; replace with concrete fields as the form schema stabilizes
+    type ApplicationFormData = Record<string, unknown>;
+    const [formData, setFormData] = useState<ApplicationFormData>({});
 
-    const handleNext = (stepData: any) => {
+    const handleNext = (stepData: ApplicationFormData) => {
         setFormData((prev) => ({ ...prev, ...stepData }));
         setCurrentStep((prev) => prev + 1);
     };

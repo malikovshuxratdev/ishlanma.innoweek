@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     Form,
     Input,
@@ -11,6 +11,11 @@ import {
     Upload,
     InputNumber,
     Space,
+    Steps,
+    Tooltip,
+    Divider,
+    Progress,
+    message,
 } from 'antd';
 import {
     ArrowLeftOutlined,
@@ -19,6 +24,7 @@ import {
     UploadOutlined,
     PlusOutlined,
     MinusCircleOutlined,
+    InfoCircleOutlined,
 } from '@ant-design/icons';
 
 const { Title } = Typography;
@@ -32,12 +38,16 @@ interface Step4Props {
     initialValues?: any;
 }
 
+const MAX_COMMERCIALIZATION_WORDS = 50;
+const MAX_SOCIAL_IMPACT_WORDS = 120; // allow longer narrative
+
 const Step4AdditionalInfo: React.FC<Step4Props> = ({
     onNext,
     onBack,
     initialValues,
 }) => {
     const [form] = Form.useForm();
+    const [submitting, setSubmitting] = useState(false);
 
     const industries = [
         'Agriculture',
@@ -86,405 +96,831 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
         { value: 'production_expansion', label: 'Production Expansion' },
     ];
 
-    const handleNext = () => {
-        form.validateFields().then((values) => {
+    useEffect(() => {
+        if (initialValues) form.setFieldsValue(initialValues);
+    }, [initialValues, form]);
+
+    const commercializationText: string =
+        Form.useWatch('commercializationProject', form) || '';
+    const socialImpactText: string = Form.useWatch('socialImpact', form) || '';
+
+    const commercializationWordCount = useMemo(
+        () => commercializationText.trim().split(/\s+/).filter(Boolean).length,
+        [commercializationText]
+    );
+    const socialImpactWordCount = useMemo(
+        () => socialImpactText.trim().split(/\s+/).filter(Boolean).length,
+        [socialImpactText]
+    );
+
+    const commercializationPercent = Math.min(
+        100,
+        Math.round(
+            (commercializationWordCount / MAX_COMMERCIALIZATION_WORDS) * 100
+        )
+    );
+    const socialImpactPercent = Math.min(
+        100,
+        Math.round((socialImpactWordCount / MAX_SOCIAL_IMPACT_WORDS) * 100)
+    );
+
+    const normFile = (e: any) => {
+        if (Array.isArray(e)) return e;
+        return e?.fileList?.slice(0, 8); // cap at 8 files for images
+    };
+
+    const beforeImageUpload = (file: File) => {
+        const isImage = file.type.startsWith('image/');
+        if (!isImage) message.error(`${file.name} is not an image`);
+        const isLt5M = file.size / 1024 / 1024 < 5;
+        if (!isLt5M) message.error(`${file.name} > 5MB`);
+        return false; // prevent auto upload
+    };
+
+    const beforePdfUpload = (file: File) => {
+        const isPdf = file.type === 'application/pdf';
+        if (!isPdf) message.error('Only PDF files allowed');
+        const isLt10M = file.size / 1024 / 1024 < 10;
+        if (!isLt10M) message.error(`${file.name} > 10MB`);
+        return false;
+    };
+
+    const handleNext = async () => {
+        try {
+            setSubmitting(true);
+            const values = await form.validateFields();
             onNext(values);
-        });
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
-        <div className="min-h-screen bg-background flex items-center justify-center p-4">
-            <Card className="w-full max-w-4xl">
-                <div className="text-center mb-8">
-                    <Title level={2}>Step 4 of 5: Additional Information</Title>
-                </div>
-
-                <Form
-                    form={form}
-                    layout="vertical"
-                    initialValues={initialValues}
-                    className="space-y-6"
-                >
-                    <Row gutter={[16, 16]}>
-                        <Col span={24}>
-                            <Form.Item
-                                name="commercializationProject"
-                                label="Project for Commercialization Preparation"
-                            >
-                                <TextArea
-                                    rows={3}
-                                    placeholder="Describe commercialization project (max 50 words)"
-                                    maxLength={350}
-                                    showCount
-                                />
-                            </Form.Item>
-                        </Col>
-
-                        <Col xs={24}>
-                            <Form.Item
-                                name="innovationPhotos"
-                                label="Innovation Photo(s) *"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message:
-                                            'Please upload at least one innovation photo',
-                                    },
-                                ]}
-                            >
-                                <Dragger
-                                    name="files"
-                                    multiple={true}
-                                    accept="image/*"
-                                    beforeUpload={() => false}
-                                >
-                                    <p className="ant-upload-drag-icon">
-                                        <InboxOutlined />
-                                    </p>
-                                    <p className="ant-upload-text">
-                                        Click or drag images to upload
-                                    </p>
-                                    <p className="ant-upload-hint">
-                                        Upload multiple photos. You can mark one
-                                        as main image.
-                                    </p>
-                                </Dragger>
-                            </Form.Item>
-                        </Col>
-
-                        <Col xs={24} md={12}>
-                            <Form.Item
-                                name="industryBelonging"
-                                label="Industry Belonging"
-                            >
-                                <Select
-                                    mode="multiple"
-                                    placeholder="Select industries"
-                                    allowClear
-                                >
-                                    {industries.map((industry) => (
-                                        <Option key={industry} value={industry}>
-                                            {industry}
-                                        </Option>
-                                    ))}
-                                </Select>
-                            </Form.Item>
-                        </Col>
-
-                        <Col xs={24} md={12}>
-                            <Form.Item
-                                name="maturityLevel"
-                                label="Innovation Maturity Level *"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: 'Please select maturity level',
-                                    },
-                                ]}
-                            >
-                                <Select placeholder="Select maturity level">
-                                    {maturityLevels.map((level) => (
-                                        <Option
-                                            key={level.value}
-                                            value={level.value}
-                                        >
-                                            {level.label}
-                                        </Option>
-                                    ))}
-                                </Select>
-                            </Form.Item>
-                        </Col>
-
-                        <Col span={24}>
-                            <Form.Item
-                                name="bankInformation"
-                                label="Bank Information"
-                            >
-                                <Input placeholder="Enter bank information" />
-                            </Form.Item>
-                        </Col>
-
-                        <Col span={24}>
-                            <Form.Item label="Export Figures">
-                                <Form.List name="exportFigures">
-                                    {(fields, { add, remove }) => (
-                                        <>
-                                            {fields.map(
-                                                ({
-                                                    key,
-                                                    name,
-                                                    ...restField
-                                                }) => (
-                                                    <Space
-                                                        key={key}
-                                                        style={{
-                                                            display: 'flex',
-                                                            marginBottom: 8,
-                                                        }}
-                                                        align="baseline"
-                                                    >
-                                                        <Form.Item
-                                                            {...restField}
-                                                            name={[
-                                                                name,
-                                                                'year',
-                                                            ]}
-                                                            style={{
-                                                                width: 100,
-                                                            }}
-                                                        >
-                                                            <InputNumber
-                                                                placeholder="Year"
-                                                                min={2000}
-                                                                max={2030}
-                                                            />
-                                                        </Form.Item>
-                                                        <Form.Item
-                                                            {...restField}
-                                                            name={[
-                                                                name,
-                                                                'amount',
-                                                            ]}
-                                                            style={{ flex: 1 }}
-                                                        >
-                                                            <InputNumber
-                                                                placeholder="Amount in UZS"
-                                                                className="w-full"
-                                                                formatter={(
-                                                                    value
-                                                                ) =>
-                                                                    `${value}`.replace(
-                                                                        /\B(?=(\d{3})+(?!\d))/g,
-                                                                        ','
-                                                                    )
-                                                                }
-                                                                parser={(
-                                                                    value
-                                                                ) =>
-                                                                    value!.replace(
-                                                                        /\$\s?|(,*)/g,
-                                                                        ''
-                                                                    )
-                                                                }
-                                                            />
-                                                        </Form.Item>
-                                                        <MinusCircleOutlined
-                                                            onClick={() =>
-                                                                remove(name)
-                                                            }
-                                                        />
-                                                    </Space>
-                                                )
-                                            )}
-                                            <Form.Item>
-                                                <Button
-                                                    type="dashed"
-                                                    onClick={() => add()}
-                                                    block
-                                                    icon={<PlusOutlined />}
-                                                >
-                                                    Add Export Figure
-                                                </Button>
-                                            </Form.Item>
-                                        </>
-                                    )}
-                                </Form.List>
-                            </Form.Item>
-                        </Col>
-
-                        <Col xs={24} md={12}>
-                            <Form.Item
-                                name="customsDocumentation"
-                                label="Customs Documentation (if available)"
-                            >
-                                <Upload
-                                    name="customsDocuments"
-                                    accept=".pdf"
-                                    multiple
-                                    beforeUpload={() => false}
-                                >
-                                    <Button icon={<UploadOutlined />}>
-                                        Upload PDF Documents
-                                    </Button>
-                                </Upload>
-                            </Form.Item>
-                        </Col>
-
-                        <Col xs={24} md={12}>
-                            <Form.Item
-                                name="buyerOrganizations"
-                                label="Buyer Organizations"
-                            >
-                                <Input
-                                    placeholder="Auto-fetched via TIN"
-                                    disabled
-                                />
-                            </Form.Item>
-                        </Col>
-
-                        <Col span={24}>
-                            <Form.Item label="Sales Contracts">
-                                <Row gutter={[16, 16]}>
-                                    <Col xs={24} sm={12} md={8}>
-                                        <Form.Item
-                                            name={['salesContracts', 'count']}
-                                            label="Contract Count"
-                                        >
-                                            <InputNumber
-                                                className="w-full"
-                                                placeholder="Number of contracts"
-                                            />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col xs={24} sm={12} md={8}>
-                                        <Form.Item
-                                            name={['salesContracts', 'sum']}
-                                            label="Contract Sum"
-                                        >
-                                            <InputNumber
-                                                className="w-full"
-                                                placeholder="Total sum in UZS"
-                                                formatter={(value) =>
-                                                    `${value}`.replace(
-                                                        /\B(?=(\d{3})+(?!\d))/g,
-                                                        ','
-                                                    )
-                                                }
-                                                parser={(value) =>
-                                                    value!.replace(
-                                                        /\$\s?|(,*)/g,
-                                                        ''
-                                                    )
-                                                }
-                                            />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col xs={24} md={8}>
-                                        <Form.Item
-                                            name={[
-                                                'salesContracts',
-                                                'documents',
-                                            ]}
-                                            label="Supporting Documents"
-                                        >
-                                            <Upload
-                                                name="contractDocuments"
-                                                accept=".pdf"
-                                                multiple
-                                                beforeUpload={() => false}
-                                            >
-                                                <Button
-                                                    icon={<UploadOutlined />}
-                                                >
-                                                    Upload PDFs
-                                                </Button>
-                                            </Upload>
-                                        </Form.Item>
-                                    </Col>
-                                </Row>
-                            </Form.Item>
-                        </Col>
-
-                        <Col xs={24} md={12}>
-                            <Form.Item
-                                name="productionLocationDocument"
-                                label="Production Location Document *"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message:
-                                            'Please upload production location document',
-                                    },
-                                ]}
-                            >
-                                <Upload
-                                    name="locationDocument"
-                                    accept=".pdf"
-                                    beforeUpload={() => false}
-                                >
-                                    <Button icon={<UploadOutlined />}>
-                                        Upload Kadastr/Lease Agreement
-                                    </Button>
-                                </Upload>
-                            </Form.Item>
-                        </Col>
-
-                        <Col xs={24} md={12}>
-                            <Form.Item
-                                name="manufacturingProcessPhotos"
-                                label="Manufacturing Process Photos *"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message:
-                                            'Please upload manufacturing process photos',
-                                    },
-                                ]}
-                            >
-                                <Upload
-                                    name="processPhotos"
-                                    accept="image/*"
-                                    multiple
-                                    beforeUpload={() => false}
-                                >
-                                    <Button icon={<UploadOutlined />}>
-                                        Upload Images
-                                    </Button>
-                                </Upload>
-                            </Form.Item>
-                        </Col>
-
-                        <Col span={24}>
-                            <Form.Item
-                                name="developmentChallenges"
-                                label="Challenges Faced During Development"
-                            >
-                                <TextArea
-                                    rows={4}
-                                    placeholder="Describe any challenges faced during development"
-                                />
-                            </Form.Item>
-                        </Col>
-
-                        <Col span={24}>
-                            <Form.Item
-                                name="socialImpact"
-                                label="Social Impact *"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message:
-                                            'Please describe the social impact with measurable metrics',
-                                    },
-                                ]}
-                            >
-                                <TextArea
-                                    rows={4}
-                                    placeholder="Describe social impact with measurable metrics - why it matters and what numbers back it up"
-                                />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-
-                    <div className="flex justify-between pt-6">
-                        <Button
-                            onClick={onBack}
-                            icon={<ArrowLeftOutlined />}
-                            size="large"
-                        >
-                            Back
-                        </Button>
-                        <Button
-                            type="primary"
-                            onClick={handleNext}
-                            icon={<ArrowRightOutlined />}
-                            iconPosition="end"
-                            size="large"
-                        >
-                            Next
-                        </Button>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 animate-fade-in">
+            <Card className="w-full shadow-sm border border-gray-100/60 backdrop-blur-sm bg-white/70">
+                <Space direction="vertical" className="w-full">
+                    <div className="flex flex-col gap-2 text-center">
+                        <Title level={2} className="!mb-0">
+                            Additional Information
+                        </Title>
+                        <span className="text-gray-500 text-sm">
+                            Provide supporting market, operational and impact
+                            data for evaluation.
+                        </span>
                     </div>
-                </Form>
+                    <Steps
+                        responsive
+                        size="small"
+                        current={3}
+                        items={[
+                            { title: 'Details' },
+                            { title: 'Intellectual Property' },
+                            { title: 'Background' },
+                            { title: 'Additional Info' },
+                            { title: 'Financials' },
+                        ]}
+                    />
+                    <Divider className="!my-4" />
+
+                    <Form
+                        form={form}
+                        layout="vertical"
+                        onFinish={handleNext}
+                        scrollToFirstError
+                    >
+                        <Row gutter={[24, 8]}>
+                            <Col span={24}>
+                                <Form.Item
+                                    name="commercializationProject"
+                                    label={
+                                        <span className="flex items-center gap-1">
+                                            Commercialization Preparation
+                                            Project
+                                            <Tooltip
+                                                title={`Max ${MAX_COMMERCIALIZATION_WORDS} words. Outline actions to reach market readiness.`}
+                                            >
+                                                <InfoCircleOutlined className="text-gray-400" />
+                                            </Tooltip>
+                                        </span>
+                                    }
+                                    extra={
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-gray-500">
+                                                Key milestones: validation,
+                                                certification, scaling,
+                                                partnerships.
+                                            </span>
+                                            <div className="w-40">
+                                                <Progress
+                                                    size="small"
+                                                    percent={
+                                                        commercializationPercent
+                                                    }
+                                                    showInfo={false}
+                                                    status={
+                                                        commercializationWordCount >
+                                                        MAX_COMMERCIALIZATION_WORDS
+                                                            ? 'exception'
+                                                            : 'active'
+                                                    }
+                                                />
+                                                <span
+                                                    className={`block text-right text-[10px] ${
+                                                        commercializationWordCount >
+                                                        MAX_COMMERCIALIZATION_WORDS
+                                                            ? 'text-red-500'
+                                                            : 'text-gray-400'
+                                                    }`}
+                                                >
+                                                    {commercializationWordCount}
+                                                    /
+                                                    {
+                                                        MAX_COMMERCIALIZATION_WORDS
+                                                    }{' '}
+                                                    words
+                                                </span>
+                                            </div>
+                                        </div>
+                                    }
+                                    rules={[
+                                        {
+                                            validator: (_, value) => {
+                                                if (!value)
+                                                    return Promise.resolve();
+                                                const words = value
+                                                    .trim()
+                                                    .split(/\s+/)
+                                                    .filter(Boolean);
+                                                if (
+                                                    words.length >
+                                                    MAX_COMMERCIALIZATION_WORDS
+                                                )
+                                                    return Promise.reject(
+                                                        new Error(
+                                                            `Limit exceeded: ${words.length}/${MAX_COMMERCIALIZATION_WORDS} words`
+                                                        )
+                                                    );
+                                                return Promise.resolve();
+                                            },
+                                        },
+                                    ]}
+                                >
+                                    <TextArea
+                                        rows={4}
+                                        placeholder="Describe planned steps (market validation, pilot deployment, regulatory, go-to-market). Max 50 words."
+                                        allowClear
+                                    />
+                                </Form.Item>
+                            </Col>
+
+                            <Col xs={24}>
+                                <Form.Item
+                                    name="innovationPhotos"
+                                    label={
+                                        <span className="flex items-center gap-1">
+                                            Innovation Photo(s){' '}
+                                            <span className="text-red-500">
+                                                *
+                                            </span>
+                                            <Tooltip title="High quality, clear images (max 8). First image treated as main.">
+                                                <InfoCircleOutlined className="text-gray-400" />
+                                            </Tooltip>
+                                        </span>
+                                    }
+                                    valuePropName="fileList"
+                                    getValueFromEvent={normFile}
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message:
+                                                'Upload at least one image',
+                                        },
+                                    ]}
+                                    extra={
+                                        <span className="text-xs text-gray-500">
+                                            Accepted: JPG/PNG/WebP &lt;5MB each.
+                                        </span>
+                                    }
+                                >
+                                    <Dragger
+                                        multiple
+                                        accept="image/*"
+                                        beforeUpload={beforeImageUpload}
+                                        maxCount={8}
+                                    >
+                                        <p className="ant-upload-drag-icon">
+                                            <InboxOutlined />
+                                        </p>
+                                        <p className="ant-upload-text">
+                                            Click or drag images to upload
+                                        </p>
+                                        <p className="ant-upload-hint">
+                                            You can reorder after saving (future
+                                            enhancement).
+                                        </p>
+                                    </Dragger>
+                                </Form.Item>
+                            </Col>
+
+                            <Col xs={24} md={12}>
+                                <Form.Item
+                                    name="industryBelonging"
+                                    label={
+                                        <span>
+                                            Industry Belonging{' '}
+                                            <Tooltip title="Select all relevant sectors.">
+                                                <InfoCircleOutlined className="text-gray-400" />
+                                            </Tooltip>
+                                        </span>
+                                    }
+                                    extra={
+                                        <span className="text-xs text-gray-500">
+                                            Choose primary and adjacent
+                                            verticals.
+                                        </span>
+                                    }
+                                >
+                                    <Select
+                                        mode="multiple"
+                                        placeholder="Select industries"
+                                        allowClear
+                                        showSearch
+                                        optionFilterProp="children"
+                                        maxTagCount="responsive"
+                                    >
+                                        {industries.map((industry) => (
+                                            <Option
+                                                key={industry}
+                                                value={industry}
+                                            >
+                                                {industry}
+                                            </Option>
+                                        ))}
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+
+                            <Col xs={24} md={12}>
+                                <Form.Item
+                                    name="maturityLevel"
+                                    label={
+                                        <span>
+                                            Innovation Maturity Level{' '}
+                                            <span className="text-red-500">
+                                                *
+                                            </span>
+                                        </span>
+                                    }
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message: 'Select maturity level',
+                                        },
+                                    ]}
+                                    extra={
+                                        <span className="text-xs text-gray-500">
+                                            Reflect current technical / market
+                                            readiness.
+                                        </span>
+                                    }
+                                >
+                                    <Select
+                                        placeholder="Select maturity level"
+                                        showSearch
+                                        optionFilterProp="children"
+                                    >
+                                        {maturityLevels.map((level) => (
+                                            <Option
+                                                key={level.value}
+                                                value={level.value}
+                                            >
+                                                {level.label}
+                                            </Option>
+                                        ))}
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+
+                            <Col span={24}>
+                                <Form.Item
+                                    name="bankInformation"
+                                    label={
+                                        <span>
+                                            Bank Information{' '}
+                                            <Tooltip title="Primary servicing bank & branch.">
+                                                <InfoCircleOutlined className="text-gray-400" />
+                                            </Tooltip>
+                                        </span>
+                                    }
+                                    rules={[
+                                        {
+                                            max: 120,
+                                            message: 'Max 120 characters',
+                                        },
+                                    ]}
+                                >
+                                    <Input
+                                        placeholder="e.g. AgroBank – Tashkent Branch"
+                                        allowClear
+                                    />
+                                </Form.Item>
+                            </Col>
+
+                            <Col span={24}>
+                                <Form.Item
+                                    label={
+                                        <span>
+                                            Export Figures{' '}
+                                            <Tooltip title="Add yearly export revenue (optional).">
+                                                <InfoCircleOutlined className="text-gray-400" />
+                                            </Tooltip>
+                                        </span>
+                                    }
+                                >
+                                    <Form.List name="exportFigures">
+                                        {(fields, { add, remove }) => (
+                                            <>
+                                                {fields.map(
+                                                    ({
+                                                        key,
+                                                        name,
+                                                        ...restField
+                                                    }) => (
+                                                        <Space
+                                                            key={key}
+                                                            className="flex w-full mb-2"
+                                                            align="start"
+                                                        >
+                                                            <Form.Item
+                                                                {...restField}
+                                                                name={[
+                                                                    name,
+                                                                    'year',
+                                                                ]}
+                                                                rules={[
+                                                                    {
+                                                                        required:
+                                                                            true,
+                                                                        message:
+                                                                            'Year',
+                                                                    },
+                                                                ]}
+                                                                className="!mb-0"
+                                                            >
+                                                                <InputNumber
+                                                                    placeholder="Year"
+                                                                    min={2000}
+                                                                    max={2035}
+                                                                />
+                                                            </Form.Item>
+                                                            <Form.Item
+                                                                {...restField}
+                                                                name={[
+                                                                    name,
+                                                                    'amount',
+                                                                ]}
+                                                                rules={[
+                                                                    {
+                                                                        required:
+                                                                            true,
+                                                                        message:
+                                                                            'Amount',
+                                                                    },
+                                                                ]}
+                                                                className="!mb-0 flex-1"
+                                                            >
+                                                                <InputNumber
+                                                                    placeholder="Amount in UZS"
+                                                                    className="w-full"
+                                                                    formatter={(
+                                                                        value
+                                                                    ) =>
+                                                                        `${value}`.replace(
+                                                                            /\B(?=(\d{3})+(?!\d))/g,
+                                                                            ','
+                                                                        )
+                                                                    }
+                                                                    parser={(
+                                                                        value
+                                                                    ) =>
+                                                                        value!.replace(
+                                                                            /\$\s?|(,*)/g,
+                                                                            ''
+                                                                        )
+                                                                    }
+                                                                />
+                                                            </Form.Item>
+                                                            <Button
+                                                                type="text"
+                                                                danger
+                                                                onClick={() =>
+                                                                    remove(name)
+                                                                }
+                                                                icon={
+                                                                    <MinusCircleOutlined />
+                                                                }
+                                                            />
+                                                        </Space>
+                                                    )
+                                                )}
+                                                <Form.Item className="!mb-2">
+                                                    <Button
+                                                        type="dashed"
+                                                        onClick={() => add()}
+                                                        block
+                                                        icon={<PlusOutlined />}
+                                                    >
+                                                        Add Export Figure
+                                                    </Button>
+                                                </Form.Item>
+                                                <span className="text-xs text-gray-400">
+                                                    Leave empty if no exports
+                                                    yet.
+                                                </span>
+                                            </>
+                                        )}
+                                    </Form.List>
+                                </Form.Item>
+                            </Col>
+
+                            <Col xs={24} md={12}>
+                                <Form.Item
+                                    name="customsDocumentation"
+                                    label={
+                                        <span>
+                                            Customs Documentation (if available){' '}
+                                            <Tooltip title="Attach export-related customs forms.">
+                                                <InfoCircleOutlined className="text-gray-400" />
+                                            </Tooltip>
+                                        </span>
+                                    }
+                                    valuePropName="fileList"
+                                    getValueFromEvent={normFile}
+                                    extra={
+                                        <span className="text-xs text-gray-500">
+                                            PDF &lt;10MB each.
+                                        </span>
+                                    }
+                                >
+                                    <Upload
+                                        name="customsDocuments"
+                                        accept="application/pdf"
+                                        multiple
+                                        beforeUpload={beforePdfUpload}
+                                    >
+                                        <Button icon={<UploadOutlined />}>
+                                            Upload PDF Documents
+                                        </Button>
+                                    </Upload>
+                                </Form.Item>
+                            </Col>
+
+                            <Col xs={24} md={12}>
+                                <Form.Item
+                                    name="buyerOrganizations"
+                                    label={
+                                        <span>
+                                            Buyer Organizations{' '}
+                                            <Tooltip title="Auto-fetched (editable soon).">
+                                                <InfoCircleOutlined className="text-gray-400" />
+                                            </Tooltip>
+                                        </span>
+                                    }
+                                    extra={
+                                        <span className="text-xs text-gray-500">
+                                            Derived from transaction registry.
+                                        </span>
+                                    }
+                                >
+                                    <Input
+                                        placeholder="Auto-fetched via TIN"
+                                        disabled
+                                    />
+                                </Form.Item>
+                            </Col>
+
+                            <Col span={24}>
+                                <Form.Item
+                                    label={
+                                        <span>
+                                            Sales Contracts{' '}
+                                            <Tooltip title="Optional aggregate info for existing commercial agreements.">
+                                                <InfoCircleOutlined className="text-gray-400" />
+                                            </Tooltip>
+                                        </span>
+                                    }
+                                >
+                                    <Row gutter={[16, 16]}>
+                                        <Col xs={24} sm={12} md={8}>
+                                            <Form.Item
+                                                name={[
+                                                    'salesContracts',
+                                                    'count',
+                                                ]}
+                                                label="Contract Count"
+                                                rules={[
+                                                    {
+                                                        type: 'number',
+                                                        min: 0,
+                                                        message: '>= 0',
+                                                    },
+                                                ]}
+                                            >
+                                                {' '}
+                                                <InputNumber
+                                                    className="w-full"
+                                                    placeholder="Number"
+                                                />{' '}
+                                            </Form.Item>
+                                        </Col>
+                                        <Col xs={24} sm={12} md={8}>
+                                            <Form.Item
+                                                name={['salesContracts', 'sum']}
+                                                label="Contract Sum"
+                                                rules={[
+                                                    {
+                                                        type: 'number',
+                                                        min: 0,
+                                                        message: '>= 0',
+                                                    },
+                                                ]}
+                                            >
+                                                {' '}
+                                                <InputNumber
+                                                    className="w-full"
+                                                    placeholder="Total UZS"
+                                                    formatter={(value) =>
+                                                        `${value}`.replace(
+                                                            /\B(?=(\d{3})+(?!\d))/g,
+                                                            ','
+                                                        )
+                                                    }
+                                                    parser={(value) =>
+                                                        value!.replace(
+                                                            /\$\s?|(,*)/g,
+                                                            ''
+                                                        )
+                                                    }
+                                                />{' '}
+                                            </Form.Item>
+                                        </Col>
+                                        <Col xs={24} md={8}>
+                                            <Form.Item
+                                                name={[
+                                                    'salesContracts',
+                                                    'documents',
+                                                ]}
+                                                label="Supporting Documents"
+                                                valuePropName="fileList"
+                                                getValueFromEvent={normFile}
+                                                extra={
+                                                    <span className="text-[10px] text-gray-400">
+                                                        PDF evidence (optional)
+                                                    </span>
+                                                }
+                                            >
+                                                <Upload
+                                                    name="contractDocuments"
+                                                    accept="application/pdf"
+                                                    multiple
+                                                    beforeUpload={
+                                                        beforePdfUpload
+                                                    }
+                                                >
+                                                    <Button
+                                                        icon={
+                                                            <UploadOutlined />
+                                                        }
+                                                    >
+                                                        Upload PDFs
+                                                    </Button>
+                                                </Upload>
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+                                </Form.Item>
+                            </Col>
+
+                            <Col xs={24} md={12}>
+                                <Form.Item
+                                    name="productionLocationDocument"
+                                    label={
+                                        <span>
+                                            Production Location Document{' '}
+                                            <span className="text-red-500">
+                                                *
+                                            </span>
+                                        </span>
+                                    }
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message:
+                                                'Upload production location document',
+                                        },
+                                    ]}
+                                    valuePropName="fileList"
+                                    getValueFromEvent={normFile}
+                                    extra={
+                                        <span className="text-xs text-gray-500">
+                                            Kadastr / lease agreement (PDF
+                                            &lt;10MB).
+                                        </span>
+                                    }
+                                >
+                                    <Upload
+                                        name="locationDocument"
+                                        accept="application/pdf"
+                                        beforeUpload={beforePdfUpload}
+                                    >
+                                        <Button icon={<UploadOutlined />}>
+                                            Upload Kadastr / Lease Agreement
+                                        </Button>
+                                    </Upload>
+                                </Form.Item>
+                            </Col>
+
+                            <Col xs={24} md={12}>
+                                <Form.Item
+                                    name="manufacturingProcessPhotos"
+                                    label={
+                                        <span>
+                                            Manufacturing Process Photos{' '}
+                                            <span className="text-red-500">
+                                                *
+                                            </span>
+                                        </span>
+                                    }
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message:
+                                                'Upload manufacturing process photos',
+                                        },
+                                    ]}
+                                    valuePropName="fileList"
+                                    getValueFromEvent={normFile}
+                                    extra={
+                                        <span className="text-xs text-gray-500">
+                                            Show key production stages (max 8,
+                                            &lt;5MB each).
+                                        </span>
+                                    }
+                                >
+                                    <Upload
+                                        name="processPhotos"
+                                        accept="image/*"
+                                        multiple
+                                        beforeUpload={beforeImageUpload}
+                                        maxCount={8}
+                                    >
+                                        <Button icon={<UploadOutlined />}>
+                                            Upload Images
+                                        </Button>
+                                    </Upload>
+                                </Form.Item>
+                            </Col>
+
+                            <Col span={24}>
+                                <Form.Item
+                                    name="developmentChallenges"
+                                    label={
+                                        <span>
+                                            Development Challenges{' '}
+                                            <Tooltip title="Optional obstacles: funding, regulation, tech hurdles.">
+                                                <InfoCircleOutlined className="text-gray-400" />
+                                            </Tooltip>
+                                        </span>
+                                    }
+                                    rules={[
+                                        {
+                                            max: 800,
+                                            message: 'Max 800 characters',
+                                        },
+                                    ]}
+                                >
+                                    <TextArea
+                                        rows={4}
+                                        placeholder="Key obstacles and how you addressed them (optional)."
+                                        allowClear
+                                    />
+                                </Form.Item>
+                            </Col>
+
+                            <Col span={24}>
+                                <Form.Item
+                                    name="socialImpact"
+                                    label={
+                                        <span>
+                                            Social Impact{' '}
+                                            <span className="text-red-500">
+                                                *
+                                            </span>
+                                        </span>
+                                    }
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message:
+                                                'Describe social impact with measurable metrics',
+                                        },
+                                        {
+                                            validator: (_, value) => {
+                                                if (!value)
+                                                    return Promise.resolve();
+                                                const words = value
+                                                    .trim()
+                                                    .split(/\s+/)
+                                                    .filter(Boolean);
+                                                if (
+                                                    words.length >
+                                                    MAX_SOCIAL_IMPACT_WORDS
+                                                )
+                                                    return Promise.reject(
+                                                        new Error(
+                                                            `Limit exceeded: ${words.length}/${MAX_SOCIAL_IMPACT_WORDS} words`
+                                                        )
+                                                    );
+                                                return Promise.resolve();
+                                            },
+                                        },
+                                    ]}
+                                    extra={
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-gray-500">
+                                                Include metrics: beneficiaries
+                                                reached, CO₂ reduced, jobs
+                                                created, etc.
+                                            </span>
+                                            <div className="w-44">
+                                                <Progress
+                                                    size="small"
+                                                    percent={
+                                                        socialImpactPercent
+                                                    }
+                                                    showInfo={false}
+                                                    status={
+                                                        socialImpactWordCount >
+                                                        MAX_SOCIAL_IMPACT_WORDS
+                                                            ? 'exception'
+                                                            : 'active'
+                                                    }
+                                                />
+                                                <span
+                                                    className={`block text-right text-[10px] ${
+                                                        socialImpactWordCount >
+                                                        MAX_SOCIAL_IMPACT_WORDS
+                                                            ? 'text-red-500'
+                                                            : 'text-gray-400'
+                                                    }`}
+                                                >
+                                                    {socialImpactWordCount}/
+                                                    {MAX_SOCIAL_IMPACT_WORDS}{' '}
+                                                    words
+                                                </span>
+                                            </div>
+                                        </div>
+                                    }
+                                >
+                                    <TextArea
+                                        rows={5}
+                                        placeholder="Explain measurable social/environmental outcomes and evidence (max 120 words)."
+                                        allowClear
+                                    />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Divider className="!my-6" />
+                        <div className="flex items-center justify-between flex-wrap gap-4">
+                            <Button
+                                onClick={onBack}
+                                icon={<ArrowLeftOutlined />}
+                                size="large"
+                            >
+                                Back
+                            </Button>
+                            <span className="text-xs text-gray-400">
+                                Step 4 of 5
+                            </span>
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                icon={<ArrowRightOutlined />}
+                                iconPosition="end"
+                                size="large"
+                                loading={submitting}
+                                disabled={
+                                    commercializationWordCount >
+                                        MAX_COMMERCIALIZATION_WORDS ||
+                                    socialImpactWordCount >
+                                        MAX_SOCIAL_IMPACT_WORDS
+                                }
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    </Form>
+                </Space>
             </Card>
         </div>
     );
