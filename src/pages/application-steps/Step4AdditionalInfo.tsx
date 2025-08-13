@@ -6,7 +6,6 @@ import {
     Button,
     Row,
     Col,
-    Typography,
     Select,
     Upload,
     InputNumber,
@@ -20,17 +19,16 @@ import {
 import {
     ArrowLeftOutlined,
     ArrowRightOutlined,
-    InboxOutlined,
     UploadOutlined,
     PlusOutlined,
     MinusCircleOutlined,
     InfoCircleOutlined,
 } from '@ant-design/icons';
+import ImageCropUpload from '../../components/ImageCropUpload';
 
-const { Title } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
-const { Dragger } = Upload;
+// Removed Dragger usage after switching to ImageCropUpload
 
 interface Step4Props {
     onNext: (values: any) => void;
@@ -113,12 +111,6 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
         [socialImpactText]
     );
 
-    const commercializationPercent = Math.min(
-        100,
-        Math.round(
-            (commercializationWordCount / MAX_COMMERCIALIZATION_WORDS) * 100
-        )
-    );
     const socialImpactPercent = Math.min(
         100,
         Math.round((socialImpactWordCount / MAX_SOCIAL_IMPACT_WORDS) * 100)
@@ -159,25 +151,16 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 animate-fade-in">
             <Card className="w-full shadow-sm border border-gray-100/60 backdrop-blur-sm bg-white/70">
                 <Space direction="vertical" className="w-full">
-                    <div className="flex flex-col gap-2 text-center">
-                        <Title level={2} className="!mb-0">
-                            Additional Information
-                        </Title>
-                        <span className="text-gray-500 text-sm">
-                            Provide supporting market, operational and impact
-                            data for evaluation.
-                        </span>
-                    </div>
                     <Steps
                         responsive
                         size="small"
                         current={3}
                         items={[
-                            { title: 'Details' },
-                            { title: 'Intellectual Property' },
-                            { title: 'Background' },
-                            { title: 'Additional Info' },
-                            { title: 'Financials' },
+                            { title: "Ma'lumotlar" },
+                            { title: 'Intellektual mulk' },
+                            { title: 'Ilmiy asos' },
+                            { title: "Qo'shimcha ma'lumot" },
+                            { title: 'Moliyaviy' },
                         ]}
                     />
                     <Divider className="!my-4" />
@@ -194,81 +177,18 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     name="commercializationProject"
                                     label={
                                         <span className="flex items-center gap-1">
-                                            Commercialization Preparation
-                                            Project
-                                            <Tooltip
-                                                title={`Max ${MAX_COMMERCIALIZATION_WORDS} words. Outline actions to reach market readiness.`}
-                                            >
-                                                <InfoCircleOutlined className="text-gray-400" />
-                                            </Tooltip>
+                                            Yangi ishlanmani tijoratlashtirishga
+                                            tayyorlash bo'yicha amalga
+                                            oshirilgan loyiha nomi
                                         </span>
                                     }
-                                    extra={
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs text-gray-500">
-                                                Key milestones: validation,
-                                                certification, scaling,
-                                                partnerships.
-                                            </span>
-                                            <div className="w-40">
-                                                <Progress
-                                                    size="small"
-                                                    percent={
-                                                        commercializationPercent
-                                                    }
-                                                    showInfo={false}
-                                                    status={
-                                                        commercializationWordCount >
-                                                        MAX_COMMERCIALIZATION_WORDS
-                                                            ? 'exception'
-                                                            : 'active'
-                                                    }
-                                                />
-                                                <span
-                                                    className={`block text-right text-[10px] ${
-                                                        commercializationWordCount >
-                                                        MAX_COMMERCIALIZATION_WORDS
-                                                            ? 'text-red-500'
-                                                            : 'text-gray-400'
-                                                    }`}
-                                                >
-                                                    {commercializationWordCount}
-                                                    /
-                                                    {
-                                                        MAX_COMMERCIALIZATION_WORDS
-                                                    }{' '}
-                                                    words
-                                                </span>
-                                            </div>
-                                        </div>
-                                    }
-                                    rules={[
-                                        {
-                                            validator: (_, value) => {
-                                                if (!value)
-                                                    return Promise.resolve();
-                                                const words = value
-                                                    .trim()
-                                                    .split(/\s+/)
-                                                    .filter(Boolean);
-                                                if (
-                                                    words.length >
-                                                    MAX_COMMERCIALIZATION_WORDS
-                                                )
-                                                    return Promise.reject(
-                                                        new Error(
-                                                            `Limit exceeded: ${words.length}/${MAX_COMMERCIALIZATION_WORDS} words`
-                                                        )
-                                                    );
-                                                return Promise.resolve();
-                                            },
-                                        },
-                                    ]}
                                 >
                                     <TextArea
                                         rows={4}
-                                        placeholder="Describe planned steps (market validation, pilot deployment, regulatory, go-to-market). Max 50 words."
+                                        placeholder="Yangi ishlanma tijoratlashtirishga tayyorlash bo'yicha amalga oshirilgan loyiha nomi"
                                         allowClear
+                                        showCount
+                                        maxLength={50}
                                     />
                                 </Form.Item>
                             </Col>
@@ -278,48 +198,25 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     name="innovationPhotos"
                                     label={
                                         <span className="flex items-center gap-1">
-                                            Innovation Photo(s){' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                            <Tooltip title="High quality, clear images (max 8). First image treated as main.">
-                                                <InfoCircleOutlined className="text-gray-400" />
-                                            </Tooltip>
+                                            Yangi ishlanma rasmlari (PNG/JPEG,
+                                            kesish)
                                         </span>
                                     }
-                                    valuePropName="fileList"
-                                    getValueFromEvent={normFile}
                                     rules={[
                                         {
                                             required: true,
                                             message:
-                                                'Upload at least one image',
+                                                'Iltimos, kamida bitta rasm yuklang',
                                         },
                                     ]}
-                                    extra={
-                                        <span className="text-xs text-gray-500">
-                                            Accepted: JPG/PNG/WebP &lt;5MB each.
-                                        </span>
-                                    }
+                                    valuePropName="value"
                                 >
-                                    <Dragger
-                                        multiple
-                                        accept="image/*"
-                                        beforeUpload={beforeImageUpload}
-                                        maxCount={8}
-                                    >
-                                        <p className="ant-upload-drag-icon">
-                                            <InboxOutlined />
-                                        </p>
-                                        <p className="ant-upload-text">
-                                            Click or drag images to upload
-                                        </p>
-                                        <p className="ant-upload-hint">
-                                            You can reorder after saving (future
-                                            enhancement).
-                                        </p>
-                                    </Dragger>
+                                    <ImageCropUpload maxCount={8} />
                                 </Form.Item>
+                                <span className="text-xs text-gray-500">
+                                    Faqat PNG yoki JPEG (har biri 5MB dan
+                                    kichik)
+                                </span>
                             </Col>
 
                             <Col xs={24} md={12}>
@@ -327,22 +224,22 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     name="industryBelonging"
                                     label={
                                         <span>
-                                            Industry Belonging{' '}
-                                            <Tooltip title="Select all relevant sectors.">
+                                            Sanoat yo'nalishlari{' '}
+                                            <Tooltip title="Mos keluvchi barcha tarmoqlarni tanlang.">
                                                 <InfoCircleOutlined className="text-gray-400" />
                                             </Tooltip>
                                         </span>
                                     }
                                     extra={
                                         <span className="text-xs text-gray-500">
-                                            Choose primary and adjacent
-                                            verticals.
+                                            Asosiy va qo'shimcha tarmoqlarni
+                                            tanlang.
                                         </span>
                                     }
                                 >
                                     <Select
                                         mode="multiple"
-                                        placeholder="Select industries"
+                                        placeholder="Tarmoqlarni tanlang"
                                         allowClear
                                         showSearch
                                         optionFilterProp="children"
@@ -365,7 +262,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     name="maturityLevel"
                                     label={
                                         <span>
-                                            Innovation Maturity Level{' '}
+                                            Ishlanma yetuklik darajasi{' '}
                                             <span className="text-red-500">
                                                 *
                                             </span>
@@ -374,18 +271,19 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     rules={[
                                         {
                                             required: true,
-                                            message: 'Select maturity level',
+                                            message:
+                                                'Yetuklik darajasini tanlang',
                                         },
                                     ]}
                                     extra={
                                         <span className="text-xs text-gray-500">
-                                            Reflect current technical / market
-                                            readiness.
+                                            Hozirgi texnik / bozor
+                                            tayyorgarligini aks ettiring.
                                         </span>
                                     }
                                 >
                                     <Select
-                                        placeholder="Select maturity level"
+                                        placeholder="Darajani tanlang"
                                         showSearch
                                         optionFilterProp="children"
                                     >
@@ -406,8 +304,8 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     name="bankInformation"
                                     label={
                                         <span>
-                                            Bank Information{' '}
-                                            <Tooltip title="Primary servicing bank & branch.">
+                                            Bank ma'lumotlari{' '}
+                                            <Tooltip title="Asosiy xizmat ko'rsatuvchi bank va filiali.">
                                                 <InfoCircleOutlined className="text-gray-400" />
                                             </Tooltip>
                                         </span>
@@ -415,12 +313,12 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     rules={[
                                         {
                                             max: 120,
-                                            message: 'Max 120 characters',
+                                            message: 'Maksimum 120 ta belgi',
                                         },
                                     ]}
                                 >
                                     <Input
-                                        placeholder="e.g. AgroBank – Tashkent Branch"
+                                        placeholder="Masalan: Agrobank – Toshkent filiali"
                                         allowClear
                                     />
                                 </Form.Item>
@@ -430,8 +328,8 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                 <Form.Item
                                     label={
                                         <span>
-                                            Export Figures{' '}
-                                            <Tooltip title="Add yearly export revenue (optional).">
+                                            Eksport ko'rsatkichlari{' '}
+                                            <Tooltip title="Har yillik eksport tushumlarini qo'shing (ixtiyoriy).">
                                                 <InfoCircleOutlined className="text-gray-400" />
                                             </Tooltip>
                                         </span>
@@ -462,13 +360,13 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                                         required:
                                                                             true,
                                                                         message:
-                                                                            'Year',
+                                                                            'Yil',
                                                                     },
                                                                 ]}
                                                                 className="!mb-0"
                                                             >
                                                                 <InputNumber
-                                                                    placeholder="Year"
+                                                                    placeholder="Yil"
                                                                     min={2000}
                                                                     max={2035}
                                                                 />
@@ -484,13 +382,13 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                                         required:
                                                                             true,
                                                                         message:
-                                                                            'Amount',
+                                                                            'Miqdor',
                                                                     },
                                                                 ]}
                                                                 className="!mb-0 flex-1"
                                                             >
                                                                 <InputNumber
-                                                                    placeholder="Amount in UZS"
+                                                                    placeholder="So'mda miqdor"
                                                                     className="w-full"
                                                                     formatter={(
                                                                         value
@@ -530,12 +428,12 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                         block
                                                         icon={<PlusOutlined />}
                                                     >
-                                                        Add Export Figure
+                                                        Yil qo'shish
                                                     </Button>
                                                 </Form.Item>
                                                 <span className="text-xs text-gray-400">
-                                                    Leave empty if no exports
-                                                    yet.
+                                                    Hozircha eksport bo'lmasa
+                                                    bo'sh qoldiring.
                                                 </span>
                                             </>
                                         )}
@@ -548,8 +446,8 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     name="customsDocumentation"
                                     label={
                                         <span>
-                                            Customs Documentation (if available){' '}
-                                            <Tooltip title="Attach export-related customs forms.">
+                                            Bojxona hujjatlari (mavjud bo'lsa){' '}
+                                            <Tooltip title="Eksportga oid bojxona shakllarini biriktiring.">
                                                 <InfoCircleOutlined className="text-gray-400" />
                                             </Tooltip>
                                         </span>
@@ -558,7 +456,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     getValueFromEvent={normFile}
                                     extra={
                                         <span className="text-xs text-gray-500">
-                                            PDF &lt;10MB each.
+                                            Har biri PDF (&lt;10MB).
                                         </span>
                                     }
                                 >
@@ -569,7 +467,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         beforeUpload={beforePdfUpload}
                                     >
                                         <Button icon={<UploadOutlined />}>
-                                            Upload PDF Documents
+                                            PDF hujjatlarni yuklash
                                         </Button>
                                     </Upload>
                                 </Form.Item>
@@ -580,20 +478,20 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     name="buyerOrganizations"
                                     label={
                                         <span>
-                                            Buyer Organizations{' '}
-                                            <Tooltip title="Auto-fetched (editable soon).">
+                                            Xaridor tashkilotlar{' '}
+                                            <Tooltip title="Avtomatik olinadi (tez orada tahrirlanadi).">
                                                 <InfoCircleOutlined className="text-gray-400" />
                                             </Tooltip>
                                         </span>
                                     }
                                     extra={
                                         <span className="text-xs text-gray-500">
-                                            Derived from transaction registry.
+                                            Tranzaksiya reyestridan olinadi.
                                         </span>
                                     }
                                 >
                                     <Input
-                                        placeholder="Auto-fetched via TIN"
+                                        placeholder="STIR orqali avtomatik olinadi"
                                         disabled
                                     />
                                 </Form.Item>
@@ -603,52 +501,47 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                 <Form.Item
                                     label={
                                         <span>
-                                            Sales Contracts{' '}
-                                            <Tooltip title="Optional aggregate info for existing commercial agreements.">
+                                            Savdo shartnomalari{' '}
+                                            <Tooltip title="Mavjud tijoriy kelishuvlar bo'yicha umumiy ma'lumot (ixtiyoriy).">
                                                 <InfoCircleOutlined className="text-gray-400" />
                                             </Tooltip>
                                         </span>
                                     }
                                 >
                                     <Row gutter={[16, 16]}>
-                                        <Col xs={24} sm={12} md={8}>
+                                        <Col xs={24} md={12}>
                                             <Form.Item
-                                                name={[
-                                                    'salesContracts',
-                                                    'count',
-                                                ]}
-                                                label="Contract Count"
+                                                name="productionLocationDocument"
+                                                label={
+                                                    <span>
+                                                        Ishlab chiqarish joyi
+                                                        hujjati{' '}
+                                                        <span className="text-red-500">
+                                                            *
+                                                        </span>
+                                                    </span>
+                                                }
                                                 rules={[
                                                     {
-                                                        type: 'number',
-                                                        min: 0,
-                                                        message: '>= 0',
+                                                        required: true,
+                                                        message:
+                                                            'Ishlab chiqarish joyi hujjatini yuklang',
                                                     },
                                                 ]}
+                                                valuePropName="fileList"
+                                                getValueFromEvent={normFile}
+                                                extra={
+                                                    <span className="text-xs text-gray-500">
+                                                        Kadastr / ijara
+                                                        shartnomasi (PDF
+                                                        &lt;10MB).
+                                                    </span>
+                                                }
                                             >
                                                 {' '}
                                                 <InputNumber
                                                     className="w-full"
-                                                    placeholder="Number"
-                                                />{' '}
-                                            </Form.Item>
-                                        </Col>
-                                        <Col xs={24} sm={12} md={8}>
-                                            <Form.Item
-                                                name={['salesContracts', 'sum']}
-                                                label="Contract Sum"
-                                                rules={[
-                                                    {
-                                                        type: 'number',
-                                                        min: 0,
-                                                        message: '>= 0',
-                                                    },
-                                                ]}
-                                            >
-                                                {' '}
-                                                <InputNumber
-                                                    className="w-full"
-                                                    placeholder="Total UZS"
+                                                    placeholder="Jami so'mda"
                                                     formatter={(value) =>
                                                         `${value}`.replace(
                                                             /\B(?=(\d{3})+(?!\d))/g,
@@ -670,12 +563,12 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                     'salesContracts',
                                                     'documents',
                                                 ]}
-                                                label="Supporting Documents"
+                                                label="Tasdiqlovchi hujjatlar"
                                                 valuePropName="fileList"
                                                 getValueFromEvent={normFile}
                                                 extra={
                                                     <span className="text-[10px] text-gray-400">
-                                                        PDF evidence (optional)
+                                                        PDF dalillar (ixtiyoriy)
                                                     </span>
                                                 }
                                             >
@@ -692,7 +585,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                             <UploadOutlined />
                                                         }
                                                     >
-                                                        Upload PDFs
+                                                        PDF yuklash
                                                     </Button>
                                                 </Upload>
                                             </Form.Item>
@@ -734,7 +627,8 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         beforeUpload={beforePdfUpload}
                                     >
                                         <Button icon={<UploadOutlined />}>
-                                            Upload Kadastr / Lease Agreement
+                                            Kadastr / ijara shartnomasini
+                                            yuklash
                                         </Button>
                                     </Upload>
                                 </Form.Item>
@@ -745,7 +639,8 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     name="manufacturingProcessPhotos"
                                     label={
                                         <span>
-                                            Manufacturing Process Photos{' '}
+                                            Ishlab chiqarish jarayonlari
+                                            fotosuratlari{' '}
                                             <span className="text-red-500">
                                                 *
                                             </span>
@@ -755,15 +650,16 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         {
                                             required: true,
                                             message:
-                                                'Upload manufacturing process photos',
+                                                'Ishlab chiqarish jarayonining fotosuratlarini yuklang',
                                         },
                                     ]}
                                     valuePropName="fileList"
                                     getValueFromEvent={normFile}
                                     extra={
                                         <span className="text-xs text-gray-500">
-                                            Show key production stages (max 8,
-                                            &lt;5MB each).
+                                            Asosiy ishlab chiqarish
+                                            bosqichlarini ko'rsating (maks 8 ta,
+                                            har biri &lt;5MB).
                                         </span>
                                     }
                                 >
@@ -775,7 +671,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         maxCount={8}
                                     >
                                         <Button icon={<UploadOutlined />}>
-                                            Upload Images
+                                            Rasmlarni yuklash
                                         </Button>
                                     </Upload>
                                 </Form.Item>
@@ -897,10 +793,10 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                 icon={<ArrowLeftOutlined />}
                                 size="large"
                             >
-                                Back
+                                Orqaga
                             </Button>
                             <span className="text-xs text-gray-400">
-                                Step 4 of 5
+                                4-qadam 5-dan
                             </span>
                             <Button
                                 type="primary"
@@ -916,7 +812,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         MAX_SOCIAL_IMPACT_WORDS
                                 }
                             >
-                                Next
+                                Keyingi
                             </Button>
                         </div>
                     </Form>

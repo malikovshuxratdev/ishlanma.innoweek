@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Row, Col, Card, Switch, Tooltip as AntTooltip } from 'antd';
 import { GlobalOutlined, RiseOutlined } from '@ant-design/icons';
 import {
@@ -38,8 +38,22 @@ const HomePage: React.FC = () => {
     // Chart type toggle
     const [sectorAsBar, setSectorAsBar] = useState(false);
 
+    // Hide scrollbar during initial entrance animation to avoid flicker
+    useEffect(() => {
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = originalOverflow;
+        };
+    }, []);
+
+    const handleAnimationEnd = useCallback(() => {
+        // Restore scrolling after animation completes
+        document.body.style.overflow = '';
+    }, []);
+
     return (
-        <div className="animate-fade-in">
+        <div className="animate-fade-in" onAnimationEnd={handleAnimationEnd}>
             {/* === Gentle Hero Section === */}
             <section
                 aria-labelledby="hero-heading"

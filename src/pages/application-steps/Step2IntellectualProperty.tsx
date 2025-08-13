@@ -7,10 +7,8 @@ import {
     Button,
     Row,
     Col,
-    Typography,
     Space,
     Steps,
-    Tooltip,
     Divider,
 } from 'antd';
 import {
@@ -18,10 +16,7 @@ import {
     ArrowRightOutlined,
     PlusOutlined,
     MinusCircleOutlined,
-    InfoCircleOutlined,
 } from '@ant-design/icons';
-
-const { Title } = Typography;
 
 interface Step2Props {
     onNext: (values: any) => void;
@@ -63,15 +58,6 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 animate-fade-in">
             <Card className="w-full shadow-sm border border-gray-100/60 backdrop-blur-sm bg-white/70">
                 <Space direction="vertical" className="w-full">
-                    <div className="flex flex-col gap-2 text-center">
-                        <Title level={2} className="!mb-0">
-                            Intellectual Property Rights
-                        </Title>
-                        <span className="text-gray-500 text-sm">
-                            Provide information about ownership and legal
-                            protection of the innovation.
-                        </span>
-                    </div>
                     <Steps
                         responsive
                         size="small"
@@ -96,36 +82,10 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                             <Col span={24}>
                                 <Form.Item
                                     name="inventionName"
-                                    label={
-                                        <span>
-                                            Invention Name{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                        </span>
-                                    }
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: 'Enter invention name',
-                                        },
-                                        {
-                                            max: 200,
-                                            message: 'Max 200 characters',
-                                        },
-                                    ]}
-                                    extra={
-                                        <span className="text-xs text-gray-500">
-                                            Use the official title as used in
-                                            patent filings (if any).
-                                        </span>
-                                    }
+                                    label={<span>Ixtiro nomi</span>}
                                 >
                                     <Input
-                                        placeholder="e.g. Adaptive Photovoltaic Cooling Matrix"
-                                        showCount
-                                        maxLength={200}
-                                        allowClear
+                                        placeholder="Ixtiro nomi"
                                         size="large"
                                     />
                                 </Form.Item>
@@ -135,39 +95,11 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                                 <Form.Item
                                     label={
                                         <span className="flex items-center gap-1">
-                                            Authors (F.I.O + Science ID){' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                            <Tooltip title="List all contributors recognized legally / academically.">
-                                                <InfoCircleOutlined className="text-gray-400" />
-                                            </Tooltip>
+                                            Mualliflari (F.I.O + Science ID)
                                         </span>
                                     }
-                                    required
                                 >
-                                    <Form.List
-                                        name="authors"
-                                        rules={[
-                                            {
-                                                validator: async (
-                                                    _,
-                                                    authors
-                                                ) => {
-                                                    if (
-                                                        !authors ||
-                                                        authors.length === 0
-                                                    ) {
-                                                        return Promise.reject(
-                                                            new Error(
-                                                                'Add at least one author'
-                                                            )
-                                                        );
-                                                    }
-                                                },
-                                            },
-                                        ]}
-                                    >
+                                    <Form.List name="authors">
                                         {(
                                             fields,
                                             { add, remove },
@@ -269,30 +201,10 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                             <Col span={24}>
                                 <Form.Item
                                     name="patentNumber"
-                                    label={
-                                        <span>
-                                            Patent / Application Number{' '}
-                                            <Tooltip title="Leave blank if not yet filed.">
-                                                <InfoCircleOutlined className="text-gray-400" />
-                                            </Tooltip>
-                                        </span>
-                                    }
-                                    rules={[
-                                        {
-                                            pattern: /^[\w-]*$/i,
-                                            message:
-                                                'Only letters, numbers, dash',
-                                        },
-                                    ]}
-                                    extra={
-                                        <span className="text-xs text-gray-500">
-                                            If multiple, provide the primary or
-                                            most recent.
-                                        </span>
-                                    }
+                                    label={<span>Patent raqami</span>}
                                 >
                                     <Input
-                                        placeholder="e.g. UZ-123456-A"
+                                        placeholder="Patent raqami"
                                         allowClear
                                         size="large"
                                     />
@@ -304,18 +216,9 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                                     name="registrationDate"
                                     label={
                                         <span>
-                                            Registration Date{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
+                                            Roʻyyxatdan oʻtkazilgan sana
                                         </span>
                                     }
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: 'Select registration date',
-                                        },
-                                    ]}
                                 >
                                     <DatePicker
                                         className="w-full"
@@ -323,6 +226,7 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                                         disabledDate={disabledFutureDates}
                                         size="large"
                                         format="YYYY-MM-DD"
+                                        inputReadOnly
                                     />
                                 </Form.Item>
                             </Col>
@@ -330,40 +234,7 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     name="validityPeriod"
-                                    label={
-                                        <span>
-                                            Validity End Date{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                        </span>
-                                    }
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: 'Select validity end date',
-                                        },
-                                        ({ getFieldValue }) => ({
-                                            validator(_, value) {
-                                                const reg =
-                                                    getFieldValue(
-                                                        'registrationDate'
-                                                    );
-                                                if (
-                                                    !value ||
-                                                    !reg ||
-                                                    value.isAfter(reg, 'day')
-                                                ) {
-                                                    return Promise.resolve();
-                                                }
-                                                return Promise.reject(
-                                                    new Error(
-                                                        'End date must be after registration date'
-                                                    )
-                                                );
-                                            },
-                                        }),
-                                    ]}
+                                    label={<span>Amal qilish muddati</span>}
                                 >
                                     <DatePicker
                                         className="w-full"
@@ -371,6 +242,7 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                                         disabledDate={disabledValidityDates}
                                         size="large"
                                         format="YYYY-MM-DD"
+                                        inputReadOnly
                                     />
                                 </Form.Item>
                             </Col>
@@ -383,10 +255,10 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                                 icon={<ArrowLeftOutlined />}
                                 size="large"
                             >
-                                Back
+                                Orqaga
                             </Button>
                             <span className="text-xs text-gray-400">
-                                Step 2 of 5
+                                2-qadam 5-dan
                             </span>
                             <Button
                                 type="primary"
@@ -396,7 +268,7 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                                 size="large"
                                 loading={submitting}
                             >
-                                Next
+                                Keyingi
                             </Button>
                         </div>
                     </Form>

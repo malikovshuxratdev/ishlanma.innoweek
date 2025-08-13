@@ -7,20 +7,13 @@ import {
     Button,
     Row,
     Col,
-    Typography,
     Select,
     Steps,
-    Tooltip,
     Divider,
     Space,
 } from 'antd';
-import {
-    ArrowLeftOutlined,
-    ArrowRightOutlined,
-    InfoCircleOutlined,
-} from '@ant-design/icons';
+import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
 
-const { Title } = Typography;
 const { Option } = Select;
 
 interface Step3Props {
@@ -95,15 +88,6 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 animate-fade-in">
             <Card className="w-full shadow-sm border border-gray-100/60 backdrop-blur-sm bg-white/70">
                 <Space direction="vertical" className="w-full">
-                    <div className="flex flex-col gap-2 text-center">
-                        <Title level={2} className="!mb-0">
-                            Scientific Research Background
-                        </Title>
-                        <span className="text-gray-500 text-sm">
-                            Provide research context and administrative
-                            information supporting the innovation.
-                        </span>
-                    </div>
                     <Steps
                         responsive
                         size="small"
@@ -128,24 +112,10 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                             <Col span={24}>
                                 <Form.Item
                                     name="projectCode"
-                                    label={
-                                        <span>
-                                            Project Code{' '}
-                                            <Tooltip title="Internal or grant reference code.">
-                                                <InfoCircleOutlined className="text-gray-400" />
-                                            </Tooltip>
-                                        </span>
-                                    }
-                                    rules={[
-                                        {
-                                            max: 50,
-                                            message: 'Max 50 characters',
-                                        },
-                                    ]}
+                                    label={<span>Loyiha shifri</span>}
                                 >
                                     <Input
-                                        placeholder="e.g. GRANT-2025-ALPHA"
-                                        allowClear
+                                        placeholder="Loyiha shifri"
                                         size="large"
                                     />
                                 </Form.Item>
@@ -156,35 +126,13 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                                     name="researchProjectTitle"
                                     label={
                                         <span>
-                                            Research Project Title{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                        </span>
-                                    }
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message:
-                                                'Enter research project title',
-                                        },
-                                        {
-                                            max: 200,
-                                            message: 'Max 200 characters',
-                                        },
-                                    ]}
-                                    extra={
-                                        <span className="text-xs text-gray-500">
-                                            Official title used in proposals or
-                                            funding documents.
+                                            Ilmiy-tadqiqot loyihasi nomi
                                         </span>
                                     }
                                 >
                                     <Input
-                                        placeholder="e.g. Hybrid Nano-Coatings for Thermal Regulation"
-                                        showCount
+                                        placeholder="Ilmiy-tadqiqot loyihasi nomi"
                                         maxLength={200}
-                                        allowClear
                                         size="large"
                                     />
                                 </Form.Item>
@@ -194,25 +142,15 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                                 <Form.Item
                                     name="implementationPeriod"
                                     label={
-                                        <span>
-                                            Implementation Start Date{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                        </span>
+                                        <span>Amalga oshirilgan muddati</span>
                                     }
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: 'Select start date',
-                                        },
-                                    ]}
                                 >
                                     <DatePicker
                                         className="w-full"
                                         placeholder="Select start date"
                                         disabledDate={disabledFutureDates}
                                         size="large"
+                                        inputReadOnly
                                         format="YYYY-MM-DD"
                                     />
                                 </Form.Item>
@@ -221,20 +159,7 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     name="regionOfImplementation"
-                                    label={
-                                        <span>
-                                            Region of Implementation{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                        </span>
-                                    }
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: 'Select region',
-                                        },
-                                    ]}
+                                    label={<span>Bajarilgan hudud</span>}
                                 >
                                     <Select
                                         placeholder="Select region"
@@ -254,35 +179,10 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                             <Col span={24}>
                                 <Form.Item
                                     name="projectLeader"
-                                    label={
-                                        <span>
-                                            Project Leader (F.I.O + Science ID){' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                        </span>
-                                    }
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message:
-                                                'Enter leader name and Science ID',
-                                        },
-                                        {
-                                            max: 120,
-                                            message: 'Max 120 characters',
-                                        },
-                                    ]}
-                                    extra={
-                                        <span className="text-xs text-gray-500">
-                                            Format: Full Name – Science ID (e.g.
-                                            Azizov A.A. – SCI12345)
-                                        </span>
-                                    }
+                                    label={<span>Loyiha rahbari</span>}
                                 >
                                     <Input
-                                        placeholder="e.g. Azizov A.A. – SCI12345"
-                                        allowClear
+                                        placeholder="Loyiha rahbari"
                                         size="large"
                                     />
                                 </Form.Item>
@@ -291,20 +191,7 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     name="scientificField"
-                                    label={
-                                        <span>
-                                            Scientific Field{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                        </span>
-                                    }
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: 'Select scientific field',
-                                        },
-                                    ]}
+                                    label={<span>Fan yoʻnalishi</span>}
                                 >
                                     <Select
                                         placeholder="Select field"
@@ -326,26 +213,12 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                                     name="executingOrganization"
                                     label={
                                         <span>
-                                            Executing Organization{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                        </span>
-                                    }
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: 'Missing organization',
-                                        },
-                                    ]}
-                                    extra={
-                                        <span className="text-xs text-gray-500">
-                                            Auto-filled based on registered TIN.
+                                            Loyihaning ijrochi tashkiloti
                                         </span>
                                     }
                                 >
                                     <Input
-                                        placeholder="Auto-fetched by TIN"
+                                        placeholder="Loyihaning ijrochi tashkiloti"
                                         disabled
                                         size="large"
                                         value={
@@ -363,10 +236,10 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                                 icon={<ArrowLeftOutlined />}
                                 size="large"
                             >
-                                Back
+                                Orqaga
                             </Button>
                             <span className="text-xs text-gray-400">
-                                Step 3 of 5
+                                3-qadam 5-dan
                             </span>
                             <Button
                                 type="primary"
@@ -376,7 +249,7 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                                 size="large"
                                 loading={submitting}
                             >
-                                Next
+                                Keyingi
                             </Button>
                         </div>
                     </Form>

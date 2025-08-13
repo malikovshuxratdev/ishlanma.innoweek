@@ -345,6 +345,7 @@
 /* Line clamp utilities */
 .line-clamp-2 {
     display: -webkit-box;
+    line-clamp: 2; /* Standard property for future compatibility */
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -436,14 +437,27 @@
 }
 
 /* Animations */
+/* Improved fade-in: subtle movement, no layout shift, keep final state (both) */
 .animate-fade-in {
-    animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeIn 0.55s cubic-bezier(0.4, 0, 0.2, 1) both;
+    will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-fade-in {
+        animation-duration: 0.01ms;
+        animation-iteration-count: 1;
+        transform: none !important;
+    }
 }
 
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(14px);
+    }
+    60% {
+        opacity: 1;
     }
     to {
         opacity: 1;

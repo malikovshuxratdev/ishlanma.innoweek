@@ -8,16 +8,12 @@ import {
     Button,
     Row,
     Col,
-    Typography,
     Steps,
-    Tooltip,
     Space,
     Divider,
-    Progress,
 } from 'antd';
-import { ArrowRightOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined } from '@ant-design/icons';
 
-const { Title } = Typography;
 const { TextArea } = Input;
 
 interface Step1Props {
@@ -49,18 +45,12 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
         [descriptionValue]
     );
 
-    const percent = Math.min(
-        100,
-        Math.round((descriptionWordCount / MAX_DESCRIPTION_WORDS) * 100)
-    );
-
     const handleNext = async () => {
         try {
             setSubmitting(true);
             const values = await form.validateFields();
             onNext(values);
         } catch (e) {
-            // validation errors automatically displayed
         } finally {
             setSubmitting(false);
         }
@@ -73,15 +63,6 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 animate-fade-in">
             <Card className="w-full shadow-sm border border-gray-100/60 backdrop-blur-sm bg-white/70">
                 <Space direction="vertical" className="w-full">
-                    <div className="flex flex-col gap-2 text-center">
-                        <Title level={2} className="!mb-0">
-                            Innovation Details
-                        </Title>
-                        <span className="text-gray-500 text-sm">
-                            Provide core information about your innovation to
-                            start the application process.
-                        </span>
-                    </div>
                     <Steps
                         responsive
                         size="small"
@@ -107,36 +88,22 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                             <Col span={24}>
                                 <Form.Item
                                     name="projectTitle"
-                                    label={
-                                        <span>
-                                            Project Title{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                        </span>
-                                    }
-                                    tooltip="A concise, descriptive title (max 200 characters)."
+                                    label={<span>Loyiha nomi </span>}
+                                    tooltip="Qisqa, tavsiflovchi nom (maks 200 belgidan iborat)."
                                     rules={[
                                         {
                                             required: true,
                                             message:
-                                                'Please enter project title',
+                                                'Loyiha nomi kiritilishi shart',
                                         },
                                         {
                                             max: 200,
-                                            message: 'Max 200 characters',
+                                            message: 'Max 200 belgidan iborat',
                                         },
                                     ]}
-                                    extra={
-                                        <span className="text-xs text-gray-500">
-                                            Make it specific and impactful.
-                                            Avoid generic words like 'System' or
-                                            'Platform' alone.
-                                        </span>
-                                    }
                                 >
                                     <Input
-                                        placeholder="e.g. AI-Assisted Early Diagnosis Platform for Cardiac Anomalies"
+                                        placeholder="Loyiha nomi"
                                         maxLength={200}
                                         showCount
                                         allowClear
@@ -150,22 +117,14 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                     name="innovationDescription"
                                     label={
                                         <span className="flex items-center gap-1">
-                                            Innovation Description{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                            <Tooltip
-                                                title={`Max ${MAX_DESCRIPTION_WORDS} words. Focus on the problem, solution, and uniqueness.`}
-                                            >
-                                                <InfoCircleOutlined className="text-gray-400" />
-                                            </Tooltip>
+                                            Ishlanma tavsifi
                                         </span>
                                     }
                                     rules={[
                                         {
                                             required: true,
                                             message:
-                                                'Please enter innovation description',
+                                                'Ishlanma tavsifi kiritilishi shart',
                                         },
                                         {
                                             validator: (_, value) => {
@@ -189,42 +148,10 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                             },
                                         },
                                     ]}
-                                    extra={
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs text-gray-500">
-                                                Briefly explain the innovation,
-                                                target users, and core benefit.
-                                            </span>
-                                            <div className="w-40">
-                                                <Progress
-                                                    size="small"
-                                                    percent={percent}
-                                                    status={
-                                                        percent >= 100
-                                                            ? 'exception'
-                                                            : 'active'
-                                                    }
-                                                    showInfo={false}
-                                                />
-                                                <span
-                                                    className={`block text-right text-[10px] ${
-                                                        descriptionWordCount >
-                                                        MAX_DESCRIPTION_WORDS
-                                                            ? 'text-red-500'
-                                                            : 'text-gray-400'
-                                                    }`}
-                                                >
-                                                    {descriptionWordCount}/
-                                                    {MAX_DESCRIPTION_WORDS}{' '}
-                                                    words
-                                                </span>
-                                            </div>
-                                        </div>
-                                    }
                                 >
                                     <TextArea
-                                        rows={5}
-                                        placeholder="Describe the innovation, the problem it solves, and its unique advantage (max 50 words)."
+                                        rows={3}
+                                        placeholder="Ishlanma tavsifi"
                                         allowClear
                                         size="large"
                                     />
@@ -236,33 +163,20 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                     name="organizationName"
                                     label={
                                         <span>
-                                            Organization Name{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
+                                            Ishlanma yaratilgan tashkilot nomi
                                         </span>
                                     }
                                     rules={[
                                         {
                                             required: true,
                                             message:
-                                                'Organization name is required',
+                                                'Ishlanma yaratilgan tashkilot nomi kiritilishi shart',
                                         },
                                     ]}
-                                    extra={
-                                        <span className="text-xs text-gray-500">
-                                            Auto-filled from the registry.
-                                            Contact support if incorrect.
-                                        </span>
-                                    }
                                 >
                                     <Input
-                                        placeholder="Fetched from registry"
-                                        disabled
-                                        value={
-                                            initialValues?.organizationName ||
-                                            'Tashkent Medical Institute'
-                                        }
+                                        placeholder="Tashkilot nomi"
+                                        value={initialValues?.organizationName}
                                         size="large"
                                     />
                                 </Form.Item>
@@ -271,27 +185,12 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     name="tinNumber"
-                                    label={
-                                        <span>
-                                            TIN (Taxpayer ID){' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                        </span>
-                                    }
-                                    tooltip="Digits only"
+                                    label={<span>STIR raqami</span>}
                                     rules={[
                                         {
                                             required: true,
-                                            message: 'Please enter TIN number',
-                                        },
-                                        {
-                                            pattern: /^\d+$/,
-                                            message: 'Digits only',
-                                        },
-                                        {
-                                            min: 9,
-                                            message: 'At least 9 digits',
+                                            message:
+                                                ' Iltimos TIN raqamini kiriting',
                                         },
                                     ]}
                                 >
@@ -300,6 +199,7 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                         placeholder="Enter TIN number"
                                         controls={false}
                                         size="large"
+                                        type="number"
                                     />
                                 </Form.Item>
                             </Col>
@@ -307,38 +207,34 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                 <Form.Item
                                     name="dateOfCreation"
                                     label={
-                                        <span>
-                                            Date of Creation{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                        </span>
+                                        <span>Ishlanma yaratilgan sana</span>
                                     }
                                     rules={[
                                         {
                                             required: true,
                                             message:
-                                                'Please select creation date',
+                                                'Ishlanma yaratilgan sanani tanlang',
                                         },
                                     ]}
                                 >
                                     <DatePicker
                                         className="w-full"
-                                        placeholder="Select creation date"
+                                        placeholder="Ishlanma yaratilgan sanani tanlang"
                                         disabledDate={disabledFutureDates}
                                         size="large"
                                         format="YYYY-MM-DD"
+                                        inputReadOnly
                                     />
                                 </Form.Item>
                             </Col>
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     name="certificateNumber"
-                                    label="Certificate Number (optional)"
+                                    label="Sertifikat raqami (ixtiyoriy)"
                                 >
                                     <InputNumber
                                         className="w-full"
-                                        placeholder="Enter certificate number"
+                                        placeholder="Sertifikat raqamini kiriting"
                                         controls={false}
                                         size="large"
                                     />
@@ -347,14 +243,15 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     name="certificateDate"
-                                    label="Certificate Date (optional)"
+                                    label="Sertifikat sanasi (ixtiyoriy)"
                                 >
                                     <DatePicker
                                         className="w-full"
-                                        placeholder="Select certificate date"
+                                        placeholder="Sertifikat sanasini tanlang"
                                         disabledDate={disabledFutureDates}
                                         size="large"
                                         format="YYYY-MM-DD"
+                                        inputReadOnly
                                     />
                                 </Form.Item>
                             </Col>
@@ -363,7 +260,7 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                         <Divider className="!my-6" />
                         <div className="flex items-center justify-between flex-wrap gap-4">
                             <span className="text-xs text-gray-400">
-                                Step 1 of 5
+                                1-qadam 5-dan
                             </span>
                             <Button
                                 type="primary"
@@ -376,7 +273,7 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                     descriptionWordCount > MAX_DESCRIPTION_WORDS
                                 }
                             >
-                                Next
+                                Keyingi
                             </Button>
                         </div>
                     </Form>
