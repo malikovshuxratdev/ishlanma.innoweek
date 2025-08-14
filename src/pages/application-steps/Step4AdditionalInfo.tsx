@@ -17,9 +17,7 @@ import {
     PlusOutlined,
     MinusCircleOutlined,
 } from '@ant-design/icons';
-import ImageCropUpload from '../../components/ImageCropUpload';
-import UploadForm from '../../components/shared/Form/UploadForm';
-import FilePreview from '../../components/uploads/FilePreview';
+import UploadForm from '../../components/shared/UploadForm';
 import type { RcFile } from 'antd/es/upload/interface';
 
 const { TextArea } = Input;
@@ -89,9 +87,8 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
     const [form] = Form.useForm();
     const [submitting, setSubmitting] = useState(false);
     // Local state for standalone upload blocks
-    const [designSchematic, setDesignSchematic] = useState<
-        string | RcFile | null
-    >(null);
+    // Multiple PDFs: keep as an array to render multiple previews
+    const [designSchematic, setDesignSchematic] = useState<RcFile[]>([]);
 
     const industries = INDUSTRIES;
     const maturityLevels = MATURITY_LEVELS;
@@ -115,6 +112,10 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
 
     // Helpers for UploadForm
     const beforeUploadLarge = () => false; // prevent auto upload; validation is handled by accept attribute/UI
+    // Helper to set array file fields from UploadForm (multiple images)
+    const handleFilesChange = (files: RcFile[], fieldName: string) => {
+        form.setFieldsValue({ [fieldName]: files });
+    };
     const handleFileChange = (
         files: RcFile[],
         setState?: (v: string | RcFile | null) => void,
@@ -142,7 +143,8 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
             // Ensure we include standalone upload values as part of submission
             const submitValues = {
                 ...values,
-                designSchematic: designSchematic || null,
+                // Submit all selected files (array)
+                designSchematic,
             };
             onNext(submitValues);
         } finally {
@@ -151,7 +153,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
     };
 
     return (
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 animate-fade-in">
+        <div className="mx-auto max-w-7xl animate-fade-in">
             <Card className="w-full shadow-sm border border-gray-100/60 backdrop-blur-sm bg-white/70">
                 <Space direction="vertical" className="w-full">
                     <Form
@@ -161,7 +163,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                         scrollToFirstError
                     >
                         <Row gutter={[24, 8]}>
-                            <Col xs={24} md={12}>
+                            <Col xs={24} md={24}>
                                 <Form.Item
                                     name="commercializationProject"
                                     label={
@@ -201,32 +203,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col xs={24} md={12}>
-                                <Form.Item
-                                    name="innovationPhotos"
-                                    label={
-                                        <span className="flex items-center gap-1">
-                                            Yangi ishlanmani tijoratlashtirishga
-                                            tayyorlash rasmi
-                                        </span>
-                                    }
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message:
-                                                'Kamida bitta foto yuklang',
-                                        },
-                                    ]}
-                                    valuePropName="value"
-                                    extra={
-                                        <span className="text-[10px] text-gray-400">
-                                            PNG / JPEG (har biri &lt;5MB)
-                                        </span>
-                                    }
-                                >
-                                    <ImageCropUpload maxCount={8} />
-                                </Form.Item>
-                            </Col>
+
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     name="industryBelonging"
@@ -257,7 +234,6 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                 </Form.Item>
                             </Col>
                             <Col xs={24} md={12}>
-                                {/* 4. Maturity Level (Majburiy) */}
                                 <Form.Item
                                     name="maturityLevel"
                                     label={
@@ -448,203 +424,76 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     }
                                 >
                                     <Row gutter={[16, 16]}>
-                                        <Col xs={24} sm={24} md={8} lg={8}>
-                                            <Form.Item
-                                                name={[
-                                                    'salesContracts',
-                                                    'contractCount',
-                                                ]}
-                                                label="Shartnomalar soni"
-                                            >
-                                                <InputNumber
-                                                    min={0}
-                                                    className="w-full"
-                                                    placeholder="0"
-                                                    size="large"
-                                                />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col xs={24} sm={24} md={8} lg={8}>
-                                            <Form.Item
-                                                name={[
-                                                    'salesContracts',
-                                                    'contractValue',
-                                                ]}
-                                                label="Shartnoma summasi (so'm)"
-                                            >
-                                                <InputNumber
-                                                    className="w-full"
-                                                    placeholder="0"
-                                                    formatter={(value) =>
-                                                        `${value}`.replace(
-                                                            /\B(?=(\d{3})+(?!\d))/g,
-                                                            ','
-                                                        )
-                                                    }
-                                                    size="large"
-                                                    parser={(value) =>
-                                                        value!.replace(
-                                                            /\$\s?|(,*)/g,
-                                                            ''
-                                                        )
-                                                    }
-                                                />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col xs={24} sm={24} md={8} lg={8}>
+                                        {/* Left: File upload */}
+                                        <Col xs={24} md={12}>
                                             <UploadForm
-                                                label="Dizayn sxemasi yoki chizmasi"
-                                                desc="Dizayn sxemasi yoki chizmasini yuklang"
-                                                multiple={!designSchematic}
+                                                label="Asoslovchi Hujjat (pdf bir nechta )"
+                                                multiple
                                                 value={designSchematic}
+                                                maxFiles={5}
+                                                maxFile={5}
                                                 onchange={(files: RcFile[]) =>
-                                                    handleFileChange(
-                                                        files,
-                                                        setDesignSchematic
-                                                    )
+                                                    setDesignSchematic(files)
                                                 }
-                                                accept=".pdf,.jpg,.jpeg,.png"
+                                                accept=".pdf"
                                                 required={false}
                                                 beforeUpload={beforeUploadLarge}
-                                            >
-                                                {designSchematic && (
-                                                    <FilePreview
-                                                        file={designSchematic}
-                                                        fileName={
-                                                            'Dizayn sxemasi'
-                                                        }
-                                                        onDelete={() =>
-                                                            setDesignSchematic(
-                                                                null
-                                                            )
-                                                        }
-                                                    />
-                                                )}
-                                            </UploadForm>
+                                            />
+                                        </Col>
+                                        {/* Right: Numeric inputs stacked */}
+                                        <Col xs={24} md={12}>
+                                            <Row gutter={[16, 16]}>
+                                                <Col span={24}>
+                                                    <Form.Item
+                                                        name={[
+                                                            'salesContracts',
+                                                            'contractCount',
+                                                        ]}
+                                                        label="Shartnomalar soni"
+                                                    >
+                                                        <InputNumber
+                                                            min={0}
+                                                            className="w-full"
+                                                            placeholder="0"
+                                                            size="large"
+                                                        />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={24}>
+                                                    <Form.Item
+                                                        name={[
+                                                            'salesContracts',
+                                                            'contractValue',
+                                                        ]}
+                                                        label="Shartnoma summasi (so'm)"
+                                                    >
+                                                        <InputNumber
+                                                            className="w-full"
+                                                            placeholder="0"
+                                                            formatter={(
+                                                                value
+                                                            ) =>
+                                                                `${value}`.replace(
+                                                                    /\B(?=(\d{3})+(?!\d))/g,
+                                                                    ','
+                                                                )
+                                                            }
+                                                            size="large"
+                                                            parser={(value) =>
+                                                                value!.replace(
+                                                                    /\$\s?|(,*)/g,
+                                                                    ''
+                                                                )
+                                                            }
+                                                        />
+                                                    </Form.Item>
+                                                </Col>
+                                            </Row>
                                         </Col>
                                     </Row>
                                 </Form.Item>
                             </Col>
-                            <Col xs={24} md={12}>
-                                <Form.Item
-                                    name="customsDocumentation"
-                                    label={
-                                        <span>
-                                            Bojxona xizmatlaridan foydalanganlik
-                                            bo'yicha hujjatlar (mavjud bo'lsa)
-                                        </span>
-                                    }
-                                    valuePropName="value"
-                                >
-                                    <UploadForm
-                                        label="Fayl yuklang"
-                                        desc="Faqat PDF"
-                                        multiple={!customsDoc}
-                                        value={customsDoc}
-                                        onchange={(files: RcFile[]) =>
-                                            handleFileChange(
-                                                files,
-                                                undefined,
-                                                'customsDocumentation'
-                                            )
-                                        }
-                                        accept=".pdf"
-                                        beforeUpload={beforeUploadLarge}
-                                    >
-                                        {customsDoc && (
-                                            <FilePreview
-                                                file={customsDoc}
-                                                fileName={'Bojxona hujjati'}
-                                                onDelete={() =>
-                                                    form.setFieldsValue({
-                                                        customsDocumentation:
-                                                            null,
-                                                    })
-                                                }
-                                            />
-                                        )}
-                                    </UploadForm>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={24} md={12}>
-                                <Form.Item
-                                    name="productionLocationDocument"
-                                    label={
-                                        <span>
-                                            Ishlab chiqarish joyi (maydoni)
-                                            hujjatlari (kadastr pasporti yoki
-                                            ijara shartnomasi)
-                                        </span>
-                                    }
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message:
-                                                'Kadastr yoki ijara hujjatini yuklang',
-                                        },
-                                    ]}
-                                    valuePropName="value"
-                                >
-                                    <UploadForm
-                                        label="Fayl yuklang"
-                                        desc="Faqat PDF"
-                                        multiple={!productionDoc}
-                                        value={productionDoc}
-                                        onchange={(files: RcFile[]) =>
-                                            handleFileChange(
-                                                files,
-                                                undefined,
-                                                'productionLocationDocument'
-                                            )
-                                        }
-                                        accept=".pdf"
-                                        beforeUpload={beforeUploadLarge}
-                                    >
-                                        {productionDoc && (
-                                            <FilePreview
-                                                file={productionDoc}
-                                                fileName={
-                                                    'Ishlab chiqarish joyi hujjati'
-                                                }
-                                                onDelete={() =>
-                                                    form.setFieldsValue({
-                                                        productionLocationDocument:
-                                                            null,
-                                                    })
-                                                }
-                                            />
-                                        )}
-                                    </UploadForm>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={24} md={12}>
-                                <Form.Item
-                                    name="manufacturingProcessPhotos"
-                                    label={
-                                        <span>
-                                            Ishlanmaning sanoat namunasini
-                                            yaratish jarayonidan foto lavhalar
-                                            ilova qilish.
-                                        </span>
-                                    }
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message:
-                                                'Jarayon fotosuratlarini yuklang',
-                                        },
-                                    ]}
-                                    valuePropName="value"
-                                    extra={
-                                        <span className="text-[10px] text-gray-400">
-                                            PNG / JPEG (har biri &lt;5MB)
-                                        </span>
-                                    }
-                                >
-                                    <ImageCropUpload maxCount={8} />
-                                </Form.Item>
-                            </Col>
-                            <Col span={24} md={12}>
+                            <Col span={24} md={24}>
                                 <Form.Item
                                     name="developmentChallenges"
                                     label={
@@ -655,14 +504,13 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     }
                                 >
                                     <TextArea
-                                        rows={5}
+                                        rows={3}
                                         placeholder="Muammolar va ularni hal etish choralarini qisqacha yozing."
-                                        allowClear
-                                        className="!text-sm"
+                                        size="large"
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col span={24} md={12}>
+                            <Col span={24} md={24}>
                                 <Form.Item
                                     name="socialImpact"
                                     label={
@@ -699,8 +547,158 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     ]}
                                 >
                                     <TextArea
-                                        rows={4}
+                                        rows={3}
                                         placeholder="Ijtimoiy/iqtisodiy natijalar va faktlar"
+                                        size="large"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12}>
+                                <Form.Item
+                                    name="customsDocumentation"
+                                    label={
+                                        <span>
+                                            Bojxona xizmatlaridan foydalanganlik
+                                            bo'yicha hujjatlar (mavjud bo'lsa)
+                                        </span>
+                                    }
+                                    valuePropName="value"
+                                >
+                                    <UploadForm
+                                        label="Fayl yuklang"
+                                        multiple={!customsDoc}
+                                        value={customsDoc}
+                                        onchange={(files: RcFile[]) =>
+                                            handleFileChange(
+                                                files,
+                                                undefined,
+                                                'customsDocumentation'
+                                            )
+                                        }
+                                        accept=".pdf"
+                                        beforeUpload={beforeUploadLarge}
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12}>
+                                <Form.Item
+                                    name="productionLocationDocument"
+                                    label={
+                                        <span>
+                                            Ishlab chiqarish joyi (maydoni)
+                                            hujjatlari (kadastr pasporti yoki
+                                            ijara shartnomasi)
+                                        </span>
+                                    }
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message:
+                                                'Kadastr yoki ijara hujjatini yuklang',
+                                        },
+                                    ]}
+                                    valuePropName="value"
+                                >
+                                    <UploadForm
+                                        label="Fayl yuklang"
+                                        multiple={!productionDoc}
+                                        value={productionDoc}
+                                        onchange={(files: RcFile[]) =>
+                                            handleFileChange(
+                                                files,
+                                                undefined,
+                                                'productionLocationDocument'
+                                            )
+                                        }
+                                        accept=".pdf"
+                                        beforeUpload={beforeUploadLarge}
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12}>
+                                <Form.Item
+                                    name="innovationPhotos"
+                                    label={
+                                        <span className="flex items-center gap-1">
+                                            Yangi ishlanmani tijoratlashtirishga
+                                            tayyorlash rasmi
+                                        </span>
+                                    }
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message:
+                                                'Kamida bitta foto yuklang',
+                                        },
+                                    ]}
+                                    valuePropName="value"
+                                    extra={
+                                        <span className="text-[10px] text-gray-400">
+                                            PNG / JPEG (har biri &lt;5MB)
+                                        </span>
+                                    }
+                                >
+                                    <UploadForm
+                                        label="Rasmlarni yuklang"
+                                        multiple
+                                        value={
+                                            Form.useWatch(
+                                                'innovationPhotos',
+                                                form
+                                            ) as any
+                                        }
+                                        accept=".jpg,.jpeg,.png"
+                                        beforeUpload={beforeUploadLarge}
+                                        onchange={(files) =>
+                                            handleFilesChange(
+                                                files,
+                                                'innovationPhotos'
+                                            )
+                                        }
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12}>
+                                <Form.Item
+                                    name="manufacturingProcessPhotos"
+                                    label={
+                                        <span>
+                                            Ishlanmaning sanoat namunasini
+                                            yaratish jarayonidan foto lavhalar
+                                            ilova qilish.
+                                        </span>
+                                    }
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message:
+                                                'Jarayon fotosuratlarini yuklang',
+                                        },
+                                    ]}
+                                    valuePropName="value"
+                                    extra={
+                                        <span className="text-[10px] text-gray-400">
+                                            PNG / JPEG (har biri &lt;5MB)
+                                        </span>
+                                    }
+                                >
+                                    <UploadForm
+                                        label="Rasmlarni yuklang"
+                                        multiple
+                                        value={
+                                            Form.useWatch(
+                                                'manufacturingProcessPhotos',
+                                                form
+                                            ) as any
+                                        }
+                                        accept=".jpg,.jpeg,.png"
+                                        beforeUpload={beforeUploadLarge}
+                                        onchange={(files) =>
+                                            handleFilesChange(
+                                                files,
+                                                'manufacturingProcessPhotos'
+                                            )
+                                        }
                                     />
                                 </Form.Item>
                             </Col>
