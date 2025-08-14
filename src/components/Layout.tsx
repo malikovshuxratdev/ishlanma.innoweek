@@ -52,7 +52,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
         <AntLayout
             className={`min-h-screen ${darkMode ? 'dark-theme' : ''}`}
-            style={{ overflow: 'hidden' }}
+            style={{ overflow: 'hidden', scrollBehavior: 'smooth' }}
         >
             <SiteHeader
                 darkMode={darkMode}
