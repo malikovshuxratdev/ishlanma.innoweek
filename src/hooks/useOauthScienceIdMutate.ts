@@ -7,6 +7,7 @@ import {
 } from '../types/oauthScienceIdType';
 import { TokenService } from '../utils/storage';
 import { useQuery } from './useQuery';
+import { message } from 'antd';
 
 export const useOauthScienceId = () => {
     const mutate = useMutation({
@@ -58,18 +59,11 @@ export const useUserProfileQuery = () => {
 
 export const useLogOut = () => {
     const navigate = useNavigate();
-    const mutate = useMutation({
-        mutationFn: async () => {
-            return await oauthScienceIdApi.userLogOut();
-        },
-        onSuccess: () => {
-            TokenService.clearTokens();
-        },
-    });
 
     const logOut = () => {
+        TokenService.clearTokens();
         navigate('/');
-        mutate.mutate();
+        message.success('Siz tizimdan chiqdingiz');
     };
 
     return logOut;

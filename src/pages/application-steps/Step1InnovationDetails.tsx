@@ -8,7 +8,6 @@ import {
     Button,
     Row,
     Col,
-    Steps,
     Space,
     Divider,
 } from 'antd';
@@ -63,20 +62,6 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 animate-fade-in">
             <Card className="w-full shadow-sm border border-gray-100/60 backdrop-blur-sm bg-white/70">
                 <Space direction="vertical" className="w-full">
-                    <Steps
-                        responsive
-                        size="small"
-                        current={0}
-                        items={[
-                            { title: 'Details' },
-                            { title: 'Intellectual Property' },
-                            { title: 'Background' },
-                            { title: 'Additional Info' },
-                            { title: 'Financials' },
-                        ]}
-                    />
-                    <Divider className="!my-4" />
-
                     <Form
                         form={form}
                         layout="vertical"

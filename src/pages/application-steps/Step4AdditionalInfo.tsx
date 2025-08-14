@@ -7,24 +7,20 @@ import {
     Row,
     Col,
     Select,
-    Upload,
     InputNumber,
     Space,
-    Steps,
-    Tooltip,
     Divider,
-    Progress,
-    message,
 } from 'antd';
 import {
     ArrowLeftOutlined,
     ArrowRightOutlined,
-    UploadOutlined,
     PlusOutlined,
     MinusCircleOutlined,
-    InfoCircleOutlined,
 } from '@ant-design/icons';
 import ImageCropUpload from '../../components/ImageCropUpload';
+import UploadForm from '../../components/shared/Form/UploadForm';
+import FilePreview from '../../components/uploads/FilePreview';
+import type { RcFile } from 'antd/es/upload/interface';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -37,7 +33,53 @@ interface Step4Props {
 }
 
 const MAX_COMMERCIALIZATION_WORDS = 50;
-const MAX_SOCIAL_IMPACT_WORDS = 120; // allow longer narrative
+const MAX_SOCIAL_IMPACT_WORDS = 120;
+const INDUSTRIES = [
+    'Agriculture',
+    'Energy',
+    'Healthcare',
+    'Information Technology',
+    'Manufacturing',
+    'Environment',
+    'Transportation',
+    'Education',
+    'Finance',
+    'Construction',
+    'Food Processing',
+    'Textiles',
+    'Mining',
+    'Tourism',
+    'Telecommunications',
+    'Biotechnology',
+    'Aerospace',
+    'Automotive',
+    'Chemical',
+    'Defense',
+    'Entertainment',
+    'Fashion',
+    'Forestry',
+    'Gaming',
+    'Insurance',
+    'Legal Services',
+    'Logistics',
+    'Media',
+    'Pharmaceuticals',
+    'Real Estate',
+    'Retail',
+    'Security',
+    'Sports',
+    'Utilities',
+    'Waste Management',
+];
+
+const MATURITY_LEVELS = [
+    { value: 'undefined', label: 'Undefined' },
+    { value: 'idea', label: 'Idea' },
+    { value: 'experimental_research', label: 'Experimental Research' },
+    { value: 'industrial_sample', label: 'Industrial Sample' },
+    { value: 'new_product_creation', label: 'New Product Creation' },
+    { value: 'production_expansion', label: 'Production Expansion' },
+];
 
 const Step4AdditionalInfo: React.FC<Step4Props> = ({
     onNext,
@@ -46,53 +88,13 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
 }) => {
     const [form] = Form.useForm();
     const [submitting, setSubmitting] = useState(false);
+    // Local state for standalone upload blocks
+    const [designSchematic, setDesignSchematic] = useState<
+        string | RcFile | null
+    >(null);
 
-    const industries = [
-        'Agriculture',
-        'Energy',
-        'Healthcare',
-        'Information Technology',
-        'Manufacturing',
-        'Environment',
-        'Transportation',
-        'Education',
-        'Finance',
-        'Construction',
-        'Food Processing',
-        'Textiles',
-        'Mining',
-        'Tourism',
-        'Telecommunications',
-        'Biotechnology',
-        'Aerospace',
-        'Automotive',
-        'Chemical',
-        'Defense',
-        'Entertainment',
-        'Fashion',
-        'Forestry',
-        'Gaming',
-        'Insurance',
-        'Legal Services',
-        'Logistics',
-        'Media',
-        'Pharmaceuticals',
-        'Real Estate',
-        'Retail',
-        'Security',
-        'Sports',
-        'Utilities',
-        'Waste Management',
-    ];
-
-    const maturityLevels = [
-        { value: 'undefined', label: 'Undefined' },
-        { value: 'idea', label: 'Idea' },
-        { value: 'experimental_research', label: 'Experimental Research' },
-        { value: 'industrial_sample', label: 'Industrial Sample' },
-        { value: 'new_product_creation', label: 'New Product Creation' },
-        { value: 'production_expansion', label: 'Production Expansion' },
-    ];
+    const industries = INDUSTRIES;
+    const maturityLevels = MATURITY_LEVELS;
 
     useEffect(() => {
         if (initialValues) form.setFieldsValue(initialValues);
@@ -111,37 +113,38 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
         [socialImpactText]
     );
 
-    const socialImpactPercent = Math.min(
-        100,
-        Math.round((socialImpactWordCount / MAX_SOCIAL_IMPACT_WORDS) * 100)
-    );
-
-    const normFile = (e: any) => {
-        if (Array.isArray(e)) return e;
-        return e?.fileList?.slice(0, 8); // cap at 8 files for images
+    // Helpers for UploadForm
+    const beforeUploadLarge = () => false; // prevent auto upload; validation is handled by accept attribute/UI
+    const handleFileChange = (
+        files: RcFile[],
+        setState?: (v: string | RcFile | null) => void,
+        fieldName?: string
+    ) => {
+        const first = files?.[0] || null;
+        if (setState) setState(first);
+        if (fieldName) form.setFieldsValue({ [fieldName]: first });
     };
 
-    const beforeImageUpload = (file: File) => {
-        const isImage = file.type.startsWith('image/');
-        if (!isImage) message.error(`${file.name} is not an image`);
-        const isLt5M = file.size / 1024 / 1024 < 5;
-        if (!isLt5M) message.error(`${file.name} > 5MB`);
-        return false; // prevent auto upload
-    };
-
-    const beforePdfUpload = (file: File) => {
-        const isPdf = file.type === 'application/pdf';
-        if (!isPdf) message.error('Only PDF files allowed');
-        const isLt10M = file.size / 1024 / 1024 < 10;
-        if (!isLt10M) message.error(`${file.name} > 10MB`);
-        return false;
-    };
+    // Watchers for form-controlled upload fields
+    const customsDoc = Form.useWatch('customsDocumentation', form) as
+        | RcFile
+        | string
+        | null;
+    const productionDoc = Form.useWatch('productionLocationDocument', form) as
+        | RcFile
+        | string
+        | null;
 
     const handleNext = async () => {
         try {
             setSubmitting(true);
             const values = await form.validateFields();
-            onNext(values);
+            // Ensure we include standalone upload values as part of submission
+            const submitValues = {
+                ...values,
+                designSchematic: designSchematic || null,
+            };
+            onNext(submitValues);
         } finally {
             setSubmitting(false);
         }
@@ -151,20 +154,6 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 animate-fade-in">
             <Card className="w-full shadow-sm border border-gray-100/60 backdrop-blur-sm bg-white/70">
                 <Space direction="vertical" className="w-full">
-                    <Steps
-                        responsive
-                        size="small"
-                        current={3}
-                        items={[
-                            { title: "Ma'lumotlar" },
-                            { title: 'Intellektual mulk' },
-                            { title: 'Ilmiy asos' },
-                            { title: "Qo'shimcha ma'lumot" },
-                            { title: 'Moliyaviy' },
-                        ]}
-                    />
-                    <Divider className="!my-4" />
-
                     <Form
                         form={form}
                         layout="vertical"
@@ -172,7 +161,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                         scrollToFirstError
                     >
                         <Row gutter={[24, 8]}>
-                            <Col span={24}>
+                            <Col xs={24} md={12}>
                                 <Form.Item
                                     name="commercializationProject"
                                     label={
@@ -182,68 +171,79 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                             oshirilgan loyiha nomi
                                         </span>
                                     }
+                                    rules={[
+                                        {
+                                            validator: (_, value) => {
+                                                if (!value)
+                                                    return Promise.resolve();
+                                                const words = value
+                                                    .trim()
+                                                    .split(/\s+/)
+                                                    .filter(Boolean);
+                                                if (
+                                                    words.length >
+                                                    MAX_COMMERCIALIZATION_WORDS
+                                                ) {
+                                                    return Promise.reject(
+                                                        new Error(
+                                                            `Limit: ${words.length}/${MAX_COMMERCIALIZATION_WORDS} so'z`
+                                                        )
+                                                    );
+                                                }
+                                                return Promise.resolve();
+                                            },
+                                        },
+                                    ]}
                                 >
-                                    <TextArea
-                                        rows={4}
-                                        placeholder="Yangi ishlanma tijoratlashtirishga tayyorlash bo'yicha amalga oshirilgan loyiha nomi"
-                                        allowClear
-                                        showCount
-                                        maxLength={50}
+                                    <Input
+                                        placeholder="Yangi ishlanmani tijoratlashtirishga tayyorlash bo'yicha ..."
+                                        size="large"
                                     />
                                 </Form.Item>
                             </Col>
-
-                            <Col xs={24}>
+                            <Col xs={24} md={12}>
                                 <Form.Item
                                     name="innovationPhotos"
                                     label={
                                         <span className="flex items-center gap-1">
-                                            Yangi ishlanma rasmlari (PNG/JPEG,
-                                            kesish)
+                                            Yangi ishlanmani tijoratlashtirishga
+                                            tayyorlash rasmi
                                         </span>
                                     }
                                     rules={[
                                         {
                                             required: true,
                                             message:
-                                                'Iltimos, kamida bitta rasm yuklang',
+                                                'Kamida bitta foto yuklang',
                                         },
                                     ]}
                                     valuePropName="value"
+                                    extra={
+                                        <span className="text-[10px] text-gray-400">
+                                            PNG / JPEG (har biri &lt;5MB)
+                                        </span>
+                                    }
                                 >
                                     <ImageCropUpload maxCount={8} />
                                 </Form.Item>
-                                <span className="text-xs text-gray-500">
-                                    Faqat PNG yoki JPEG (har biri 5MB dan
-                                    kichik)
-                                </span>
                             </Col>
-
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     name="industryBelonging"
                                     label={
                                         <span>
-                                            Sanoat yo'nalishlari{' '}
-                                            <Tooltip title="Mos keluvchi barcha tarmoqlarni tanlang.">
-                                                <InfoCircleOutlined className="text-gray-400" />
-                                            </Tooltip>
-                                        </span>
-                                    }
-                                    extra={
-                                        <span className="text-xs text-gray-500">
-                                            Asosiy va qo'shimcha tarmoqlarni
-                                            tanlang.
+                                            Ishlanmaning sanoat mansubligi
                                         </span>
                                     }
                                 >
                                     <Select
                                         mode="multiple"
-                                        placeholder="Tarmoqlarni tanlang"
+                                        placeholder="Sanoat tarmoqlarini tanlang"
                                         allowClear
                                         showSearch
                                         optionFilterProp="children"
                                         maxTagCount="responsive"
+                                        size="large"
                                     >
                                         {industries.map((industry) => (
                                             <Option
@@ -256,16 +256,14 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     </Select>
                                 </Form.Item>
                             </Col>
-
                             <Col xs={24} md={12}>
+                                {/* 4. Maturity Level (Majburiy) */}
                                 <Form.Item
                                     name="maturityLevel"
                                     label={
                                         <span>
-                                            Ishlanma yetuklik darajasi{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
+                                            Ishlanmaning mukammallik (yetuklik)
+                                            darajasi (bosqichi)
                                         </span>
                                     }
                                     rules={[
@@ -275,17 +273,12 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                 'Yetuklik darajasini tanlang',
                                         },
                                     ]}
-                                    extra={
-                                        <span className="text-xs text-gray-500">
-                                            Hozirgi texnik / bozor
-                                            tayyorgarligini aks ettiring.
-                                        </span>
-                                    }
                                 >
                                     <Select
-                                        placeholder="Darajani tanlang"
+                                        placeholder="Bosqichni tanlang"
                                         showSearch
                                         optionFilterProp="children"
+                                        size="large"
                                     >
                                         {maturityLevels.map((level) => (
                                             <Option
@@ -298,40 +291,46 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     </Select>
                                 </Form.Item>
                             </Col>
-
-                            <Col span={24}>
+                            <Col xs={24} md={12}>
                                 <Form.Item
                                     name="bankInformation"
                                     label={
                                         <span>
-                                            Bank ma'lumotlari{' '}
-                                            <Tooltip title="Asosiy xizmat ko'rsatuvchi bank va filiali.">
-                                                <InfoCircleOutlined className="text-gray-400" />
-                                            </Tooltip>
+                                            Xizmat ko'rsatuvchi bankdan
+                                            ma'lumotlar
                                         </span>
                                     }
-                                    rules={[
-                                        {
-                                            max: 120,
-                                            message: 'Maksimum 120 ta belgi',
-                                        },
-                                    ]}
                                 >
                                     <Input
                                         placeholder="Masalan: Agrobank – Toshkent filiali"
                                         allowClear
+                                        size="large"
                                     />
                                 </Form.Item>
                             </Col>
-
+                            <Col xs={24} md={12}>
+                                <Form.Item
+                                    name="buyerOrganizations"
+                                    label={
+                                        <span>
+                                            Sotib olgan isteʼmolchi tashkilotlar
+                                            nomi
+                                        </span>
+                                    }
+                                >
+                                    <Input
+                                        placeholder="Avtomatik olinadi"
+                                        disabled
+                                        size="large"
+                                    />
+                                </Form.Item>
+                            </Col>
                             <Col span={24}>
                                 <Form.Item
                                     label={
                                         <span>
-                                            Eksport ko'rsatkichlari{' '}
-                                            <Tooltip title="Har yillik eksport tushumlarini qo'shing (ixtiyoriy).">
-                                                <InfoCircleOutlined className="text-gray-400" />
-                                            </Tooltip>
+                                            Sotilgan ishlanma (mahsulot)ning
+                                            eksport koʻrsatkichlari
                                         </span>
                                     }
                                 >
@@ -369,6 +368,8 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                                     placeholder="Yil"
                                                                     min={2000}
                                                                     max={2035}
+                                                                    className="!w-28"
+                                                                    size="large"
                                                                 />
                                                             </Form.Item>
                                                             <Form.Item
@@ -398,6 +399,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                                             ','
                                                                         )
                                                                     }
+                                                                    size="large"
                                                                     parser={(
                                                                         value
                                                                     ) =>
@@ -431,294 +433,248 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                         Yil qo'shish
                                                     </Button>
                                                 </Form.Item>
-                                                <span className="text-xs text-gray-400">
-                                                    Hozircha eksport bo'lmasa
-                                                    bo'sh qoldiring.
-                                                </span>
                                             </>
                                         )}
                                     </Form.List>
                                 </Form.Item>
                             </Col>
-
-                            <Col xs={24} md={12}>
-                                <Form.Item
-                                    name="customsDocumentation"
-                                    label={
-                                        <span>
-                                            Bojxona hujjatlari (mavjud bo'lsa){' '}
-                                            <Tooltip title="Eksportga oid bojxona shakllarini biriktiring.">
-                                                <InfoCircleOutlined className="text-gray-400" />
-                                            </Tooltip>
-                                        </span>
-                                    }
-                                    valuePropName="fileList"
-                                    getValueFromEvent={normFile}
-                                    extra={
-                                        <span className="text-xs text-gray-500">
-                                            Har biri PDF (&lt;10MB).
-                                        </span>
-                                    }
-                                >
-                                    <Upload
-                                        name="customsDocuments"
-                                        accept="application/pdf"
-                                        multiple
-                                        beforeUpload={beforePdfUpload}
-                                    >
-                                        <Button icon={<UploadOutlined />}>
-                                            PDF hujjatlarni yuklash
-                                        </Button>
-                                    </Upload>
-                                </Form.Item>
-                            </Col>
-
-                            <Col xs={24} md={12}>
-                                <Form.Item
-                                    name="buyerOrganizations"
-                                    label={
-                                        <span>
-                                            Xaridor tashkilotlar{' '}
-                                            <Tooltip title="Avtomatik olinadi (tez orada tahrirlanadi).">
-                                                <InfoCircleOutlined className="text-gray-400" />
-                                            </Tooltip>
-                                        </span>
-                                    }
-                                    extra={
-                                        <span className="text-xs text-gray-500">
-                                            Tranzaksiya reyestridan olinadi.
-                                        </span>
-                                    }
-                                >
-                                    <Input
-                                        placeholder="STIR orqali avtomatik olinadi"
-                                        disabled
-                                    />
-                                </Form.Item>
-                            </Col>
-
                             <Col span={24}>
                                 <Form.Item
                                     label={
                                         <span>
-                                            Savdo shartnomalari{' '}
-                                            <Tooltip title="Mavjud tijoriy kelishuvlar bo'yicha umumiy ma'lumot (ixtiyoriy).">
-                                                <InfoCircleOutlined className="text-gray-400" />
-                                            </Tooltip>
+                                            Sotuv shartnomalari soni va summasi,
+                                            asoslovchi hujjatlar biriktirilsin
                                         </span>
                                     }
                                 >
                                     <Row gutter={[16, 16]}>
-                                        <Col xs={24} md={12}>
+                                        <Col xs={24} sm={24} md={8} lg={8}>
                                             <Form.Item
-                                                name="productionLocationDocument"
-                                                label={
-                                                    <span>
-                                                        Ishlab chiqarish joyi
-                                                        hujjati{' '}
-                                                        <span className="text-red-500">
-                                                            *
-                                                        </span>
-                                                    </span>
-                                                }
-                                                rules={[
-                                                    {
-                                                        required: true,
-                                                        message:
-                                                            'Ishlab chiqarish joyi hujjatini yuklang',
-                                                    },
+                                                name={[
+                                                    'salesContracts',
+                                                    'contractCount',
                                                 ]}
-                                                valuePropName="fileList"
-                                                getValueFromEvent={normFile}
-                                                extra={
-                                                    <span className="text-xs text-gray-500">
-                                                        Kadastr / ijara
-                                                        shartnomasi (PDF
-                                                        &lt;10MB).
-                                                    </span>
-                                                }
+                                                label="Shartnomalar soni"
                                             >
-                                                {' '}
+                                                <InputNumber
+                                                    min={0}
+                                                    className="w-full"
+                                                    placeholder="0"
+                                                    size="large"
+                                                />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col xs={24} sm={24} md={8} lg={8}>
+                                            <Form.Item
+                                                name={[
+                                                    'salesContracts',
+                                                    'contractValue',
+                                                ]}
+                                                label="Shartnoma summasi (so'm)"
+                                            >
                                                 <InputNumber
                                                     className="w-full"
-                                                    placeholder="Jami so'mda"
+                                                    placeholder="0"
                                                     formatter={(value) =>
                                                         `${value}`.replace(
                                                             /\B(?=(\d{3})+(?!\d))/g,
                                                             ','
                                                         )
                                                     }
+                                                    size="large"
                                                     parser={(value) =>
                                                         value!.replace(
                                                             /\$\s?|(,*)/g,
                                                             ''
                                                         )
                                                     }
-                                                />{' '}
+                                                />
                                             </Form.Item>
                                         </Col>
-                                        <Col xs={24} md={8}>
-                                            <Form.Item
-                                                name={[
-                                                    'salesContracts',
-                                                    'documents',
-                                                ]}
-                                                label="Tasdiqlovchi hujjatlar"
-                                                valuePropName="fileList"
-                                                getValueFromEvent={normFile}
-                                                extra={
-                                                    <span className="text-[10px] text-gray-400">
-                                                        PDF dalillar (ixtiyoriy)
-                                                    </span>
+                                        <Col xs={24} sm={24} md={8} lg={8}>
+                                            <UploadForm
+                                                label="Dizayn sxemasi yoki chizmasi"
+                                                desc="Dizayn sxemasi yoki chizmasini yuklang"
+                                                multiple={!designSchematic}
+                                                value={designSchematic}
+                                                onchange={(files: RcFile[]) =>
+                                                    handleFileChange(
+                                                        files,
+                                                        setDesignSchematic
+                                                    )
                                                 }
+                                                accept=".pdf,.jpg,.jpeg,.png"
+                                                required={false}
+                                                beforeUpload={beforeUploadLarge}
                                             >
-                                                <Upload
-                                                    name="contractDocuments"
-                                                    accept="application/pdf"
-                                                    multiple
-                                                    beforeUpload={
-                                                        beforePdfUpload
-                                                    }
-                                                >
-                                                    <Button
-                                                        icon={
-                                                            <UploadOutlined />
+                                                {designSchematic && (
+                                                    <FilePreview
+                                                        file={designSchematic}
+                                                        fileName={
+                                                            'Dizayn sxemasi'
                                                         }
-                                                    >
-                                                        PDF yuklash
-                                                    </Button>
-                                                </Upload>
-                                            </Form.Item>
+                                                        onDelete={() =>
+                                                            setDesignSchematic(
+                                                                null
+                                                            )
+                                                        }
+                                                    />
+                                                )}
+                                            </UploadForm>
                                         </Col>
                                     </Row>
                                 </Form.Item>
                             </Col>
-
+                            <Col xs={24} md={12}>
+                                <Form.Item
+                                    name="customsDocumentation"
+                                    label={
+                                        <span>
+                                            Bojxona xizmatlaridan foydalanganlik
+                                            bo'yicha hujjatlar (mavjud bo'lsa)
+                                        </span>
+                                    }
+                                    valuePropName="value"
+                                >
+                                    <UploadForm
+                                        label="Fayl yuklang"
+                                        desc="Faqat PDF"
+                                        multiple={!customsDoc}
+                                        value={customsDoc}
+                                        onchange={(files: RcFile[]) =>
+                                            handleFileChange(
+                                                files,
+                                                undefined,
+                                                'customsDocumentation'
+                                            )
+                                        }
+                                        accept=".pdf"
+                                        beforeUpload={beforeUploadLarge}
+                                    >
+                                        {customsDoc && (
+                                            <FilePreview
+                                                file={customsDoc}
+                                                fileName={'Bojxona hujjati'}
+                                                onDelete={() =>
+                                                    form.setFieldsValue({
+                                                        customsDocumentation:
+                                                            null,
+                                                    })
+                                                }
+                                            />
+                                        )}
+                                    </UploadForm>
+                                </Form.Item>
+                            </Col>
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     name="productionLocationDocument"
                                     label={
                                         <span>
-                                            Production Location Document{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
+                                            Ishlab chiqarish joyi (maydoni)
+                                            hujjatlari (kadastr pasporti yoki
+                                            ijara shartnomasi)
                                         </span>
                                     }
                                     rules={[
                                         {
                                             required: true,
                                             message:
-                                                'Upload production location document',
+                                                'Kadastr yoki ijara hujjatini yuklang',
                                         },
                                     ]}
-                                    valuePropName="fileList"
-                                    getValueFromEvent={normFile}
-                                    extra={
-                                        <span className="text-xs text-gray-500">
-                                            Kadastr / lease agreement (PDF
-                                            &lt;10MB).
-                                        </span>
-                                    }
+                                    valuePropName="value"
                                 >
-                                    <Upload
-                                        name="locationDocument"
-                                        accept="application/pdf"
-                                        beforeUpload={beforePdfUpload}
+                                    <UploadForm
+                                        label="Fayl yuklang"
+                                        desc="Faqat PDF"
+                                        multiple={!productionDoc}
+                                        value={productionDoc}
+                                        onchange={(files: RcFile[]) =>
+                                            handleFileChange(
+                                                files,
+                                                undefined,
+                                                'productionLocationDocument'
+                                            )
+                                        }
+                                        accept=".pdf"
+                                        beforeUpload={beforeUploadLarge}
                                     >
-                                        <Button icon={<UploadOutlined />}>
-                                            Kadastr / ijara shartnomasini
-                                            yuklash
-                                        </Button>
-                                    </Upload>
+                                        {productionDoc && (
+                                            <FilePreview
+                                                file={productionDoc}
+                                                fileName={
+                                                    'Ishlab chiqarish joyi hujjati'
+                                                }
+                                                onDelete={() =>
+                                                    form.setFieldsValue({
+                                                        productionLocationDocument:
+                                                            null,
+                                                    })
+                                                }
+                                            />
+                                        )}
+                                    </UploadForm>
                                 </Form.Item>
                             </Col>
-
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     name="manufacturingProcessPhotos"
                                     label={
                                         <span>
-                                            Ishlab chiqarish jarayonlari
-                                            fotosuratlari{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
+                                            Ishlanmaning sanoat namunasini
+                                            yaratish jarayonidan foto lavhalar
+                                            ilova qilish.
                                         </span>
                                     }
                                     rules={[
                                         {
                                             required: true,
                                             message:
-                                                'Ishlab chiqarish jarayonining fotosuratlarini yuklang',
+                                                'Jarayon fotosuratlarini yuklang',
                                         },
                                     ]}
-                                    valuePropName="fileList"
-                                    getValueFromEvent={normFile}
+                                    valuePropName="value"
                                     extra={
-                                        <span className="text-xs text-gray-500">
-                                            Asosiy ishlab chiqarish
-                                            bosqichlarini ko'rsating (maks 8 ta,
-                                            har biri &lt;5MB).
+                                        <span className="text-[10px] text-gray-400">
+                                            PNG / JPEG (har biri &lt;5MB)
                                         </span>
                                     }
                                 >
-                                    <Upload
-                                        name="processPhotos"
-                                        accept="image/*"
-                                        multiple
-                                        beforeUpload={beforeImageUpload}
-                                        maxCount={8}
-                                    >
-                                        <Button icon={<UploadOutlined />}>
-                                            Rasmlarni yuklash
-                                        </Button>
-                                    </Upload>
+                                    <ImageCropUpload maxCount={8} />
                                 </Form.Item>
                             </Col>
-
-                            <Col span={24}>
+                            <Col span={24} md={12}>
                                 <Form.Item
                                     name="developmentChallenges"
                                     label={
                                         <span>
-                                            Development Challenges{' '}
-                                            <Tooltip title="Optional obstacles: funding, regulation, tech hurdles.">
-                                                <InfoCircleOutlined className="text-gray-400" />
-                                            </Tooltip>
+                                            Ishlanmani yaratishda yuzaga kelgan
+                                            muammolar nimalardan iborat
                                         </span>
                                     }
-                                    rules={[
-                                        {
-                                            max: 800,
-                                            message: 'Max 800 characters',
-                                        },
-                                    ]}
                                 >
                                     <TextArea
-                                        rows={4}
-                                        placeholder="Key obstacles and how you addressed them (optional)."
+                                        rows={5}
+                                        placeholder="Muammolar va ularni hal etish choralarini qisqacha yozing."
                                         allowClear
+                                        className="!text-sm"
                                     />
                                 </Form.Item>
                             </Col>
-
-                            <Col span={24}>
+                            <Col span={24} md={12}>
                                 <Form.Item
                                     name="socialImpact"
                                     label={
                                         <span>
-                                            Social Impact{' '}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
+                                            Ishlanmaning ijtimoiy ahamiyati
                                         </span>
                                     }
                                     rules={[
                                         {
                                             required: true,
                                             message:
-                                                'Describe social impact with measurable metrics',
+                                                'Ijtimoiy ahamiyatni raqamlar bilan izohlang',
                                         },
                                         {
                                             validator: (_, value) => {
@@ -734,54 +690,17 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                 )
                                                     return Promise.reject(
                                                         new Error(
-                                                            `Limit exceeded: ${words.length}/${MAX_SOCIAL_IMPACT_WORDS} words`
+                                                            `Limit: ${words.length}/${MAX_SOCIAL_IMPACT_WORDS} words`
                                                         )
                                                     );
                                                 return Promise.resolve();
                                             },
                                         },
                                     ]}
-                                    extra={
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs text-gray-500">
-                                                Include metrics: beneficiaries
-                                                reached, CO₂ reduced, jobs
-                                                created, etc.
-                                            </span>
-                                            <div className="w-44">
-                                                <Progress
-                                                    size="small"
-                                                    percent={
-                                                        socialImpactPercent
-                                                    }
-                                                    showInfo={false}
-                                                    status={
-                                                        socialImpactWordCount >
-                                                        MAX_SOCIAL_IMPACT_WORDS
-                                                            ? 'exception'
-                                                            : 'active'
-                                                    }
-                                                />
-                                                <span
-                                                    className={`block text-right text-[10px] ${
-                                                        socialImpactWordCount >
-                                                        MAX_SOCIAL_IMPACT_WORDS
-                                                            ? 'text-red-500'
-                                                            : 'text-gray-400'
-                                                    }`}
-                                                >
-                                                    {socialImpactWordCount}/
-                                                    {MAX_SOCIAL_IMPACT_WORDS}{' '}
-                                                    words
-                                                </span>
-                                            </div>
-                                        </div>
-                                    }
                                 >
                                     <TextArea
-                                        rows={5}
-                                        placeholder="Explain measurable social/environmental outcomes and evidence (max 120 words)."
-                                        allowClear
+                                        rows={4}
+                                        placeholder="Ijtimoiy/iqtisodiy natijalar va faktlar"
                                     />
                                 </Form.Item>
                             </Col>

@@ -68,11 +68,11 @@ export class BaseClient {
             originalRequest._retry = true;
             if (error.response?.status === 401) {
                 // 401 xatolik bo'lsa, tokenlarni tozalab, sahifani qayta yuklaymiz
-                // TokenService.clearTokens();
+                TokenService.clearTokens();
                 // 401 xatolik bo'lsa, tokenlarni tozalab, bosh sahifasiga yo'naltiramiz
-                // window.location.href = '/';
+                window.location.href = '/';
                 // Sahifani qayta yuklash
-                // window.location.reload();
+                window.location.reload();
                 return;
             }
             if (error.response?.status === 502) {

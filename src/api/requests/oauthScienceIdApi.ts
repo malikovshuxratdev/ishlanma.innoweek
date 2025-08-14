@@ -14,7 +14,6 @@ const urls = {
     oauthScienceId: '/api/v1/auth/scienceid/oauth/url/',
     confirmCode: '/api/v1/auth/scienceid/oauth/login/',
     userProfile: '/api/v1/user/profile/',
-    userLogOut: '/api/v1/auth/logout/',
 };
 
 export class OauthScienceIdAPI {
@@ -42,11 +41,6 @@ export class OauthScienceIdAPI {
             urls.userProfile
         );
         return result.data;
-    }
-
-    async userLogOut(): Promise<AxiosResponse> {
-        const result: AxiosResponse = await this.api.post(urls.userLogOut);
-        return result;
     }
 }
 

@@ -5,24 +5,13 @@ import {
     Button,
     Row,
     Col,
-    Typography,
     InputNumber,
     message,
-    Steps,
     Divider,
-    Tooltip,
     Space,
-    Alert,
-    Statistic,
 } from 'antd';
-import {
-    ArrowLeftOutlined,
-    CheckOutlined,
-    InfoCircleOutlined,
-} from '@ant-design/icons';
+import { ArrowLeftOutlined, SendOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-
-const { Title } = Typography;
 
 interface Step5Props {
     onBack: () => void;
@@ -77,50 +66,18 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
         }
     }, [grossProfitField, derivedGrossProfit]);
 
-    const financialFields: {
-        name: string;
-        label: string;
-        tooltip?: string;
-        derived?: boolean;
-    }[] = [
-        {
-            name: 'netRevenue',
-            label: 'Net Revenue from Sales',
-            tooltip: 'Total sales after returns/discounts.',
-        },
-        {
-            name: 'costOfGoodsSold',
-            label: 'Cost of Goods Sold',
-            tooltip: 'Direct production or acquisition costs.',
-        },
-        {
-            name: 'grossProfit',
-            label: 'Gross Profit (Loss)',
-            tooltip: 'Auto-calculated = Net Revenue - COGS (overrideable).',
-            derived: true,
-        },
-        { name: 'sellingExpenses', label: 'Selling Expenses' },
-        { name: 'administrativeExpenses', label: 'Administrative Expenses' },
-        {
-            name: 'otherOperationalExpenses',
-            label: 'Other Operational Expenses',
-        },
-        { name: 'otherOperatingIncome', label: 'Other Operating Income' },
-        { name: 'financialLeaseIncome', label: 'Financial Lease Income' },
-        { name: 'currencyExchangeGain', label: 'Currency Exchange Gain' },
-        { name: 'otherFinancialIncome', label: 'Other Financial Income' },
-        { name: 'currencyExchangeLoss', label: 'Currency Exchange Loss' },
-        {
-            name: 'extraordinaryIncomeLosses',
-            label: 'Extraordinary Income & Losses',
-        },
-        { name: 'incomeTax', label: 'Income Tax' },
-    ];
-
-    const currencyFormatter = (value?: string | number) =>
-        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    const currencyParser = (value?: string) =>
-        value ? value.replace(/\$\s?|(,*)/g, '') : '';
+    // Hammasi so'mda (UZS) kiritiladi, faqat butun son ko'rinishida.
+    const currencyFormatter = (value?: string | number) => {
+        if (value === undefined || value === null || value === '') return '';
+        return `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',').concat(" so'm");
+    };
+    const currencyParser = (value?: string) => {
+        if (!value) return '';
+        return value
+            .replace(/\s?so'm/gi, '')
+            .replace(/,/g, '')
+            .replace(/[^0-9-]/g, ''); // faqat raqam va ehtimoliy minus
+    };
 
     const handleSubmit = async () => {
         try {
@@ -137,68 +94,52 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
         }
     };
 
-    const totalExpenses = useMemo(() => {
-        const keys = [
-            'sellingExpenses',
-            'administrativeExpenses',
-            'otherOperationalExpenses',
-            'currencyExchangeLoss',
-            'incomeTax',
+    // Faqat raqam kiritish (harf va boshqa belgilarni bloklash)
+    const allowDigitKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        const allowedKeys = [
+            'Backspace',
+            'Delete',
+            'Tab',
+            'Escape',
+            'Enter',
+            'ArrowLeft',
+            'ArrowRight',
+            'ArrowUp',
+            'ArrowDown',
+            'Home',
+            'End',
         ];
-        return keys.reduce(
-            (acc, k) => acc + numOrZero(form.getFieldValue(k)),
-            0
-        );
-    }, [form, netRevenue, costOfGoodsSold, grossProfitField]);
+        if (
+            allowedKeys.includes(e.key) ||
+            ((e.metaKey || e.ctrlKey) &&
+                ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase()))
+        ) {
+            return;
+        }
+        if (/^[0-9]$/.test(e.key)) return; // faqat raqam
+        e.preventDefault();
+    };
 
-    const ebitdaEstimate = useMemo(() => {
-        const operatingIncome =
-            numOrZero(form.getFieldValue('otherOperatingIncome')) +
-            numOrZero(form.getFieldValue('otherFinancialIncome')) +
-            numOrZero(form.getFieldValue('financialLeaseIncome')) +
-            numOrZero(form.getFieldValue('currencyExchangeGain')) -
-            numOrZero(form.getFieldValue('currencyExchangeLoss'));
-        return (
-            (autoGross ? derivedGrossProfit : numOrZero(grossProfitField)) -
-            totalExpenses +
-            operatingIncome
-        ); // simplistic approximation
-    }, [autoGross, derivedGrossProfit, grossProfitField, totalExpenses, form]);
+    const handlePasteDigits = (e: React.ClipboardEvent<HTMLInputElement>) => {
+        const text = e.clipboardData.getData('text');
+        if (/^[0-9]+$/.test(text)) return; // to'liq raqam
+        const cleaned = text.replace(/[^0-9]/g, '');
+        e.preventDefault();
+        if (cleaned) {
+            const target = e.target as HTMLInputElement;
+            const start = target.selectionStart || 0;
+            const end = target.selectionEnd || 0;
+            const value = target.value;
+            const newValue = value.slice(0, start) + cleaned + value.slice(end);
+            target.value = newValue;
+            target.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    };
 
     return (
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 animate-fade-in">
             <Card className="w-full shadow-sm border border-gray-100/60 backdrop-blur-sm bg-white/70">
                 <Space direction="vertical" className="w-full">
-                    <div className="flex flex-col gap-2 text-center">
-                        <Title level={2} className="!mb-0">
-                            Financial Performance
-                        </Title>
-                        <span className="text-gray-500 text-sm">
-                            Enter the latest annual financial metrics (in UZS).
-                            Leave blank if not applicable.
-                        </span>
-                    </div>
-                    <Steps
-                        responsive
-                        size="small"
-                        current={4}
-                        items={[
-                            { title: 'Details' },
-                            { title: 'Intellectual Property' },
-                            { title: 'Background' },
-                            { title: 'Additional Info' },
-                            { title: 'Financials' },
-                        ]}
-                    />
-                    <Divider className="!my-4" />
-
-                    <Alert
-                        type="info"
-                        showIcon
-                        message="Currency"
-                        description="All monetary values are in Uzbekistani so'm (UZS). Use whole numbers (no decimals)."
-                    />
-
                     <Form
                         form={form}
                         layout="vertical"
@@ -207,134 +148,399 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                         initialValues={initialValues}
                     >
                         <Row gutter={[24, 12]}>
-                            {financialFields.map((field) => (
-                                <Col key={field.name} xs={24} md={12} xl={8}>
-                                    <Form.Item
-                                        name={field.name}
-                                        label={
-                                            <span className="flex items-center gap-1">
-                                                {field.label}
-                                                {field.tooltip && (
-                                                    <Tooltip
-                                                        title={field.tooltip}
-                                                    >
-                                                        <InfoCircleOutlined className="text-gray-400" />
-                                                    </Tooltip>
-                                                )}
-                                                {field.derived && autoGross && (
-                                                    <span className="text-[10px] text-green-600 font-medium">
-                                                        auto
-                                                    </span>
-                                                )}
-                                            </span>
-                                        }
-                                        rules={[
-                                            {
-                                                type: 'number',
-                                                min: 0,
-                                                message: 'Must be ≥ 0',
-                                                transform: (v) =>
-                                                    v === '' ? undefined : v,
-                                            },
-                                        ]}
-                                        extra={
-                                            field.name === 'grossProfit' ? (
-                                                <span className="text-[10px] text-gray-500">
-                                                    {autoGross
-                                                        ? 'Auto-updated from Net Revenue & COGS. Enter a value to override.'
-                                                        : 'Manual override active. Clear to re-enable auto.'}
-                                                </span>
-                                            ) : undefined
-                                        }
-                                    >
-                                        <InputNumber
-                                            className="w-full"
-                                            placeholder={`Enter ${field.label.toLowerCase()}`}
-                                            formatter={currencyFormatter}
-                                            parser={currencyParser}
-                                            controls={false}
-                                            onChange={(val) => {
-                                                if (
-                                                    field.name === 'grossProfit'
-                                                ) {
-                                                    if (
-                                                        val === undefined ||
-                                                        val === null ||
-                                                        val === ''
-                                                    ) {
-                                                        setAutoGross(true);
-                                                    } else {
-                                                        setAutoGross(false);
-                                                    }
-                                                }
-                                            }}
-                                            disabled={
-                                                field.name === 'grossProfit' &&
-                                                autoGross
-                                            }
-                                        />
-                                    </Form.Item>
-                                </Col>
-                            ))}
+                            <Col xs={24} md={12} xl={8}>
+                                <Form.Item
+                                    name="netRevenue"
+                                    label={
+                                        <span className="flex items-center gap-1">
+                                            Mahsulot (tovar, ish va xizmat)
+                                            larni sotishdan sof tushum
+                                        </span>
+                                    }
+                                    rules={[
+                                        {
+                                            type: 'number',
+                                            min: 0,
+                                            message: 'Must be ≥ 0',
+                                            transform: (v) =>
+                                                v === '' ? undefined : v,
+                                        },
+                                    ]}
+                                >
+                                    <InputNumber
+                                        className="w-full"
+                                        placeholder="Sof tushumni kiriting"
+                                        formatter={currencyFormatter}
+                                        parser={currencyParser}
+                                        controls={false}
+                                        precision={0}
+                                        step={1}
+                                        min={0}
+                                        onKeyDown={allowDigitKey}
+                                        onPaste={handlePasteDigits}
+                                        size="large"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12} xl={8}>
+                                <Form.Item
+                                    name="costOfGoodsSold"
+                                    label={
+                                        <span className="flex items-center gap-1">
+                                            Sotilgan mahsulot (tovar, ish va
+                                            xizmat) larning tannarxi
+                                        </span>
+                                    }
+                                    rules={[
+                                        {
+                                            type: 'number',
+                                            min: 0,
+                                            message: 'Must be ≥ 0',
+                                            transform: (v) =>
+                                                v === '' ? undefined : v,
+                                        },
+                                    ]}
+                                >
+                                    <InputNumber
+                                        className="w-full"
+                                        placeholder="Tannarxni kiriting"
+                                        formatter={currencyFormatter}
+                                        parser={currencyParser}
+                                        controls={false}
+                                        precision={0}
+                                        step={1}
+                                        min={0}
+                                        onKeyDown={allowDigitKey}
+                                        onPaste={handlePasteDigits}
+                                        size="large"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12} xl={8}>
+                                <Form.Item
+                                    name="grossProfit"
+                                    label={
+                                        <span className="flex items-center gap-1">
+                                            Mahsulot (tovar, ish va xizmat)
+                                            larni sotishning yalpi foydasi
+                                            (zarari)
+                                        </span>
+                                    }
+                                    rules={[
+                                        {
+                                            type: 'number',
+                                            message: 'Must be a number',
+                                            transform: (v) =>
+                                                v === '' ? undefined : v,
+                                        },
+                                    ]}
+                                >
+                                    <InputNumber
+                                        className="w-full"
+                                        placeholder="Yalpi foyda / zarar"
+                                        formatter={currencyFormatter}
+                                        parser={currencyParser}
+                                        controls={false}
+                                        precision={0}
+                                        step={1}
+                                        min={0}
+                                        onKeyDown={allowDigitKey}
+                                        onPaste={handlePasteDigits}
+                                        size="large"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12} xl={8}>
+                                <Form.Item
+                                    name="sellingExpenses"
+                                    label="Sotish xarajatlari"
+                                    rules={[
+                                        {
+                                            type: 'number',
+                                            min: 0,
+                                            message: 'Must be ≥ 0',
+                                            transform: (v) =>
+                                                v === '' ? undefined : v,
+                                        },
+                                    ]}
+                                >
+                                    <InputNumber
+                                        className="w-full"
+                                        placeholder="Sotish xarajatlarini kiriting"
+                                        formatter={currencyFormatter}
+                                        parser={currencyParser}
+                                        controls={false}
+                                        precision={0}
+                                        step={1}
+                                        min={0}
+                                        onKeyDown={allowDigitKey}
+                                        onPaste={handlePasteDigits}
+                                        size="large"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12} xl={8}>
+                                <Form.Item
+                                    name="administrativeExpenses"
+                                    label="Maʼmuriy xarajatlar"
+                                    rules={[
+                                        {
+                                            type: 'number',
+                                            min: 0,
+                                            message: 'Must be ≥ 0',
+                                            transform: (v) =>
+                                                v === '' ? undefined : v,
+                                        },
+                                    ]}
+                                >
+                                    <InputNumber
+                                        className="w-full"
+                                        placeholder="Ma'muriy xarajatlarni kiriting"
+                                        formatter={currencyFormatter}
+                                        parser={currencyParser}
+                                        controls={false}
+                                        precision={0}
+                                        step={1}
+                                        min={0}
+                                        onKeyDown={allowDigitKey}
+                                        onPaste={handlePasteDigits}
+                                        size="large"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12} xl={8}>
+                                <Form.Item
+                                    name="otherOperationalExpenses"
+                                    label="Boshqa operatsion xarajatlar"
+                                    rules={[
+                                        {
+                                            type: 'number',
+                                            min: 0,
+                                            message: 'Must be ≥ 0',
+                                            transform: (v) =>
+                                                v === '' ? undefined : v,
+                                        },
+                                    ]}
+                                >
+                                    <InputNumber
+                                        className="w-full"
+                                        placeholder="Boshqa operatsion xarajatlarni kiriting"
+                                        formatter={currencyFormatter}
+                                        parser={currencyParser}
+                                        controls={false}
+                                        precision={0}
+                                        step={1}
+                                        min={0}
+                                        onKeyDown={allowDigitKey}
+                                        onPaste={handlePasteDigits}
+                                        size="large"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12} xl={8}>
+                                <Form.Item
+                                    name="otherOperatingIncome"
+                                    label="Asosiy faoliyatning boshqa daromadlari"
+                                    rules={[
+                                        {
+                                            type: 'number',
+                                            min: 0,
+                                            message: 'Must be ≥ 0',
+                                            transform: (v) =>
+                                                v === '' ? undefined : v,
+                                        },
+                                    ]}
+                                >
+                                    <InputNumber
+                                        className="w-full"
+                                        placeholder="Boshqa asosiy faoliyat daromadlarini kiriting"
+                                        formatter={currencyFormatter}
+                                        parser={currencyParser}
+                                        controls={false}
+                                        precision={0}
+                                        step={1}
+                                        min={0}
+                                        onKeyDown={allowDigitKey}
+                                        onPaste={handlePasteDigits}
+                                        size="large"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12} xl={8}>
+                                <Form.Item
+                                    name="financialLeaseIncome"
+                                    label="Moliyaviy ijaradan daromadlar"
+                                    rules={[
+                                        {
+                                            type: 'number',
+                                            min: 0,
+                                            message: 'Must be ≥ 0',
+                                            transform: (v) =>
+                                                v === '' ? undefined : v,
+                                        },
+                                    ]}
+                                >
+                                    <InputNumber
+                                        className="w-full"
+                                        placeholder="Moliyaviy ijara daromadini kiriting"
+                                        formatter={currencyFormatter}
+                                        parser={currencyParser}
+                                        controls={false}
+                                        precision={0}
+                                        step={1}
+                                        min={0}
+                                        onKeyDown={allowDigitKey}
+                                        onPaste={handlePasteDigits}
+                                        size="large"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12} xl={8}>
+                                <Form.Item
+                                    name="currencyExchangeGain"
+                                    label="Valyuta kursi farqidan daromadlar"
+                                    rules={[
+                                        {
+                                            type: 'number',
+                                            min: 0,
+                                            message: 'Must be ≥ 0',
+                                            transform: (v) =>
+                                                v === '' ? undefined : v,
+                                        },
+                                    ]}
+                                >
+                                    <InputNumber
+                                        className="w-full"
+                                        placeholder="Valyuta kursi farqidan daromadni kiriting"
+                                        formatter={currencyFormatter}
+                                        parser={currencyParser}
+                                        controls={false}
+                                        precision={0}
+                                        step={1}
+                                        min={0}
+                                        onKeyDown={allowDigitKey}
+                                        onPaste={handlePasteDigits}
+                                        size="large"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12} xl={8}>
+                                <Form.Item
+                                    name="otherFinancialIncome"
+                                    label="Moliyaviy faoliyatning boshqa daromadlari"
+                                    rules={[
+                                        {
+                                            type: 'number',
+                                            min: 0,
+                                            message: 'Must be ≥ 0',
+                                            transform: (v) =>
+                                                v === '' ? undefined : v,
+                                        },
+                                    ]}
+                                >
+                                    <InputNumber
+                                        className="w-full"
+                                        placeholder="Boshqa moliyaviy daromadlarni kiriting"
+                                        formatter={currencyFormatter}
+                                        parser={currencyParser}
+                                        controls={false}
+                                        precision={0}
+                                        step={1}
+                                        min={0}
+                                        onKeyDown={allowDigitKey}
+                                        onPaste={handlePasteDigits}
+                                        size="large"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12} xl={8}>
+                                <Form.Item
+                                    name="currencyExchangeLoss"
+                                    label="Valyuta kursi farqidan zararlar"
+                                    rules={[
+                                        {
+                                            type: 'number',
+                                            min: 0,
+                                            message: 'Must be ≥ 0',
+                                            transform: (v) =>
+                                                v === '' ? undefined : v,
+                                        },
+                                    ]}
+                                >
+                                    <InputNumber
+                                        className="w-full"
+                                        placeholder="Valyuta kursi farqidan zararni kiriting"
+                                        formatter={currencyFormatter}
+                                        parser={currencyParser}
+                                        controls={false}
+                                        precision={0}
+                                        step={1}
+                                        min={0}
+                                        onKeyDown={allowDigitKey}
+                                        onPaste={handlePasteDigits}
+                                        size="large"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12} xl={8}>
+                                <Form.Item
+                                    name="extraordinaryIncomeLosses"
+                                    label="Favquloddagi foyda va zararlar"
+                                    rules={[
+                                        {
+                                            type: 'number',
+                                            min: 0,
+                                            message: 'Must be ≥ 0',
+                                            transform: (v) =>
+                                                v === '' ? undefined : v,
+                                        },
+                                    ]}
+                                >
+                                    <InputNumber
+                                        className="w-full"
+                                        placeholder="Favquloddagi foyda va zararlarni kiriting"
+                                        formatter={currencyFormatter}
+                                        parser={currencyParser}
+                                        controls={false}
+                                        precision={0}
+                                        step={1}
+                                        min={0}
+                                        onKeyDown={allowDigitKey}
+                                        onPaste={handlePasteDigits}
+                                        size="large"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12} xl={8}>
+                                <Form.Item
+                                    name="incomeTax"
+                                    label="Foyda soligʻi"
+                                    rules={[
+                                        {
+                                            type: 'number',
+                                            min: 0,
+                                            message: 'Must be ≥ 0',
+                                            transform: (v) =>
+                                                v === '' ? undefined : v,
+                                        },
+                                    ]}
+                                >
+                                    <InputNumber
+                                        className="w-full"
+                                        placeholder="Foyda solig'ini kiriting"
+                                        formatter={currencyFormatter}
+                                        parser={currencyParser}
+                                        controls={false}
+                                        precision={0}
+                                        step={1}
+                                        min={0}
+                                        onKeyDown={allowDigitKey}
+                                        onPaste={handlePasteDigits}
+                                        size="large"
+                                    />
+                                </Form.Item>
+                            </Col>
                         </Row>
-
-                        <Divider className="!my-6" />
-                        <Title level={4}>Derived Metrics</Title>
-                        <Row gutter={[24, 12]}>
-                            <Col xs={24} md={8}>
-                                <Statistic
-                                    title="Gross Profit (Derived)"
-                                    value={currencyFormatter(
-                                        derivedGrossProfit
-                                    )}
-                                />
-                            </Col>
-                            <Col xs={24} md={8}>
-                                <Statistic
-                                    title="Total Key Expenses"
-                                    value={currencyFormatter(totalExpenses)}
-                                />
-                            </Col>
-                            <Col xs={24} md={8}>
-                                <Statistic
-                                    title="EBITDA Estimate"
-                                    value={currencyFormatter(ebitdaEstimate)}
-                                />
-                            </Col>
-                        </Row>
-
-                        <Divider className="!my-6" />
-                        <Title level={4}>Application Summary</Title>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                            <div>
-                                <strong>Project Title:</strong>{' '}
-                                {allFormData?.projectTitle || '—'}
-                            </div>
-                            <div>
-                                <strong>Organization:</strong>{' '}
-                                {allFormData?.organizationName || '—'}
-                            </div>
-                            <div>
-                                <strong>Maturity Level:</strong>{' '}
-                                {allFormData?.maturityLevel || '—'}
-                            </div>
-                            <div>
-                                <strong>Region:</strong>{' '}
-                                {allFormData?.regionOfImplementation || '—'}
-                            </div>
-                            <div>
-                                <strong>Scientific Field:</strong>{' '}
-                                {allFormData?.scientificField || '—'}
-                            </div>
-                            <div>
-                                <strong>Innovation Photos:</strong>{' '}
-                                {allFormData?.innovationPhotos ? 'Yes' : 'No'}
-                            </div>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-3">
-                            Submitting will lock the application for review. You
-                            can still contact support for critical corrections.
-                        </p>
 
                         <Divider className="!my-6" />
                         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -343,21 +549,21 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                 icon={<ArrowLeftOutlined />}
                                 size="large"
                             >
-                                Back
+                                Orqaga
                             </Button>
                             <span className="text-xs text-gray-400">
-                                Step 5 of 5
+                                5-qadam 5-dan
                             </span>
                             <Button
                                 type="primary"
                                 htmlType="submit"
-                                icon={<CheckOutlined />}
+                                icon={<SendOutlined />}
                                 iconPosition="end"
                                 size="large"
                                 loading={submitting}
                                 className="bg-green-600 hover:bg-green-700"
                             >
-                                Submit Application
+                                Yuborish
                             </Button>
                         </div>
                     </Form>
