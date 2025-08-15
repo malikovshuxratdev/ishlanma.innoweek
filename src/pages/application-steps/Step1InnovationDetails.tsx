@@ -59,7 +59,7 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
         current && current > Date.now();
 
     return (
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 animate-fade-in">
+        <div className="mx-auto max-w-6xl animate-fade-in">
             <Card className="w-full shadow-sm border border-gray-100/60 backdrop-blur-sm bg-white/70">
                 <Space direction="vertical" className="w-full">
                     <Form
@@ -69,12 +69,15 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                         scrollToFirstError
                         className="mt-2"
                     >
-                        <Row gutter={[24, 4]}>
+                        <Row gutter={[24, 2]}>
                             <Col span={24}>
                                 <Form.Item
                                     name="projectTitle"
-                                    label={<span>Loyiha nomi </span>}
-                                    tooltip="Qisqa, tavsiflovchi nom (maks 200 belgidan iborat)."
+                                    label={
+                                        <span className="font-medium text-lg">
+                                            Loyiha nomi
+                                        </span>
+                                    }
                                     rules={[
                                         {
                                             required: true,
@@ -91,7 +94,6 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                         placeholder="Loyiha nomi"
                                         maxLength={200}
                                         showCount
-                                        allowClear
                                         size="large"
                                     />
                                 </Form.Item>
@@ -101,7 +103,7 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                 <Form.Item
                                     name="innovationDescription"
                                     label={
-                                        <span className="flex items-center gap-1">
+                                        <span className="font-medium text-lg">
                                             Ishlanma tavsifi
                                         </span>
                                     }
@@ -147,7 +149,7 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                 <Form.Item
                                     name="organizationName"
                                     label={
-                                        <span>
+                                        <span className="font-medium text-lg">
                                             Ishlanma yaratilgan tashkilot nomi
                                         </span>
                                     }
@@ -170,7 +172,11 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     name="tinNumber"
-                                    label={<span>STIR raqami</span>}
+                                    label={
+                                        <span className="font-medium text-lg">
+                                            STIR raqami
+                                        </span>
+                                    }
                                     rules={[
                                         {
                                             required: true,
@@ -181,7 +187,7 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                 >
                                     <InputNumber
                                         className="w-full"
-                                        placeholder="Enter TIN number"
+                                        placeholder="STIR raqamini kiriting"
                                         controls={false}
                                         size="large"
                                         type="number"
@@ -192,7 +198,9 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                 <Form.Item
                                     name="dateOfCreation"
                                     label={
-                                        <span>Ishlanma yaratilgan sana</span>
+                                        <span className="font-medium text-lg">
+                                            Ishlanma yaratilgan sana
+                                        </span>
                                     }
                                     rules={[
                                         {
@@ -215,7 +223,11 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     name="certificateNumber"
-                                    label="Sertifikat raqami (ixtiyoriy)"
+                                    label={
+                                        <span className="font-medium text-lg">
+                                            Sertifikat raqami
+                                        </span>
+                                    }
                                 >
                                     <InputNumber
                                         className="w-full"
@@ -228,7 +240,11 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     name="certificateDate"
-                                    label="Sertifikat sanasi (ixtiyoriy)"
+                                    label={
+                                        <span className="font-medium text-lg">
+                                            Sertifikat sanasi
+                                        </span>
+                                    }
                                 >
                                     <DatePicker
                                         className="w-full"
@@ -242,7 +258,7 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                             </Col>
                         </Row>
 
-                        <Divider className="!my-6" />
+                        <Divider className="!my-2" />
                         <div className="flex items-center justify-between flex-wrap gap-4">
                             <span className="text-xs text-gray-400">
                                 1-qadam 5-dan

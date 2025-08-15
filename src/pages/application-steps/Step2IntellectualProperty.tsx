@@ -10,12 +10,16 @@ import {
     Space,
     Divider,
 } from 'antd';
-import {
-    ArrowLeftOutlined,
-    ArrowRightOutlined,
-    PlusOutlined,
-    MinusCircleOutlined,
-} from '@ant-design/icons';
+import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { useSearchAuthorMutate } from '../../hooks/useSearchAuthorMutate';
+import { Plus as IconPlus, X as IconX } from 'lucide-react';
+import { AuthorAssignType } from '../../types/admin-assign/adminAssiginTpe';
+
+interface CoAuthor {
+    id: number | string;
+    fullName: string;
+    science_id: string;
+}
 
 interface Step2Props {
     onNext: (values: any) => void;
@@ -30,15 +34,43 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
 }) => {
     const [form] = Form.useForm();
     const [submitting, setSubmitting] = useState(false);
+    const { mutate: searchAuthor, isPending } = useSearchAuthorMutate();
+    const [coAuthorInput, setCoAuthorInput] = useState('');
+    const [authors, setAuthors] = useState<CoAuthor[]>([]);
+    const [searchError, setSearchError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (initialValues) form.setFieldsValue(initialValues);
+        if (initialValues) {
+            form.setFieldsValue(initialValues);
+            if (Array.isArray(initialValues.authors)) {
+                // Normalize any incoming authors into our local shape
+                const normalized: CoAuthor[] = initialValues.authors.map(
+                    (a: any) => ({
+                        id:
+                            a.id ??
+                            a.data?.id ??
+                            a.science_id ??
+                            a.scienceId ??
+                            Math.random().toString(36).slice(2),
+                        fullName: a.fullName ?? a.full_name ?? a.name ?? '',
+                        science_id: a.science_id ?? a.scienceId ?? '',
+                    })
+                );
+                setAuthors(normalized);
+            }
+        }
     }, [initialValues, form]);
+
+    // Keep form value in sync so submit returns authors
+    useEffect(() => {
+        form.setFieldsValue({ authors });
+    }, [authors, form]);
 
     const handleNext = async () => {
         try {
             setSubmitting(true);
-            const values = await form.validateFields();
+            const fields = await form.validateFields();
+            const values = { ...fields, authors };
             onNext(values);
         } finally {
             setSubmitting(false);
@@ -53,8 +85,66 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
         return current && current < reg.startOf('day');
     };
 
+    const formatScienceId = (value: string) => {
+        value = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        let letters = value.slice(0, 3).replace(/[^A-Z]/g, '');
+        let numbers = value.slice(3).replace(/[^0-9]/g, '');
+        if (numbers.length > 8) numbers = numbers.slice(0, 8);
+        let formatted = letters;
+        if (numbers.length > 0) {
+            formatted += '-' + numbers.slice(0, 4);
+        }
+        if (numbers.length > 4) {
+            formatted += '-' + numbers.slice(4, 8);
+        }
+        return formatted;
+    };
+
+    const handleAddCoAuthor = async () => {
+        const trimmed = coAuthorInput.trim();
+        if (!trimmed) return;
+        setSearchError(null);
+        searchAuthor(trimmed, {
+            onSuccess: (author: AuthorAssignType) => {
+                if (author && author.id && author.first_name) {
+                    setAuthors((prev) => {
+                        const exists = prev.some(
+                            (a) => String(a.id) === String(author.id)
+                        );
+                        if (exists) return prev;
+                        const next: CoAuthor = {
+                            id: author.id,
+                            fullName: author.sur_name + ' ' + author.first_name,
+                            science_id: author.science_id,
+                        };
+                        return [...prev, next];
+                    });
+                    setCoAuthorInput('');
+                } else {
+                    setSearchError('Muallif topilmadi');
+                }
+            },
+            onError: () => {
+                setSearchError('Muallif topilmadi');
+            },
+        });
+    };
+
+    const handleCoAuthorKeyPress = (
+        e: React.KeyboardEvent<HTMLInputElement>
+    ) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleAddCoAuthor();
+        }
+    };
+
+    const handleRemoveCoAuthor = (id: number | string) => {
+        setAuthors((prev) => prev.filter((a) => String(a.id) !== String(id)));
+    };
+
     return (
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 animate-fade-in">
+        <div className="mx-auto max-w-6xl animate-fade-in">
             <Card className="w-full shadow-sm border border-gray-100/60 backdrop-blur-sm bg-white/70">
                 <Space direction="vertical" className="w-full">
                     <Form
@@ -67,7 +157,11 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                             <Col span={24}>
                                 <Form.Item
                                     name="inventionName"
-                                    label={<span>Ixtiro nomi</span>}
+                                    label={
+                                        <span className="font-medium text-lg">
+                                            Ixtiro nomi
+                                        </span>
+                                    }
                                 >
                                     <Input
                                         placeholder="Ixtiro nomi"
@@ -79,114 +173,99 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                             <Col span={24}>
                                 <Form.Item
                                     label={
-                                        <span className="flex items-center gap-1">
-                                            Mualliflari (F.I.O + Science ID)
+                                        <span className="font-medium text-lg">
+                                            Mualliflari
                                         </span>
                                     }
                                 >
-                                    <Form.List name="authors">
-                                        {(
-                                            fields,
-                                            { add, remove },
-                                            { errors }
-                                        ) => (
-                                            <>
-                                                {fields.map(
-                                                    ({
-                                                        key,
-                                                        name,
-                                                        ...restField
-                                                    }) => (
-                                                        <Space
-                                                            key={key}
-                                                            className="flex w-full mb-2"
-                                                            align="start"
-                                                        >
-                                                            <Form.Item
-                                                                {...restField}
-                                                                name={[
-                                                                    name,
-                                                                    'fullName',
-                                                                ]}
-                                                                rules={[
-                                                                    {
-                                                                        required:
-                                                                            true,
-                                                                        message:
-                                                                            'Full name required',
-                                                                    },
-                                                                ]}
-                                                                className="!mb-0 flex-1"
-                                                            >
-                                                                <Input
-                                                                    placeholder="Full Name"
-                                                                    size="large"
-                                                                    allowClear
-                                                                />
-                                                            </Form.Item>
-                                                            <Form.Item
-                                                                {...restField}
-                                                                name={[
-                                                                    name,
-                                                                    'scienceId',
-                                                                ]}
-                                                                rules={[
-                                                                    {
-                                                                        required:
-                                                                            true,
-                                                                        message:
-                                                                            'Science ID required',
-                                                                    },
-                                                                ]}
-                                                                className="!mb-0 flex-1"
-                                                            >
-                                                                <Input
-                                                                    placeholder="Science ID"
-                                                                    size="large"
-                                                                    allowClear
-                                                                />
-                                                            </Form.Item>
-                                                            <Button
-                                                                type="text"
-                                                                danger
-                                                                onClick={() =>
-                                                                    remove(name)
-                                                                }
-                                                                icon={
-                                                                    <MinusCircleOutlined />
-                                                                }
-                                                            />
-                                                        </Space>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            value={coAuthorInput}
+                                            onChange={(e) => {
+                                                setCoAuthorInput(
+                                                    formatScienceId(
+                                                        e.target.value
                                                     )
-                                                )}
-                                                <Form.ErrorList
-                                                    errors={errors}
-                                                />
-                                                <Form.Item className="!mb-2">
-                                                    <Button
-                                                        type="dashed"
-                                                        onClick={() => add()}
-                                                        block
-                                                        icon={<PlusOutlined />}
+                                                );
+                                            }}
+                                            onKeyPress={handleCoAuthorKeyPress}
+                                            placeholder="Muallif ID sini kiriting (masalan: ABC-1234-5678)"
+                                            size="large"
+                                        />
+                                        <Button
+                                            type="primary"
+                                            size="large"
+                                            onClick={handleAddCoAuthor}
+                                            loading={isPending}
+                                            className="bg-primary rounded-md transition-colors"
+                                            icon={<IconPlus size={20} />}
+                                        />
+                                    </div>
+                                    {searchError && (
+                                        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                                            <p className="text-red-600 text-sm">
+                                                {searchError}
+                                            </p>
+                                        </div>
+                                    )}
+                                    {authors.length > 0 && (
+                                        <div className="mt-4 space-y-3">
+                                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Qo'shilgan hammuallif (
+                                                {authors.length}):
+                                            </p>
+                                            <div className="grid gap-3 lg:grid-cols-3">
+                                                {authors.map((author) => (
+                                                    <div
+                                                        key={author.id}
+                                                        className="flex items-center justify-between px-4 py-3 rounded-md border-2"
                                                     >
-                                                        Add Author
-                                                    </Button>
-                                                </Form.Item>
-                                                <span className="text-xs text-gray-400">
-                                                    Order should reflect
-                                                    contribution priority if
-                                                    applicable.
-                                                </span>
-                                            </>
-                                        )}
-                                    </Form.List>
+                                                        <div className="flex-1">
+                                                            <p className="font-medium text-sm">
+                                                                {
+                                                                    author.fullName
+                                                                }
+                                                            </p>
+                                                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                                Science ID:{' '}
+                                                                <span className="text-blue-600 dark:text-blue-400 font-mono">
+                                                                    {formatScienceId(
+                                                                        author.science_id
+                                                                    )}
+                                                                </span>
+                                                            </p>
+                                                        </div>
+                                                        <Button
+                                                            type="text"
+                                                            onClick={() =>
+                                                                handleRemoveCoAuthor(
+                                                                    author.id
+                                                                )
+                                                            }
+                                                            icon={
+                                                                <IconX
+                                                                    size={16}
+                                                                />
+                                                            }
+                                                            size="small"
+                                                            className="bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 border-0 rounded-full ml-3 transition-colors"
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </Form.Item>
                             </Col>
 
-                            <Col span={24}>
+                            <Col xs={24} md={8}>
                                 <Form.Item
                                     name="patentNumber"
-                                    label={<span>Patent raqami</span>}
+                                    label={
+                                        <span className="font-medium text-lg">
+                                            Patent raqami
+                                        </span>
+                                    }
                                 >
                                     <Input
                                         placeholder="Patent raqami"
@@ -196,11 +275,11 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                                 </Form.Item>
                             </Col>
 
-                            <Col xs={24} md={12}>
+                            <Col xs={24} md={8}>
                                 <Form.Item
                                     name="registrationDate"
                                     label={
-                                        <span>
+                                        <span className="font-medium text-lg">
                                             Roʻyyxatdan oʻtkazilgan sana
                                         </span>
                                     }
@@ -216,10 +295,14 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                                 </Form.Item>
                             </Col>
 
-                            <Col xs={24} md={12}>
+                            <Col xs={24} md={8}>
                                 <Form.Item
                                     name="validityPeriod"
-                                    label={<span>Amal qilish muddati</span>}
+                                    label={
+                                        <span className="font-medium text-lg">
+                                            Amal qilish muddati
+                                        </span>
+                                    }
                                 >
                                     <DatePicker
                                         className="w-full"
