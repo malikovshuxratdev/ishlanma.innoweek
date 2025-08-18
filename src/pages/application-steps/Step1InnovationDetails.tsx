@@ -9,19 +9,25 @@ import {
     Col,
     Space,
     Divider,
+    Select,
 } from 'antd';
 import { ArrowRightOutlined } from '@ant-design/icons';
-import { Plus as IconPlus, X as IconX, Search } from 'lucide-react';
+import { X as IconX, Search } from 'lucide-react';
+import moment from 'moment';
 import {
     useSearchExternalCodeMutate,
     useSearchOrganizationMutate,
 } from '../../hooks/useSearchAuthorMutate';
 import { OrganizationType } from '../../types/admin-assign/adminAssiginTpe';
+import {
+    useApplicationSubmit1Mutate,
+    useGetApplication1,
+} from '../../hooks/useApplicationSubmitMutation';
 
 const { TextArea } = Input;
 
 interface Step1Props {
-    onNext: (values: any) => void;
+    onNext: () => void;
     initialValues?: any;
 }
 
@@ -32,12 +38,13 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
     initialValues,
 }) => {
     const [form] = Form.useForm();
-    const [submitting, setSubmitting] = useState(false);
     const { mutate: searchOrganization, isPending: isOrgPending } =
         useSearchOrganizationMutate();
     const { mutate: searchExternalCode, isPending: isExtPending } =
         useSearchExternalCodeMutate();
-    // external code qidirish uchun state
+    const { mutate: submitApplication, isPending: isSubmitting } =
+        useApplicationSubmit1Mutate();
+    const { data: applicationData } = useGetApplication1();
     const [extSearchInput, setExtSearchInput] = useState('');
     const [extSearchResult, setExtSearchResult] = useState<{
         code: string;
@@ -94,8 +101,9 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
     };
 
     useEffect(() => {
+        // set the organization name into the form when an organization is selected
         form.setFieldsValue({
-            executingOrganization: selectedOrganization ?? undefined,
+            organizationName: selectedOrganization?.name ?? undefined,
         });
     }, [selectedOrganization, form]);
 
@@ -104,6 +112,46 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
             form.setFieldsValue(initialValues);
         }
     }, [initialValues, form]);
+
+    useEffect(() => {
+        // When applicationData is available, populate form and related local state
+        if (!applicationData) return;
+
+        const dev = applicationData.project?.development;
+
+        // code / external search input/result
+        const appCode = applicationData.code || dev?.id || '';
+        setExtSearchInput(String(appCode || ''));
+        setExtSearchResult({
+            code: String(applicationData.code || ''),
+            projectName: dev?.name || '',
+        });
+
+        // organization
+        const org = dev?.organization;
+        if (org) {
+            const normalized = {
+                id: org.id || org.tin || '',
+                name: org.short_name || 'Tashkilot',
+                inn: String(org.tin || ''),
+            } as { id: number | string; name: string; inn: string };
+            setSelectedOrganization(normalized);
+            setOrgInnInput(String(org.tin || ''));
+        }
+
+        // set form fields
+        form.setFieldsValue({
+            code: applicationData.code || undefined,
+            projectTitle: dev?.name || undefined,
+            innovationDescription: dev?.description || undefined,
+            certificateType: dev?.certificate_type || undefined,
+            certificateNumber: dev?.certificate_number || undefined,
+            certificateDate: dev?.certificate_date
+                ? moment(dev.certificate_date)
+                : undefined,
+            organizationName: org?.short_name || undefined,
+        });
+    }, [applicationData, form]);
 
     const descriptionValue: string =
         Form.useWatch('innovationDescription', form) || '';
@@ -115,16 +163,39 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
 
     const handleNext = async () => {
         try {
-            setSubmitting(true);
             const values = await form.validateFields();
-            onNext(values);
-        } catch (e) {
-        } finally {
-            setSubmitting(false);
-        }
+
+            // Build payload matching ApplicationSubmitRequest1Form
+            const payload = {
+                code:
+                    values.code ||
+                    extSearchResult?.code ||
+                    extSearchInput ||
+                    '',
+                development: {
+                    name: values.projectTitle || '',
+                    description: values.innovationDescription || '',
+                    certificate_date: values.certificateDate
+                        ? values.certificateDate.format
+                            ? values.certificateDate.format('YYYY-MM-DD')
+                            : String(values.certificateDate)
+                        : '',
+                    certificate_type: values.certificateType || '',
+                    certificate_number: values.certificateNumber
+                        ? Number(values.certificateNumber)
+                        : 0,
+                    tin: selectedOrganization?.inn || orgInnInput || '',
+                },
+            };
+
+            submitApplication(payload, {
+                onSuccess: () => {
+                    onNext();
+                },
+            });
+        } catch (e) {}
     };
 
-    // Limit innovation description input to MAX_COMMERCIALIZATION_WORDS words
     const handleDescriptionChange = (value: string) => {
         const words = value.trim().split(/\s+/).filter(Boolean);
         if (words.length > MAX_COMMERCIALIZATION_WORDS) {
@@ -155,38 +226,42 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                             <Col span={24}>
                                 <div className="mb-6">
                                     <Form.Item
-                                        name="externalCode"
                                         label={
                                             <span className="font-medium text-lg">
                                                 Loyiha raqami
                                             </span>
                                         }
-                                        rules={[
-                                            {
-                                                required: true,
-                                                message:
-                                                    'Loyiha raqamini kiriting',
-                                            },
-                                        ]}
+                                        required
                                     >
-                                        <div>
-                                            <Input
-                                                value={extSearchInput}
-                                                onChange={(e) =>
-                                                    setExtSearchInput(
-                                                        e.target.value
-                                                    )
-                                                }
-                                                placeholder="Kod yoki INN kiriting"
-                                                size="large"
-                                                style={{ width: 240 }}
-                                            />
+                                        <div className="flex gap-2">
+                                            <Form.Item
+                                                name="code"
+                                                rules={[
+                                                    {
+                                                        required: true,
+                                                        message:
+                                                            'Loyiha raqamini kiriting',
+                                                    },
+                                                ]}
+                                                noStyle
+                                            >
+                                                <Input
+                                                    value={extSearchInput}
+                                                    onChange={(e) =>
+                                                        setExtSearchInput(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="Kod yoki INN kiriting"
+                                                    size="large"
+                                                    style={{ width: 240 }}
+                                                />
+                                            </Form.Item>
                                             <Button
                                                 type="primary"
                                                 onClick={handleFindExternalCode}
                                                 loading={isExtPending}
                                                 size="large"
-                                                className="bg-primary rounded-md ml-2"
                                                 icon={<Search size={18} />}
                                             ></Button>
                                         </div>
@@ -243,160 +318,183 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
 
                             <Col span={24}>
                                 <Form.Item
-                                    name="innovationDescription"
                                     label={
                                         <span className="font-medium text-lg">
                                             Ishlanma tavsifi
                                         </span>
                                     }
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message:
-                                                'Ishlanma tavsifi kiritilishi shart',
-                                        },
-                                        {
-                                            validator: (_, value) => {
-                                                if (!value)
-                                                    return Promise.resolve();
-                                                const words = value
-                                                    .trim()
-                                                    .split(/\s+/)
-                                                    .filter(Boolean);
-                                                if (
-                                                    words.length >
-                                                    MAX_COMMERCIALIZATION_WORDS
-                                                ) {
-                                                    return Promise.reject(
-                                                        new Error(
-                                                            `Limit: ${words.length}/${MAX_COMMERCIALIZATION_WORDS} so'z`
-                                                        )
-                                                    );
-                                                }
-                                                return Promise.resolve();
-                                            },
-                                        },
-                                    ]}
+                                    required
                                 >
-                                    <TextArea
-                                        rows={3}
-                                        placeholder="Yangi ishlanmani tijoratlashtirishga tayyorlash bo'yicha ..."
-                                        size="large"
-                                        allowClear
-                                        value={descriptionValue}
-                                        onChange={(e) =>
-                                            handleDescriptionChange(
-                                                e.target.value
-                                            )
-                                        }
-                                    />
-                                    <div className="text-right mt-1">
-                                        <span
-                                            className={`text-sm ${
-                                                descriptionWordCount >=
-                                                MAX_COMMERCIALIZATION_WORDS
-                                                    ? 'text-red-500'
-                                                    : 'text-gray-500'
-                                            }`}
+                                    <div>
+                                        <Form.Item
+                                            name="innovationDescription"
+                                            rules={[
+                                                {
+                                                    required: true,
+                                                    message:
+                                                        'Ishlanma tavsifi kiritilishi shart',
+                                                },
+                                                {
+                                                    validator: (_, value) => {
+                                                        if (!value)
+                                                            return Promise.resolve();
+                                                        const words = value
+                                                            .trim()
+                                                            .split(/\s+/)
+                                                            .filter(Boolean);
+                                                        if (
+                                                            words.length >
+                                                            MAX_COMMERCIALIZATION_WORDS
+                                                        ) {
+                                                            return Promise.reject(
+                                                                new Error(
+                                                                    `Limit: ${words.length}/${MAX_COMMERCIALIZATION_WORDS} so'z`
+                                                                )
+                                                            );
+                                                        }
+                                                        return Promise.resolve();
+                                                    },
+                                                },
+                                            ]}
+                                            noStyle
                                         >
-                                            {descriptionWordCount}/
-                                            {MAX_COMMERCIALIZATION_WORDS} so'z
-                                        </span>
+                                            <TextArea
+                                                rows={3}
+                                                placeholder="Yangi ishlanmani tijoratlashtirishga tayyorlash bo'yicha ..."
+                                                size="large"
+                                                allowClear
+                                                value={descriptionValue}
+                                                onChange={(e) =>
+                                                    handleDescriptionChange(
+                                                        e.target.value
+                                                    )
+                                                }
+                                            />
+                                        </Form.Item>
+                                        <div className="text-right mt-1">
+                                            <span
+                                                className={`text-sm ${
+                                                    descriptionWordCount >=
+                                                    MAX_COMMERCIALIZATION_WORDS
+                                                        ? 'text-red-500'
+                                                        : 'text-gray-500'
+                                                }`}
+                                            >
+                                                {descriptionWordCount}/
+                                                {MAX_COMMERCIALIZATION_WORDS}{' '}
+                                                so'z
+                                            </span>
+                                        </div>
                                     </div>
                                 </Form.Item>
                             </Col>
 
-                            <Col span={24}>
+                            <Col span={24} md={12}>
                                 <Form.Item
-                                    name="organizationName"
                                     label={
                                         <span className="font-medium text-lg">
                                             Ishlanma yaratilgan tashkilot nomi
                                         </span>
                                     }
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message:
-                                                'Ishlanma yaratilgan tashkilot nomi kiritilishi shart',
-                                        },
-                                    ]}
+                                    required
                                 >
                                     <div>
-                                        <div className="flex gap-2">
-                                            <Input
-                                                value={orgInnInput}
-                                                onChange={(e) =>
-                                                    setOrgInnInput(
-                                                        formatInn(
-                                                            e.target.value
+                                        <Form.Item
+                                            name="organizationName"
+                                            rules={[
+                                                {
+                                                    required: true,
+                                                    message:
+                                                        'Ishlanma yaratilgan tashkilot nomi kiritilishi shart',
+                                                },
+                                            ]}
+                                            noStyle
+                                        >
+                                            <Input hidden />
+                                        </Form.Item>
+
+                                        <div>
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    value={orgInnInput}
+                                                    onChange={(e) =>
+                                                        setOrgInnInput(
+                                                            formatInn(
+                                                                e.target.value
+                                                            )
                                                         )
-                                                    )
-                                                }
-                                                placeholder="INN kiriting (faqat raqam)"
-                                                size="large"
-                                                disabled={
-                                                    !!selectedOrganization
-                                                }
-                                            />
-                                            <Button
-                                                type="primary"
-                                                size="large"
-                                                onClick={handleFindOrganization}
-                                                loading={isOrgPending}
-                                                disabled={
-                                                    !!selectedOrganization
-                                                }
-                                                className="bg-primary rounded-md transition-colors"
-                                                icon={<IconPlus size={20} />}
-                                            />
-                                        </div>
-                                        {orgSearchError && (
-                                            <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
-                                                <p className="text-red-600 text-sm">
-                                                    {orgSearchError}
-                                                </p>
+                                                    }
+                                                    placeholder="INN kiriting (faqat raqam)"
+                                                    size="large"
+                                                    disabled={
+                                                        !!selectedOrganization
+                                                    }
+                                                />
+                                                <Button
+                                                    type="primary"
+                                                    size="large"
+                                                    onClick={
+                                                        handleFindOrganization
+                                                    }
+                                                    loading={isOrgPending}
+                                                    disabled={
+                                                        !!selectedOrganization
+                                                    }
+                                                    icon={<Search size={18} />}
+                                                />
                                             </div>
-                                        )}
-                                        {selectedOrganization && (
-                                            <div className="mt-4">
-                                                <div className="flex items-center justify-between px-4 py-3 rounded-md border-2">
-                                                    <div className="flex-1">
-                                                        <p className="font-medium text-sm">
-                                                            {
-                                                                selectedOrganization.name
-                                                            }
-                                                        </p>
-                                                        <p className="text-sm text-gray-500">
-                                                            INN:{' '}
-                                                            <span className="text-blue-600 font-mono">
-                                                                {
-                                                                    selectedOrganization.inn
-                                                                }
-                                                            </span>
-                                                        </p>
-                                                    </div>
-                                                    <Button
-                                                        type="text"
-                                                        onClick={() => {
-                                                            setSelectedOrganization(
-                                                                null
-                                                            );
-                                                            setOrgInnInput('');
-                                                        }}
-                                                        icon={
-                                                            <IconX size={16} />
-                                                        }
-                                                        size="small"
-                                                        className="bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 border-0 rounded-full ml-3 transition-colors"
-                                                    />
+                                            {orgSearchError && (
+                                                <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                                                    <p className="text-red-600 text-sm">
+                                                        {orgSearchError}
+                                                    </p>
                                                 </div>
-                                            </div>
-                                        )}
+                                            )}
+                                            {selectedOrganization && (
+                                                <div className="mt-4">
+                                                    <div className="flex items-center justify-between px-4 py-3 rounded-md border-2">
+                                                        <div className="flex-1">
+                                                            <p className="font-medium text-sm">
+                                                                {
+                                                                    selectedOrganization.name
+                                                                }
+                                                            </p>
+                                                            <p className="text-sm text-gray-500">
+                                                                INN:{' '}
+                                                                <span className="text-blue-600 font-mono">
+                                                                    {
+                                                                        selectedOrganization.inn
+                                                                    }
+                                                                </span>
+                                                            </p>
+                                                        </div>
+                                                        <Button
+                                                            type="text"
+                                                            onClick={() => {
+                                                                setSelectedOrganization(
+                                                                    null
+                                                                );
+                                                                setOrgInnInput(
+                                                                    ''
+                                                                );
+                                                            }}
+                                                            icon={
+                                                                <IconX
+                                                                    size={16}
+                                                                />
+                                                            }
+                                                            size="small"
+                                                            className="bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 border-0 rounded-full ml-3 transition-colors"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </Form.Item>
                             </Col>
-                            <Col xs={24} md={8}>
+
+                            <Col xs={24} md={12}>
                                 <Form.Item
                                     name="dateOfCreation"
                                     label={
@@ -424,6 +522,36 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                             </Col>
                             <Col xs={24} md={8}>
                                 <Form.Item
+                                    name="certificateType"
+                                    label={
+                                        <span className="font-medium text-lg">
+                                            Sertifikat turi
+                                        </span>
+                                    }
+                                >
+                                    <Select
+                                        className="w-full"
+                                        placeholder="Sertifikat turini tanlang"
+                                        size="large"
+                                        allowClear
+                                    >
+                                        <Select.Option value="compliance">
+                                            Compliance
+                                        </Select.Option>
+                                        <Select.Option value="hygiene">
+                                            Hygiene
+                                        </Select.Option>
+                                        <Select.Option value="fire">
+                                            Fire
+                                        </Select.Option>
+                                        <Select.Option value="other">
+                                            Other
+                                        </Select.Option>
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={8}>
+                                <Form.Item
                                     name="certificateNumber"
                                     label={
                                         <span className="font-medium text-lg">
@@ -433,6 +561,7 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                 >
                                     <Input
                                         className="w-full"
+                                        type="number"
                                         placeholder="Sertifikat raqamini kiriting"
                                         size="large"
                                     />
@@ -470,7 +599,7 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                 icon={<ArrowRightOutlined />}
                                 iconPosition="end"
                                 size="large"
-                                loading={submitting}
+                                loading={isSubmitting}
                                 disabled={
                                     descriptionWordCount >
                                     MAX_COMMERCIALIZATION_WORDS

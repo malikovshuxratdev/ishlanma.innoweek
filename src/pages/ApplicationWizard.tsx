@@ -39,8 +39,8 @@ const ApplicationWizard: React.FC = () => {
         }
     }, [currentStep]);
 
-    const handleNext = (stepData: ApplicationFormData) => {
-        setFormData((prev) => ({ ...prev, ...stepData }));
+    const handleNext = () => {
+        setFormData((prev) => ({ ...prev }));
         setCurrentStep((prev) => prev + 1);
     };
 
