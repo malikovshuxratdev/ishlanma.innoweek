@@ -2,6 +2,7 @@ import { message } from 'antd';
 import { useMutation } from './useQuery';
 import { searchAuthorApi } from '../api/requests/authorSearchApi';
 import { searchOrganizationApi } from '../api/requests/organisationSearchApi';
+import { externalCodeApi } from '../api/requests/externalCodeApi';
 
 export const useSearchAuthorMutate = () => {
     const mutate = useMutation({
@@ -30,6 +31,18 @@ export const useSearchOrganizationMutate = () => {
         onError: () => {
             message.error('Tashkilot topilmadi');
         },
+    });
+
+    return mutate;
+};
+
+export const useSearchExternalCodeMutate = () => {
+    const mutate = useMutation({
+        mutationFn: async (code: string) => {
+            return await externalCodeApi.getExternalCode(code);
+        },
+        onSuccess: () => {},
+        onError: () => {},
     });
 
     return mutate;
