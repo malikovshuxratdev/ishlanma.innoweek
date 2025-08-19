@@ -59,6 +59,14 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
             code: res.cipher || String(extSearchInput || ''),
             projectName: res.tour_name || '',
         });
+        // sync found code into the form so the hidden `code` field is populated
+        try {
+            form.setFieldsValue({
+                code: res.cipher || String(extSearchInput || ''),
+            });
+        } catch (err) {
+            // ignore if form isn't ready yet
+        }
     };
 
     useEffect(() => {
@@ -150,7 +158,6 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
         try {
             const values = await form.validateFields();
 
-            // Build development object conditionally so empty optional fields are omitted
             const development: any = {};
 
             // required/primary fields
@@ -236,15 +243,41 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                         }
                                         required
                                     >
-                                        <ExternalCodeSearch
-                                            value={extSearchInput}
-                                            onChange={setExtSearchInput}
-                                            onResult={handleFindExternalCode}
-                                            loading={isExtPending}
-                                            placeholder="Kod yoki INN kiriting"
-                                            size="large"
-                                            width={240}
-                                        />
+                                        <div>
+                                            <Form.Item
+                                                rules={[
+                                                    {
+                                                        required: true,
+                                                        message:
+                                                            'Loyiha raqami kiritilishi shart',
+                                                    },
+                                                ]}
+                                                noStyle
+                                            >
+                                                <Input hidden />
+                                            </Form.Item>
+
+                                            <div>
+                                                <ExternalCodeSearch
+                                                    value={extSearchInput}
+                                                    onChange={(v) => {
+                                                        setExtSearchInput(v);
+                                                        // keep the hidden form field in sync for validation
+                                                        form.setFieldsValue({
+                                                            code:
+                                                                v || undefined,
+                                                        });
+                                                    }}
+                                                    onResult={
+                                                        handleFindExternalCode
+                                                    }
+                                                    loading={isExtPending}
+                                                    placeholder="Kod yoki INN kiriting"
+                                                    size="large"
+                                                    width={240}
+                                                />
+                                            </div>
+                                        </div>
                                     </Form.Item>
 
                                     {extSearchResult && (

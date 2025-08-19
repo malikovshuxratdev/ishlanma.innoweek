@@ -13,7 +13,7 @@ export interface Project {
     id: number;
     development: Development;
     intellectual_property: IntellectualProperty;
-    research_project: any;
+    research_project: ResearchProject;
     additional_info: any;
     finance: any;
 }
@@ -36,6 +36,15 @@ export interface IntellectualProperty {
     registration_date: string;
     author: Author[];
     expired_at: string;
+}
+
+export interface ResearchProject {
+    id: number;
+    name: string;
+    implemented_deadline: string;
+    region: number;
+    project_manager: number;
+    science_field: number;
 }
 
 export interface Organization {

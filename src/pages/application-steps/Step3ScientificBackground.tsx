@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import moment from 'moment';
 import {
     Form,
     Input,
@@ -10,9 +11,20 @@ import {
     Select,
     Divider,
     Space,
+    TreeSelect,
 } from 'antd';
 import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import OrganizationSearch from '../../components/shared/OrganizationSearch';
+import ProjectManagerSearch from '../../components/shared/ProjectManagerSearch';
+import {
+    useAllRegionsQuery,
+    useStudyFieldsQuery,
+} from '../../hooks/useAllRegionsQuery';
+import {
+    useApplicationSubmit3Mutate,
+    useGetApplication,
+} from '../../hooks/useApplicationSubmitMutation';
+import { ApplicationSubmitRequest3Form } from '../../types/applicationSubmit/applicationSubmitType';
 
 const { Option } = Select;
 
@@ -27,50 +39,35 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
     onBack,
 }) => {
     const [form] = Form.useForm();
-    const [submitting, setSubmitting] = useState(false);
+    const { data: regionsData } = useAllRegionsQuery();
+    const { data: studyFieldsData } = useStudyFieldsQuery();
+    const { data: applicationData } = useGetApplication();
+    const { mutate: submitApplication, isPending } =
+        useApplicationSubmit3Mutate();
     const [orgInnInput, setOrgInnInput] = useState('');
     const [selectedOrganization, setSelectedOrganization] = useState<{
         id: number | string;
         name: string;
         inn: string;
     } | null>(null);
+    const [selectedProjectManager, setSelectedProjectManager] = useState<{
+        id: number | string;
+        fullName: string;
+        science_id: string;
+    } | null>(null);
 
-    const regions = [
-        'Tashkent',
-        'Samarkand',
-        'Bukhara',
-        'Fergana',
-        'Andijan',
-        'Namangan',
-        'Kashkadarya',
-        'Surkhandarya',
-        'Jizzakh',
-        'Syrdarya',
-        'Navoi',
-        'Khorezm',
-        'Karakalpakstan',
-        'Tashkent Region',
-    ];
-
-    const scientificFields = [
-        'Artificial Intelligence',
-        'Biotechnology',
-        'Energy Systems',
-        'Environmental Science',
-        'Materials Science',
-        'Medical Technology',
-        'Agricultural Science',
-        'Information Technology',
-        'Nanotechnology',
-        'Renewable Energy',
-        'Robotics',
-        'Space Technology',
-        'Chemical Engineering',
-        'Civil Engineering',
-        'Electrical Engineering',
-        'Mechanical Engineering',
-        'Computer Science',
-    ];
+    const treeData = regionsData?.map((region) => ({
+        title: String(region.name.uz),
+        value: region.id,
+        key: region.id,
+        checkable: false,
+        children: region.children?.map((child) => ({
+            title: String(child.name.uz),
+            value: child.id,
+            key: child.id,
+            checkable: true,
+        })),
+    }));
 
     const disabledFutureDates = (current: any) =>
         current && current > Date.now();
@@ -81,13 +78,109 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
         });
     }, [selectedOrganization, form]);
 
+    useEffect(() => {
+        form.setFieldsValue({
+            projectManager: selectedProjectManager?.id ?? undefined,
+        });
+    }, [selectedProjectManager, form]);
+
+    // When applicationData is available, populate form and related local state
+    useEffect(() => {
+        if (!applicationData) return;
+
+        const rp = applicationData.project?.research_project;
+        if (!rp) return;
+
+        // project title / name
+        form.setFieldsValue({
+            researchProjectTitle: rp.name ?? undefined,
+            implementationPeriod: rp.implemented_deadline
+                ? moment(
+                      rp.implemented_deadline,
+                      moment.ISO_8601,
+                      true
+                  ).isValid()
+                    ? moment(rp.implemented_deadline)
+                    : undefined
+                : undefined,
+            regionOfImplementation: rp.region ?? undefined,
+            scientificField: rp.science_field ?? undefined,
+            projectManager: rp.project_manager ?? undefined,
+        });
+
+        // selected organization (tin) may not include full org details in applicationData
+        const tinVal = (rp as any).tin ?? (rp as any).tin;
+        if (tinVal) {
+            const normalized = {
+                id: tinVal,
+                name: '',
+                inn: String(tinVal),
+            } as { id: number | string; name: string; inn: string };
+            setSelectedOrganization(normalized);
+            setOrgInnInput(String(tinVal));
+        }
+
+        // project manager - API returns id only, set local selectedProjectManager with id placeholder
+        if (rp.project_manager) {
+            setSelectedProjectManager({
+                id: rp.project_manager,
+                fullName: '',
+                science_id: '',
+            });
+        }
+    }, [applicationData, form]);
+
     const handleNext = async () => {
         try {
-            setSubmitting(true);
             const values = await form.validateFields();
-            onNext(values);
-        } finally {
-            setSubmitting(false);
+
+            const research_project: ApplicationSubmitRequest3Form = {
+                research_project: {
+                    name: '',
+                    implemented_deadline: '',
+                    region: 0,
+                    project_manager: 0,
+                    tin: '',
+                    science_field: 0,
+                },
+            };
+            if (values.researchProjectTitle)
+                research_project.research_project.name =
+                    values.researchProjectTitle;
+            if (values.implementationPeriod)
+                research_project.research_project.implemented_deadline =
+                    values.implementationPeriod.format('YYYY-MM-DD');
+            if (values.regionOfImplementation)
+                research_project.research_project.region = Number(
+                    values.regionOfImplementation
+                );
+            if (selectedProjectManager?.id)
+                research_project.research_project.project_manager = Number(
+                    selectedProjectManager.id
+                );
+            if (selectedOrganization?.id)
+                research_project.research_project.tin = String(
+                    selectedOrganization.id
+                );
+            if (values.scientificField)
+                research_project.research_project.science_field = Number(
+                    values.scientificField
+                );
+
+            const payload = research_project;
+
+            const application_id = applicationData?.id ?? 0;
+
+            submitApplication(
+                { application_id, body: payload },
+                {
+                    onSuccess: () => {
+                        onNext(values);
+                    },
+                }
+            );
+        } catch (error) {
+            console.error(error);
         }
     };
 
@@ -102,18 +195,20 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                         scrollToFirstError
                     >
                         <Row gutter={[24, 4]}>
-                            <Col span={24}>
+                            <Col xs={24} md={12}>
                                 <Form.Item
-                                    name="projectCode"
+                                    name="projectManager"
                                     label={
                                         <span className="font-medium text-lg">
-                                            Loyiha shifri
+                                            Loyiha rahbari
                                         </span>
                                     }
                                 >
-                                    <Input
-                                        placeholder="Loyiha shifri"
-                                        size="large"
+                                    <ProjectManagerSearch
+                                        value={selectedProjectManager}
+                                        onChange={(v) =>
+                                            setSelectedProjectManager(v)
+                                        }
                                     />
                                 </Form.Item>
                             </Col>
@@ -164,18 +259,25 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                                         </span>
                                     }
                                 >
-                                    <Select
-                                        placeholder="Select region"
+                                    <TreeSelect
+                                        treeData={treeData ?? []}
+                                        // treeCheckable
+                                        // showCheckedStrategy={
+                                        //     TreeSelect.SHOW_PARENT
+                                        // }
+                                        className="w-full"
                                         size="large"
+                                        placeholder="Hududni tanlang"
+                                        treeNodeFilterProp="title"
                                         showSearch
-                                        optionFilterProp="children"
-                                    >
-                                        {regions.map((region) => (
-                                            <Option key={region} value={region}>
-                                                {region}
-                                            </Option>
-                                        ))}
-                                    </Select>
+                                        allowClear
+                                        treeDefaultExpandAll
+                                        filterTreeNode={(input, node) =>
+                                            String(node.title ?? '')
+                                                .toLowerCase()
+                                                .includes(input.toLowerCase())
+                                        }
+                                    />
                                 </Form.Item>
                             </Col>
 
@@ -194,9 +296,12 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                                         showSearch
                                         optionFilterProp="children"
                                     >
-                                        {scientificFields.map((field) => (
-                                            <Option key={field} value={field}>
-                                                {field}
+                                        {studyFieldsData?.map((field) => (
+                                            <Option
+                                                key={field.id}
+                                                value={field.id}
+                                            >
+                                                {field.name}
                                             </Option>
                                         ))}
                                     </Select>
@@ -243,7 +348,7 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                                 icon={<ArrowRightOutlined />}
                                 iconPosition="end"
                                 size="large"
-                                loading={submitting}
+                                loading={isPending}
                             >
                                 Keyingi
                             </Button>

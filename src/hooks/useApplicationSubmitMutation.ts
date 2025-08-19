@@ -3,6 +3,7 @@ import { applicationSubmitApi } from '../api/requests/applicationSubmit';
 import {
     ApplicationSubmitRequest1Form,
     ApplicationSubmitRequest2Form,
+    ApplicationSubmitRequest3Form,
 } from '../types/applicationSubmit/applicationSubmitType';
 import { useMutation, useQuery } from './useQuery';
 import { TokenService } from '../utils/storage';
@@ -34,6 +35,32 @@ export const useApplicationSubmit2Mutate = () => {
             body: ApplicationSubmitRequest2Form;
         }) => {
             return await applicationSubmitApi.applicationSubmission2(
+                application_id,
+                body
+            );
+        },
+        onSuccess: (data) => {
+            message.success("Keyingi qadamga o'tildi");
+            TokenService.setApplication(data.detail);
+        },
+        onError: () => {
+            message.error('Ariza yuborishda xato');
+        },
+    });
+
+    return mutate;
+};
+
+export const useApplicationSubmit3Mutate = () => {
+    const mutate = useMutation({
+        mutationFn: async ({
+            application_id,
+            body,
+        }: {
+            application_id: number;
+            body: ApplicationSubmitRequest3Form;
+        }) => {
+            return await applicationSubmitApi.applicationSubmission3(
                 application_id,
                 body
             );

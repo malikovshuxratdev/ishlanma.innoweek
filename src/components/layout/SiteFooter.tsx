@@ -16,7 +16,7 @@ const SiteFooter: React.FC = () => {
                             <div className="flex items-center mb-4">
                                 <ExperimentOutlined className="text-2xl text-accent mr-2 animate-pulse" />
                                 <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                    Loyiha
+                                    Ishlanma
                                 </span>
                             </div>
                             <div className="text-text-secondary mb-2">

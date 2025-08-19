@@ -103,7 +103,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                         className="!w-8 !h-12 lg:!w-10 lg:!h-14"
                     />
                     <span className="text-xl lg:text-2xl font-semibold ml-4">
-                        Loyiha
+                        Ishlanma
                     </span>
                 </Link>
             </div>
