@@ -14,7 +14,7 @@ export const useApplicationSubmit1Mutate = () => {
         },
         onSuccess: (data) => {
             message.success("Keyingi qadamga o'tildi");
-            TokenService.setApplication1(data.detail);
+            TokenService.setApplication(data.detail);
         },
         onError: () => {
             message.error('Ariza yuborishda xato');
@@ -40,7 +40,7 @@ export const useApplicationSubmit2Mutate = () => {
         },
         onSuccess: (data) => {
             message.success("Keyingi qadamga o'tildi");
-            TokenService.setApplication2(data.detail);
+            TokenService.setApplication(data.detail);
         },
         onError: () => {
             message.error('Ariza yuborishda xato');
@@ -50,11 +50,11 @@ export const useApplicationSubmit2Mutate = () => {
     return mutate;
 };
 
-export const useGetApplication1 = () => {
+export const useGetApplication = () => {
     return useQuery({
-        queryKey: ['getApplication1'],
+        queryKey: ['getApplication'],
         queryFn: async () => {
-            return await applicationSubmitApi.getApplication1();
+            return await applicationSubmitApi.getApplication();
         },
     });
 };

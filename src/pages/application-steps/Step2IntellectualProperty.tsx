@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import moment from 'moment';
 import {
     Form,
     Input,
@@ -11,9 +12,14 @@ import {
     Divider,
 } from 'antd';
 import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
-import { useSearchAuthorMutate } from '../../hooks/useSearchAuthorMutate';
-import { Plus as IconPlus, X as IconX } from 'lucide-react';
+import { X as IconX } from 'lucide-react';
+import AuthorSearch from '../../components/shared/AuthorSearch';
 import { AuthorAssignType } from '../../types/admin-assign/adminAssiginTpe';
+import {
+    useApplicationSubmit2Mutate,
+    useGetApplication,
+} from '../../hooks/useApplicationSubmitMutation';
+import { ApplicationSubmitRequest2Form } from '../../types/applicationSubmit/applicationSubmitType';
 
 interface CoAuthor {
     id: number | string;
@@ -22,7 +28,7 @@ interface CoAuthor {
 }
 
 interface Step2Props {
-    onNext: (values: any) => void;
+    onNext: () => void;
     onBack: () => void;
     initialValues?: any;
 }
@@ -33,17 +39,22 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
     initialValues,
 }) => {
     const [form] = Form.useForm();
-    const [submitting, setSubmitting] = useState(false);
-    const { mutate: searchAuthor, isPending } = useSearchAuthorMutate();
-    const [coAuthorInput, setCoAuthorInput] = useState('');
+    const { mutate: submitApplication, isPending: isSubmitting } =
+        useApplicationSubmit2Mutate();
+    const { data: applicationData } = useGetApplication();
     const [authors, setAuthors] = useState<CoAuthor[]>([]);
-    const [searchError, setSearchError] = useState<string | null>(null);
 
     useEffect(() => {
         if (initialValues) {
-            form.setFieldsValue(initialValues);
+            const initVals: any = { ...initialValues };
+            if (initVals.registrationDate) {
+                initVals.registrationDate = moment(initVals.registrationDate);
+            }
+            if (initVals.validityPeriod) {
+                initVals.validityPeriod = moment(initVals.validityPeriod);
+            }
+            form.setFieldsValue(initVals);
             if (Array.isArray(initialValues.authors)) {
-                // Normalize any incoming authors into our local shape
                 const normalized: CoAuthor[] = initialValues.authors.map(
                     (a: any) => ({
                         id:
@@ -61,86 +72,139 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
         }
     }, [initialValues, form]);
 
-    // Keep form value in sync so submit returns authors
+    useEffect(() => {
+        const ip =
+            applicationData?.project?.intellectual_property ||
+            (applicationData as any)?.intellectual_property;
+        if (!ip) return;
+
+        const current = form.getFieldsValue([
+            'inventionName',
+            'patentNumber',
+            'registrationDate',
+            'validityPeriod',
+        ]);
+        const hasAnyValue = Object.values(current || {}).some(
+            (v) => v !== undefined && v !== null && v !== ''
+        );
+
+        if (!hasAnyValue) {
+            const vals: any = {};
+            if (ip.name) vals.inventionName = ip.name;
+            if (
+                typeof ip.patent_number !== 'undefined' &&
+                ip.patent_number !== null
+            )
+                vals.patentNumber = String(ip.patent_number);
+            if (ip.registration_date)
+                vals.registrationDate = moment(ip.registration_date);
+            if (ip.expired_at) vals.validityPeriod = moment(ip.expired_at);
+
+            form.setFieldsValue(vals);
+        }
+
+        const ipAny: any = ip as any;
+        const ipAuthors = Array.isArray(ipAny.authors)
+            ? ipAny.authors
+            : ip.author
+            ? [ip.author]
+            : [];
+
+        if (ipAuthors.length > 0) {
+            setAuthors((prev) => {
+                if (prev && prev.length > 0) return prev;
+                const normalized = ipAuthors.map((a: any) => ({
+                    id:
+                        a.id ??
+                        a.data?.id ??
+                        a.science_id ??
+                        a.scienceId ??
+                        Math.random().toString(36).slice(2),
+                    fullName: a.full_name ?? a.fullName ?? a.name ?? '',
+                    science_id:
+                        a.science_id ?? a.scienceId ?? a.data?.science_id ?? '',
+                }));
+                return normalized;
+            });
+        }
+    }, [applicationData, form]);
+
     useEffect(() => {
         form.setFieldsValue({ authors });
     }, [authors, form]);
 
-    const handleNext = async () => {
-        try {
-            setSubmitting(true);
-            const fields = await form.validateFields();
-            const values = { ...fields, authors };
-            onNext(values);
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
     const disabledFutureDates = (current: any) =>
         current && current > Date.now();
+
     const disabledValidityDates = (current: any) => {
         const reg = form.getFieldValue('registrationDate');
         if (!reg) return false;
         return current && current < reg.startOf('day');
     };
 
-    const formatScienceId = (value: string) => {
-        value = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-        let letters = value.slice(0, 3).replace(/[^A-Z]/g, '');
-        let numbers = value.slice(3).replace(/[^0-9]/g, '');
-        if (numbers.length > 8) numbers = numbers.slice(0, 8);
-        let formatted = letters;
-        if (numbers.length > 0) {
-            formatted += '-' + numbers.slice(0, 4);
-        }
-        if (numbers.length > 4) {
-            formatted += '-' + numbers.slice(4, 8);
-        }
-        return formatted;
-    };
-
-    const handleAddCoAuthor = async () => {
-        const trimmed = coAuthorInput.trim();
-        if (!trimmed) return;
-        setSearchError(null);
-        searchAuthor(trimmed, {
-            onSuccess: (author: AuthorAssignType) => {
-                if (author && author.id && author.first_name) {
-                    setAuthors((prev) => {
-                        const exists = prev.some(
-                            (a) => String(a.id) === String(author.id)
-                        );
-                        if (exists) return prev;
-                        const next: CoAuthor = {
-                            id: author.id,
-                            fullName: author.sur_name + ' ' + author.first_name,
-                            science_id: author.science_id,
-                        };
-                        return [...prev, next];
-                    });
-                    setCoAuthorInput('');
-                } else {
-                    setSearchError('Muallif topilmadi');
-                }
-            },
-            onError: () => {
-                setSearchError('Muallif topilmadi');
-            },
+    const handleAddCoAuthor = (author: AuthorAssignType | any) => {
+        if (!author) return;
+        setAuthors((prev) => {
+            const exists = prev.some((a) => String(a.id) === String(author.id));
+            if (exists) return prev;
+            const next: CoAuthor = {
+                id:
+                    author.id ??
+                    author.data?.id ??
+                    Math.random().toString(36).slice(2),
+                fullName: author.sur_name
+                    ? author.sur_name + ' ' + author.first_name
+                    : author.fullName || author.name || '',
+                science_id: author.science_id ?? author.data?.science_id ?? '',
+            };
+            return [...prev, next];
         });
-    };
-
-    const handleCoAuthorKeyPress = (
-        e: React.KeyboardEvent<HTMLInputElement>
-    ) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            handleAddCoAuthor();
-        }
     };
 
     const handleRemoveCoAuthor = (id: number | string) => {
         setAuthors((prev) => prev.filter((a) => String(a.id) !== String(id)));
+    };
+
+    const handleNext = async () => {
+        try {
+            await form.validateFields();
+            // authors are managed in state and form is synced; build payload
+            const values = form.getFieldsValue();
+
+            // Build intellectual_property object conditionally so empty optional fields are omitted
+            const ip: any = {};
+            if (values.inventionName) ip.name = values.inventionName;
+            if (values.patentNumber)
+                ip.patent_number = String(values.patentNumber);
+            if (values.registrationDate)
+                ip.registration_date =
+                    values.registrationDate.format('YYYY-MM-DD');
+            if (values.validityPeriod)
+                ip.expired_at = values.validityPeriod.format('YYYY-MM-DD');
+
+            // include authors only if we have at least one with a science_id
+            const mappedAuthors = authors
+                .map((a) => ({ science_id: a.science_id || '' }))
+                .filter((a) => a.science_id && a.science_id.trim() !== '');
+            if (mappedAuthors.length > 0) ip.authors = mappedAuthors;
+
+            const payload: ApplicationSubmitRequest2Form = {
+                intellectual_property: ip,
+            };
+
+            const application_id = applicationData?.id ?? 0;
+
+            submitApplication(
+                { application_id, body: payload },
+                {
+                    onSuccess: () => {
+                        onNext();
+                    },
+                }
+            );
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     return (
@@ -179,35 +243,11 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                                     }
                                 >
                                     <div className="flex gap-2">
-                                        <Input
-                                            value={coAuthorInput}
-                                            onChange={(e) => {
-                                                setCoAuthorInput(
-                                                    formatScienceId(
-                                                        e.target.value
-                                                    )
-                                                );
-                                            }}
-                                            onKeyPress={handleCoAuthorKeyPress}
-                                            placeholder="Muallif ID sini kiriting (masalan: ABC-1234-5678)"
-                                            size="large"
-                                        />
-                                        <Button
-                                            type="primary"
-                                            size="large"
-                                            onClick={handleAddCoAuthor}
-                                            loading={isPending}
-                                            className="bg-primary rounded-md transition-colors"
-                                            icon={<IconPlus size={20} />}
+                                        <AuthorSearch
+                                            onAdd={(a) => handleAddCoAuthor(a)}
                                         />
                                     </div>
-                                    {searchError && (
-                                        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
-                                            <p className="text-red-600 text-sm">
-                                                {searchError}
-                                            </p>
-                                        </div>
-                                    )}
+                                    {/* search errors are reported inside AuthorSearch */}
                                     {authors.length > 0 && (
                                         <div className="mt-4 space-y-3">
                                             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -229,9 +269,9 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                                                             <p className="text-sm text-gray-500 dark:text-gray-400">
                                                                 Science ID:{' '}
                                                                 <span className="text-blue-600 dark:text-blue-400 font-mono">
-                                                                    {formatScienceId(
+                                                                    {
                                                                         author.science_id
-                                                                    )}
+                                                                    }
                                                                 </span>
                                                             </p>
                                                         </div>
@@ -334,7 +374,7 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                                 icon={<ArrowRightOutlined />}
                                 iconPosition="end"
                                 size="large"
-                                loading={submitting}
+                                loading={isSubmitting}
                             >
                                 Keyingi
                             </Button>

@@ -35,8 +35,8 @@ export class ApplicationSubmitApi {
         return result.data;
     };
 
-    getApplication1 = async () => {
-        const url = TokenService.getApplication1();
+    getApplication = async () => {
+        const url = TokenService.getApplication();
         if (!url) {
             throw new Error('Application URL not found in TokenService');
         }

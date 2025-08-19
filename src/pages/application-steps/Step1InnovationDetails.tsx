@@ -12,17 +12,15 @@ import {
     Select,
 } from 'antd';
 import { ArrowRightOutlined } from '@ant-design/icons';
-import { X as IconX, Search } from 'lucide-react';
+import OrganizationSearch from '../../components/shared/OrganizationSearch';
+import ExternalCodeSearch from '../../components/shared/ExternalCodeSearch';
 import moment from 'moment';
-import {
-    useSearchExternalCodeMutate,
-    useSearchOrganizationMutate,
-} from '../../hooks/useSearchAuthorMutate';
-import { OrganizationType } from '../../types/admin-assign/adminAssiginTpe';
+import { useSearchExternalCodeMutate } from '../../hooks/useSearchAuthorMutate';
 import {
     useApplicationSubmit1Mutate,
-    useGetApplication1,
+    useGetApplication,
 } from '../../hooks/useApplicationSubmitMutation';
+import { ExternalCodeResponse } from '../../api/requests/externalCodeApi';
 
 const { TextArea } = Input;
 
@@ -38,13 +36,11 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
     initialValues,
 }) => {
     const [form] = Form.useForm();
-    const { mutate: searchOrganization, isPending: isOrgPending } =
-        useSearchOrganizationMutate();
-    const { mutate: searchExternalCode, isPending: isExtPending } =
-        useSearchExternalCodeMutate();
+
+    const { isPending: isExtPending } = useSearchExternalCodeMutate();
     const { mutate: submitApplication, isPending: isSubmitting } =
         useApplicationSubmit1Mutate();
-    const { data: applicationData } = useGetApplication1();
+    const { data: applicationData } = useGetApplication();
     const [extSearchInput, setExtSearchInput] = useState('');
     const [extSearchResult, setExtSearchResult] = useState<{
         code: string;
@@ -56,52 +52,16 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
         name: string;
         inn: string;
     } | null>(null);
-    const [orgSearchError, setOrgSearchError] = useState<string | null>(null);
 
-    const formatInn = (value: string) => value.replace(/\D/g, '').slice(0, 9);
-
-    // ...existing code...
-
-    const handleFindOrganization = async () => {
-        const trimmed = formatInn(orgInnInput).trim();
-        if (!trimmed) return;
-        setOrgSearchError(null);
-
-        // Call API via hook
-        searchOrganization(Number(trimmed), {
-            onSuccess: (org: OrganizationType) => {
-                const normalized = {
-                    id: org.data.tin || trimmed,
-                    name: org.data.name || 'Tashkilot',
-                    inn: String(org.data.tin || trimmed),
-                } as { id: number | string; name: string; inn: string };
-                setSelectedOrganization(normalized);
-            },
-            onError: () => {
-                setSelectedOrganization(null);
-                setOrgSearchError('Tashkilot topilmadi');
-            },
-        });
-    };
-
-    const handleFindExternalCode = () => {
-        const trimmed = extSearchInput.trim();
-        if (!trimmed) return;
-        setExtSearchResult(null);
-
-        searchExternalCode(trimmed, {
-            onSuccess: (res: any) => {
-                setExtSearchResult({
-                    code: res.data?.code || trimmed,
-                    projectName: res.data?.projectName || res.data?.name || '',
-                });
-            },
-            onError: () => {},
+    const handleFindExternalCode = (res: ExternalCodeResponse | null) => {
+        if (!res) return;
+        setExtSearchResult({
+            code: res.cipher || String(extSearchInput || ''),
+            projectName: res.tour_name || '',
         });
     };
 
     useEffect(() => {
-        // set the organization name into the form when an organization is selected
         form.setFieldsValue({
             organizationName: selectedOrganization?.name ?? undefined,
         });
@@ -109,7 +69,25 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
 
     useEffect(() => {
         if (initialValues) {
-            form.setFieldsValue(initialValues);
+            // Ensure any date-like fields are converted to moment objects
+            const initVals: any = { ...initialValues };
+            if (initVals.dateOfCreation) {
+                const m = moment(
+                    initVals.dateOfCreation,
+                    moment.ISO_8601,
+                    true
+                );
+                initVals.dateOfCreation = m.isValid() ? m : undefined;
+            }
+            if (initVals.certificateDate) {
+                const m = moment(
+                    initVals.certificateDate,
+                    moment.ISO_8601,
+                    true
+                );
+                initVals.certificateDate = m.isValid() ? m : undefined;
+            }
+            form.setFieldsValue(initVals);
         }
     }, [initialValues, form]);
 
@@ -143,11 +121,18 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
         form.setFieldsValue({
             code: applicationData.code || undefined,
             projectTitle: dev?.name || undefined,
+            dateOfCreation: dev?.creation_date
+                ? moment(dev.creation_date, moment.ISO_8601, true).isValid()
+                    ? moment(dev.creation_date)
+                    : undefined
+                : undefined,
             innovationDescription: dev?.description || undefined,
             certificateType: dev?.certificate_type || undefined,
             certificateNumber: dev?.certificate_number || undefined,
             certificateDate: dev?.certificate_date
-                ? moment(dev.certificate_date)
+                ? moment(dev.certificate_date, moment.ISO_8601, true).isValid()
+                    ? moment(dev.certificate_date)
+                    : undefined
                 : undefined,
             organizationName: org?.short_name || undefined,
         });
@@ -165,29 +150,47 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
         try {
             const values = await form.validateFields();
 
-            // Build payload matching ApplicationSubmitRequest1Form
-            const payload = {
-                code:
-                    values.code ||
-                    extSearchResult?.code ||
-                    extSearchInput ||
-                    '',
-                development: {
-                    name: values.projectTitle || '',
-                    description: values.innovationDescription || '',
-                    certificate_date: values.certificateDate
-                        ? values.certificateDate.format
-                            ? values.certificateDate.format('YYYY-MM-DD')
-                            : String(values.certificateDate)
-                        : '',
-                    certificate_type: values.certificateType || '',
-                    certificate_number: values.certificateNumber
-                        ? Number(values.certificateNumber)
-                        : 0,
-                    tin: selectedOrganization?.inn || orgInnInput || '',
-                },
-            };
+            // Build development object conditionally so empty optional fields are omitted
+            const development: any = {};
 
+            // required/primary fields
+            development.name = values.projectTitle;
+            development.description = values.innovationDescription;
+            development.creation_date = values.dateOfCreation
+                ? values.dateOfCreation.format('YYYY-MM-DD')
+                : undefined;
+
+            // optional certificate fields - only add when present
+            if (values.certificateDate) {
+                development.certificate_date = values.certificateDate.format
+                    ? values.certificateDate.format('YYYY-MM-DD')
+                    : String(values.certificateDate);
+            }
+            if (values.certificateType) {
+                development.certificate_type = values.certificateType;
+            }
+            if (values.certificateNumber) {
+                development.certificate_number = String(
+                    values.certificateNumber
+                );
+            }
+
+            // organization tin - include only if present
+            const tinVal = selectedOrganization?.inn || orgInnInput;
+            if (tinVal) {
+                development.tin = String(tinVal);
+            }
+
+            // code - prefer explicit value/result/input; include only if non-empty
+            const codeVal =
+                values.code || extSearchResult?.code || extSearchInput;
+
+            const payload: any = {
+                development,
+            };
+            if (codeVal) payload.code = String(codeVal);
+
+            // Submit without sending empty strings for optional fields
             submitApplication(payload, {
                 onSuccess: () => {
                     onNext();
@@ -233,38 +236,15 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                         }
                                         required
                                     >
-                                        <div className="flex gap-2">
-                                            <Form.Item
-                                                name="code"
-                                                rules={[
-                                                    {
-                                                        required: true,
-                                                        message:
-                                                            'Loyiha raqamini kiriting',
-                                                    },
-                                                ]}
-                                                noStyle
-                                            >
-                                                <Input
-                                                    value={extSearchInput}
-                                                    onChange={(e) =>
-                                                        setExtSearchInput(
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="Kod yoki INN kiriting"
-                                                    size="large"
-                                                    style={{ width: 240 }}
-                                                />
-                                            </Form.Item>
-                                            <Button
-                                                type="primary"
-                                                onClick={handleFindExternalCode}
-                                                loading={isExtPending}
-                                                size="large"
-                                                icon={<Search size={18} />}
-                                            ></Button>
-                                        </div>
+                                        <ExternalCodeSearch
+                                            value={extSearchInput}
+                                            onChange={setExtSearchInput}
+                                            onResult={handleFindExternalCode}
+                                            loading={isExtPending}
+                                            placeholder="Kod yoki INN kiriting"
+                                            size="large"
+                                            width={240}
+                                        />
                                     </Form.Item>
 
                                     {extSearchResult && (
@@ -414,81 +394,19 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                         </Form.Item>
 
                                         <div>
-                                            <div className="flex gap-2">
-                                                <Input
-                                                    value={orgInnInput}
-                                                    onChange={(e) =>
-                                                        setOrgInnInput(
-                                                            formatInn(
-                                                                e.target.value
-                                                            )
-                                                        )
-                                                    }
-                                                    placeholder="INN kiriting (faqat raqam)"
-                                                    size="large"
-                                                    disabled={
-                                                        !!selectedOrganization
-                                                    }
-                                                />
-                                                <Button
-                                                    type="primary"
-                                                    size="large"
-                                                    onClick={
-                                                        handleFindOrganization
-                                                    }
-                                                    loading={isOrgPending}
-                                                    disabled={
-                                                        !!selectedOrganization
-                                                    }
-                                                    icon={<Search size={18} />}
-                                                />
-                                            </div>
-                                            {orgSearchError && (
-                                                <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
-                                                    <p className="text-red-600 text-sm">
-                                                        {orgSearchError}
-                                                    </p>
-                                                </div>
-                                            )}
-                                            {selectedOrganization && (
-                                                <div className="mt-4">
-                                                    <div className="flex items-center justify-between px-4 py-3 rounded-md border-2">
-                                                        <div className="flex-1">
-                                                            <p className="font-medium text-sm">
-                                                                {
-                                                                    selectedOrganization.name
-                                                                }
-                                                            </p>
-                                                            <p className="text-sm text-gray-500">
-                                                                INN:{' '}
-                                                                <span className="text-blue-600 font-mono">
-                                                                    {
-                                                                        selectedOrganization.inn
-                                                                    }
-                                                                </span>
-                                                            </p>
-                                                        </div>
-                                                        <Button
-                                                            type="text"
-                                                            onClick={() => {
-                                                                setSelectedOrganization(
-                                                                    null
-                                                                );
-                                                                setOrgInnInput(
-                                                                    ''
-                                                                );
-                                                            }}
-                                                            icon={
-                                                                <IconX
-                                                                    size={16}
-                                                                />
-                                                            }
-                                                            size="small"
-                                                            className="bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 border-0 rounded-full ml-3 transition-colors"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            )}
+                                            <OrganizationSearch
+                                                value={selectedOrganization}
+                                                onChange={(v) => {
+                                                    setSelectedOrganization(v);
+                                                    setOrgInnInput(
+                                                        v?.inn || ''
+                                                    );
+                                                }}
+                                                inputValue={orgInnInput}
+                                                onInputChange={(v) =>
+                                                    setOrgInnInput(v)
+                                                }
+                                            />
                                         </div>
                                     </div>
                                 </Form.Item>
@@ -561,7 +479,6 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                 >
                                     <Input
                                         className="w-full"
-                                        type="number"
                                         placeholder="Sertifikat raqamini kiriting"
                                         size="large"
                                     />

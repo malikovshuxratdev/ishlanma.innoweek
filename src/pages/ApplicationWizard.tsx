@@ -16,12 +16,14 @@ const STEPS: { id: number; label: string }[] = [
 const STEP_STORAGE_KEY = 'applicationWizardStep';
 
 const ApplicationWizard: React.FC = () => {
-    const [currentStep, setCurrentStep] = useState<number>(1);
-    // Broad index signature; TODO: replace with concrete form schema interface
+    const [currentStep, setCurrentStep] = useState<number>(
+        localStorage.getItem(STEP_STORAGE_KEY)
+            ? Number(localStorage.getItem(STEP_STORAGE_KEY))
+            : 1
+    );
     type ApplicationFormData = Record<string, unknown>;
     const [formData, setFormData] = useState<ApplicationFormData>({});
 
-    // Load persisted step on mount & set page title
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const saved = Number(localStorage.getItem(STEP_STORAGE_KEY));

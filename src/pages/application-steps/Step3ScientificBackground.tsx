@@ -12,9 +12,7 @@ import {
     Space,
 } from 'antd';
 import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
-import { useSearchOrganizationMutate } from '../../hooks/useSearchAuthorMutate';
-import { Plus as IconPlus, X as IconX } from 'lucide-react';
-import { OrganizationType } from '../../types/admin-assign/adminAssiginTpe';
+import OrganizationSearch from '../../components/shared/OrganizationSearch';
 
 const { Option } = Select;
 
@@ -30,17 +28,12 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
 }) => {
     const [form] = Form.useForm();
     const [submitting, setSubmitting] = useState(false);
-    const { mutate: searchOrganization, isPending: isOrgPending } =
-        useSearchOrganizationMutate();
-
-    // INN-based organization selection (mocked)
     const [orgInnInput, setOrgInnInput] = useState('');
     const [selectedOrganization, setSelectedOrganization] = useState<{
         id: number | string;
         name: string;
         inn: string;
     } | null>(null);
-    const [orgSearchError, setOrgSearchError] = useState<string | null>(null);
 
     const regions = [
         'Tashkent',
@@ -82,32 +75,7 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
     const disabledFutureDates = (current: any) =>
         current && current > Date.now();
 
-    // Format INN: digits only, max 9 (common org INN length); adjust if needed
-    const formatInn = (value: string) => value.replace(/\D/g, '').slice(0, 9);
-
-    const handleFindOrganization = async () => {
-        const trimmed = formatInn(orgInnInput).trim();
-        if (!trimmed) return;
-        setOrgSearchError(null);
-        // Call API via hook
-        searchOrganization(Number(trimmed), {
-            onSuccess: (org: OrganizationType) => {
-                const normalized = {
-                    id: org.data.tin || trimmed,
-                    name: org.data.name || 'Tashkilot',
-                    inn: String(org.data.tin || trimmed),
-                } as { id: number | string; name: string; inn: string };
-                setSelectedOrganization(normalized);
-            },
-            onError: () => {
-                setSelectedOrganization(null);
-                setOrgSearchError('Tashkilot topilmadi');
-            },
-        });
-    };
-
     useEffect(() => {
-        // Keep form in sync with selectedOrganization so validation/submission works
         form.setFieldsValue({
             executingOrganization: selectedOrganization ?? undefined,
         });
@@ -244,78 +212,15 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                                         </span>
                                     }
                                 >
-                                    <div>
-                                        <div className="flex gap-2">
-                                            <Input
-                                                value={orgInnInput}
-                                                onChange={(e) =>
-                                                    setOrgInnInput(
-                                                        formatInn(
-                                                            e.target.value
-                                                        )
-                                                    )
-                                                }
-                                                placeholder="INN kiriting (faqat raqam)"
-                                                size="large"
-                                                disabled={
-                                                    !!selectedOrganization
-                                                }
-                                            />
-                                            <Button
-                                                type="primary"
-                                                size="large"
-                                                onClick={handleFindOrganization}
-                                                loading={isOrgPending}
-                                                disabled={
-                                                    !!selectedOrganization
-                                                }
-                                                className="bg-primary rounded-md transition-colors"
-                                                icon={<IconPlus size={20} />}
-                                            />
-                                        </div>
-                                        {orgSearchError && (
-                                            <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
-                                                <p className="text-red-600 text-sm">
-                                                    {orgSearchError}
-                                                </p>
-                                            </div>
-                                        )}
-                                        {selectedOrganization && (
-                                            <div className="mt-4">
-                                                <div className="flex items-center justify-between px-4 py-3 rounded-md border-2">
-                                                    <div className="flex-1">
-                                                        <p className="font-medium text-sm">
-                                                            {
-                                                                selectedOrganization.name
-                                                            }
-                                                        </p>
-                                                        <p className="text-sm text-gray-500">
-                                                            INN:{' '}
-                                                            <span className="text-blue-600 font-mono">
-                                                                {
-                                                                    selectedOrganization.inn
-                                                                }
-                                                            </span>
-                                                        </p>
-                                                    </div>
-                                                    <Button
-                                                        type="text"
-                                                        onClick={() => {
-                                                            setSelectedOrganization(
-                                                                null
-                                                            );
-                                                            setOrgInnInput('');
-                                                        }}
-                                                        icon={
-                                                            <IconX size={16} />
-                                                        }
-                                                        size="small"
-                                                        className="bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 border-0 rounded-full ml-3 transition-colors"
-                                                    />
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
+                                    <OrganizationSearch
+                                        value={selectedOrganization}
+                                        onChange={(v) => {
+                                            setSelectedOrganization(v);
+                                            setOrgInnInput(v?.inn || '');
+                                        }}
+                                        inputValue={orgInnInput}
+                                        onInputChange={(v) => setOrgInnInput(v)}
+                                    />
                                 </Form.Item>
                             </Col>
                         </Row>
