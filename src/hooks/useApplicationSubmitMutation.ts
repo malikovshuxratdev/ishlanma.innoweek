@@ -119,9 +119,10 @@ export const useApplicationSubmit5Mutate = () => {
                 body
             );
         },
-        onSuccess: (data) => {
-            message.success("Keyingi qadamga o'tildi");
-            TokenService.setApplication(data.detail);
+        onSuccess: () => {
+            message.success('Ariza muvaffaqiyatli yuborildi');
+            TokenService.clearApplication();
+            TokenService.clearApplicationStep();
         },
         onError: () => {
             message.error('Ariza yuborishda xato');

@@ -4,6 +4,7 @@ import Step2IntellectualProperty from './application-steps/Step2IntellectualProp
 import Step3ScientificBackground from './application-steps/Step3ScientificBackground';
 import Step4AdditionalInfo from './application-steps/Step4AdditionalInfo';
 import Step5FinancialPerformance from './application-steps/Step5FinancialPerformance';
+import { TokenService } from '../utils/storage';
 
 const STEPS: { id: number; label: string }[] = [
     { id: 1, label: 'Innovatsion ma’lumotlar' },
@@ -13,18 +14,16 @@ const STEPS: { id: number; label: string }[] = [
     { id: 5, label: 'Moliyaviy ko‘rsatkichlar' },
 ];
 
-const STEP_STORAGE_KEY = 'applicationWizardStep';
-
 const ApplicationWizard: React.FC = () => {
     const [currentStep, setCurrentStep] = useState<number>(
-        localStorage.getItem(STEP_STORAGE_KEY)
-            ? Number(localStorage.getItem(STEP_STORAGE_KEY))
+        TokenService.getApplicationStep()
+            ? Number(TokenService.getApplicationStep())
             : 1
     );
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            const saved = Number(localStorage.getItem(STEP_STORAGE_KEY));
+            const saved = Number(TokenService.getApplicationStep());
             if (saved && saved >= 1 && saved <= STEPS.length) {
                 setCurrentStep(saved);
             }
@@ -32,10 +31,9 @@ const ApplicationWizard: React.FC = () => {
         }
     }, []);
 
-    // Persist current step
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            localStorage.setItem(STEP_STORAGE_KEY, String(currentStep));
+            TokenService.setApplicationStep(String(currentStep));
         }
     }, [currentStep]);
 

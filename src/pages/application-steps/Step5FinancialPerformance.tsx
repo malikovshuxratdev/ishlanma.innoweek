@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
     Form,
     Card,
@@ -12,33 +12,67 @@ import {
 } from 'antd';
 import { ArrowLeftOutlined, SendOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import {
+    useApplicationSubmit5Mutate,
+    useGetApplication,
+} from '../../hooks/useApplicationSubmitMutation';
 
 interface Step5Props {
     onBack: () => void;
     initialValues?: any;
-    allFormData?: any;
 }
 
 const Step5FinancialPerformance: React.FC<Step5Props> = ({
     onBack,
     initialValues,
-    allFormData,
 }) => {
     const [form] = Form.useForm();
     const navigate = useNavigate();
-    const [submitting, setSubmitting] = useState(false);
+    const { data: applicationData } = useGetApplication();
+    const { mutate: submitApplication, isPending } =
+        useApplicationSubmit5Mutate();
 
     const handleSubmit = async () => {
         try {
-            setSubmitting(true);
             const values = await form.validateFields();
-            const finalValues = { ...values };
-            const finalData = { ...allFormData, ...finalValues };
+
+            const rawFinance = values.finance || {};
+
+            const financePayload: any = Object.entries(rawFinance).reduce(
+                (acc: any, [key, val]) => {
+                    if (val !== undefined && val !== null && val !== '') {
+                        acc[key] = String(val);
+                    }
+                    return acc;
+                },
+                {}
+            );
+
+            if (typeof applicationData?.id !== 'number') {
+                message.error('Application ID is missing or invalid.');
+                return;
+            }
+
+            const finalData = {};
             console.log('Complete application data:', finalData);
-            message.success('Application submitted successfully!');
-            navigate('/my-applications');
-        } finally {
-            setSubmitting(false);
+            submitApplication(
+                {
+                    application_id: applicationData.id,
+                    body: {
+                        finance: financePayload as any,
+                    },
+                },
+                {
+                    onSuccess: () => {
+                        navigate('/my-applications');
+                    },
+                    onError: (err: any) => {
+                        console.error('Error submitting application:', err);
+                    },
+                }
+            );
+        } catch (error) {
+            console.error('Error validating form:', error);
         }
     };
 
@@ -56,7 +90,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                         <Row gutter={[24, 12]}>
                             <Col xs={24} md={12} xl={8}>
                                 <Form.Item
-                                    name="netRevenue"
+                                    name={['finance', 'net_income']}
                                     label={
                                         <span className="font-medium text-lg">
                                             Mahsulot (tovar, ish va xizmat)
@@ -82,7 +116,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                             </Col>
                             <Col xs={24} md={12} xl={8}>
                                 <Form.Item
-                                    name="costOfGoodsSold"
+                                    name={['finance', 'cost_of_goods_sold']}
                                     label={
                                         <span className="font-medium text-lg">
                                             Sotilgan mahsulot (tovar, ish va
@@ -108,7 +142,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                             </Col>
                             <Col xs={24} md={12} xl={8}>
                                 <Form.Item
-                                    name="grossProfit"
+                                    name={['finance', 'gross_profit_or_loss']}
                                     label={
                                         <span className="font-medium text-lg">
                                             Mahsulot (tovar, ish va xizmat)
@@ -135,7 +169,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                             </Col>
                             <Col xs={24} md={12} xl={8}>
                                 <Form.Item
-                                    name="sellingExpenses"
+                                    name={['finance', 'selling_expenses']}
                                     label={
                                         <span className="font-medium text-lg">
                                             Sotish xarajatlari
@@ -160,7 +194,10 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                             </Col>
                             <Col xs={24} md={12} xl={8}>
                                 <Form.Item
-                                    name="administrativeExpenses"
+                                    name={[
+                                        'finance',
+                                        'administrative_expenses',
+                                    ]}
                                     label={
                                         <span className="font-medium text-lg">
                                             Maʼmuriy xarajatlar
@@ -185,7 +222,10 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                             </Col>
                             <Col xs={24} md={12} xl={8}>
                                 <Form.Item
-                                    name="otherOperationalExpenses"
+                                    name={[
+                                        'finance',
+                                        'other_operating_expenses',
+                                    ]}
                                     label={
                                         <span className="font-medium text-lg">
                                             Boshqa operatsion xarajatlar
@@ -210,7 +250,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                             </Col>
                             <Col xs={24} md={12} xl={8}>
                                 <Form.Item
-                                    name="otherOperatingIncome"
+                                    name={['finance', 'other_income']}
                                     label={
                                         <span className="font-medium text-lg">
                                             Boshqa asosiy faoliyat daromadlari
@@ -235,7 +275,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                             </Col>
                             <Col xs={24} md={12} xl={8}>
                                 <Form.Item
-                                    name="financialLeaseIncome"
+                                    name={['finance', 'rental_income']}
                                     label={
                                         <span className="font-medium text-lg">
                                             Moliyaviy ijaradan daromadlar
@@ -260,7 +300,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                             </Col>
                             <Col xs={24} md={12} xl={8}>
                                 <Form.Item
-                                    name="currencyExchangeGain"
+                                    name={['finance', 'foreign_exchange_gain']}
                                     label={
                                         <span className="font-medium text-lg">
                                             Valyuta kursi farqidan daromadlar
@@ -285,7 +325,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                             </Col>
                             <Col xs={24} md={12} xl={8}>
                                 <Form.Item
-                                    name="otherFinancialIncome"
+                                    name={['finance', 'other_financial_income']}
                                     label={
                                         <span className="font-medium text-lg">
                                             Moliyaviy faoliyatning boshqa
@@ -311,7 +351,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                             </Col>
                             <Col xs={24} md={12} xl={8}>
                                 <Form.Item
-                                    name="currencyExchangeLoss"
+                                    name={['finance', 'foreign_exchange_loss']}
                                     label={
                                         <span className="font-medium text-lg">
                                             Valyuta kursi farqidan zararlar
@@ -336,7 +376,10 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                             </Col>
                             <Col xs={24} md={12} xl={8}>
                                 <Form.Item
-                                    name="extraordinaryIncomeLosses"
+                                    name={[
+                                        'finance',
+                                        'extraordinary_profit_or_loss',
+                                    ]}
                                     label={
                                         <span className="font-medium text-lg">
                                             Favquloddagi foyda va zararlar
@@ -361,7 +404,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                             </Col>
                             <Col xs={24} md={12} xl={8}>
                                 <Form.Item
-                                    name="incomeTax"
+                                    name={['finance', 'income_tax']}
                                     label={
                                         <span className="font-medium text-lg">
                                             Foyda soligʻi
@@ -404,7 +447,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                 icon={<SendOutlined />}
                                 iconPosition="end"
                                 size="large"
-                                loading={submitting}
+                                loading={isPending}
                                 className="bg-green-600 hover:bg-green-700"
                             >
                                 Yuborish
