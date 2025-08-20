@@ -21,8 +21,6 @@ const ApplicationWizard: React.FC = () => {
             ? Number(localStorage.getItem(STEP_STORAGE_KEY))
             : 1
     );
-    type ApplicationFormData = Record<string, unknown>;
-    const [formData, setFormData] = useState<ApplicationFormData>({});
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -42,7 +40,6 @@ const ApplicationWizard: React.FC = () => {
     }, [currentStep]);
 
     const handleNext = () => {
-        setFormData((prev) => ({ ...prev }));
         setCurrentStep((prev) => prev + 1);
     };
 
@@ -53,18 +50,12 @@ const ApplicationWizard: React.FC = () => {
     const renderStep = () => {
         switch (currentStep) {
             case 1:
-                return (
-                    <Step1InnovationDetails
-                        onNext={handleNext}
-                        initialValues={formData}
-                    />
-                );
+                return <Step1InnovationDetails onNext={handleNext} />;
             case 2:
                 return (
                     <Step2IntellectualProperty
                         onNext={handleNext}
                         onBack={handleBack}
-                        initialValues={formData}
                     />
                 );
             case 3:
@@ -72,7 +63,6 @@ const ApplicationWizard: React.FC = () => {
                     <Step3ScientificBackground
                         onNext={handleNext}
                         onBack={handleBack}
-                        initialValues={formData}
                     />
                 );
             case 4:
@@ -80,17 +70,10 @@ const ApplicationWizard: React.FC = () => {
                     <Step4AdditionalInfo
                         onNext={handleNext}
                         onBack={handleBack}
-                        initialValues={formData}
                     />
                 );
             case 5:
-                return (
-                    <Step5FinancialPerformance
-                        onBack={handleBack}
-                        initialValues={formData}
-                        allFormData={formData}
-                    />
-                );
+                return <Step5FinancialPerformance onBack={handleBack} />;
             default:
                 return null;
         }

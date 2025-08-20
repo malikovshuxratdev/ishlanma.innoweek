@@ -36,7 +36,37 @@ export interface ApplicationSubmitRequest3Form {
     };
 }
 
-export interface ApplicationSubmitRequest4Form {}
+export interface ApplicationSubmitRequest4Form {
+    additional_info: {
+        name: string;
+        industry_affiliation: number;
+        quality_level: number;
+        bank_information: string;
+        export_indicator: string;
+        contract_count: number;
+        contract_amount: string;
+        production_facility_document: number;
+        development_challenge: string;
+        social_impact: string;
+        consumer_organization: number[];
+        files: FileData[];
+        customs_documents: CustomsDocument[];
+        photo_evidences: PhotoEvidence[];
+    };
+}
+
+export interface FileData {
+    file: number;
+    is_main: boolean;
+}
+
+export interface CustomsDocument {
+    file: number;
+}
+
+export interface PhotoEvidence {
+    file: number;
+}
 
 export interface ApplicationSubmitRequest5Form {}
 

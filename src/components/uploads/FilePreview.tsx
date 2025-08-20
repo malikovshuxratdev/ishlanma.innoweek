@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import pdf_icon from '../../assets/icons/pdf_icons.png';
-import doc_icon from '../../assets/icons/doc_icon.png';
-import img_icon from '../../assets/icons/img_icon.png';
-import ppt_icon from '../../assets/icons/ppt.png';
-import { BiTrash } from 'react-icons/bi';
-import { CheckCircleOutlined } from '@ant-design/icons';
-import { MdOutlineRemoveRedEye } from 'react-icons/md';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, Modal, Spin } from 'antd';
-import { HiDownload } from 'react-icons/hi';
+import { CheckCircleOutlined } from '@ant-design/icons';
+import {
+    FileText,
+    Image,
+    File,
+    Presentation,
+    Trash2,
+    Eye,
+    Download,
+} from 'lucide-react';
 
 interface IFilePreview {
     file: File | string | null;
@@ -27,10 +29,27 @@ const FilePreview: React.FC<IFilePreview> = ({
     const [open, setOpen] = useState(false);
     const [fileURL, setFileURL] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const loadingTimeoutRef = useRef<number | null>(null);
 
     const file_name = typeof file === 'string' ? file : file?.name || '';
     const format_file: string = file_name.split('.').pop()?.toLowerCase() || '';
     const isBlobFile = typeof file !== 'string';
+    // If we have a remote URL (string) and a separate fileName, append it as a query param
+    // so downstream viewers/downloads can see the intended filename.
+    const previewURL = React.useMemo(() => {
+        if (!fileURL) return null;
+        if (isBlobFile) return fileURL;
+        if (!fileName) return fileURL;
+        try {
+            const hasFilename = /[?&]filename=/.test(fileURL);
+            if (hasFilename) return fileURL;
+            const sep = fileURL.includes('?') ? '&' : '?';
+            return `${fileURL}${sep}filename=${encodeURIComponent(fileName)}`;
+        } catch (e) {
+            return fileURL;
+        }
+    }, [fileURL, isBlobFile, fileName]);
 
     useEffect(() => {
         if (!file) return;
@@ -39,31 +58,64 @@ const FilePreview: React.FC<IFilePreview> = ({
         } else if (file instanceof Blob) {
             const blobUrl = URL.createObjectURL(file);
             setFileURL(blobUrl);
-            return () => URL.revokeObjectURL(blobUrl);
+            return () => {
+                URL.revokeObjectURL(blobUrl);
+                if (loadingTimeoutRef.current) {
+                    clearTimeout(loadingTimeoutRef.current);
+                    loadingTimeoutRef.current = null;
+                }
+            };
         }
     }, [file]);
 
-    const handleIframeLoad = () => setLoading(false);
+    const clearLoadingTimeout = () => {
+        if (loadingTimeoutRef.current) {
+            clearTimeout(loadingTimeoutRef.current);
+            loadingTimeoutRef.current = null;
+        }
+    };
 
-    const icon =
-        format_file == 'pdf'
-            ? pdf_icon
-            : format_file.includes('doc')
-            ? doc_icon
-            : format_file.includes('ppt')
-            ? ppt_icon
-            : img_icon;
+    const handleIframeLoad = () => {
+        clearLoadingTimeout();
+        setLoading(false);
+    };
+
+    const handlePreviewError = () => {
+        clearLoadingTimeout();
+        setLoading(false);
+        setError("Faylni ko'rsatib bo'lmadi. Iltimos, yuklab oling.");
+    };
+
+    const getFileIcon = () => {
+        const iconProps = { size: 24, className: 'text-blue-600' };
+
+        if (format_file === 'pdf') {
+            return <FileText {...iconProps} className="text-red-600" />;
+        }
+        if (format_file.includes('doc')) {
+            return <FileText {...iconProps} className="text-blue-600" />;
+        }
+        if (format_file.includes('ppt')) {
+            return <Presentation {...iconProps} className="text-orange-600" />;
+        }
+        if (
+            ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(format_file)
+        ) {
+            return <Image {...iconProps} className="text-green-600" />;
+        }
+        return <File {...iconProps} className="text-gray-600" />;
+    };
 
     return (
         <div className="self-stretch p-4 relative bg-blue-50 dark:bg-dark-card rounded-2xl flex items-center justify-between gap-2 shadow-md">
             <div className="self-stretch inline-flex justify-start items-start gap-3">
-                <div className="w-10 h-10 relative">
-                    <img src={icon} alt="PDF Icon" />
+                <div className="w-10 h-10 relative flex items-center justify-center bg-white rounded-lg">
+                    {getFileIcon()}
                 </div>
                 <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
                     <div className="self-stretch flex flex-col justify-start items-start gap-0.5">
                         <p className="text-secondary-700 text-sm font-medium">
-                            {fileName || 'No file uploaded'}
+                            {fileName || file_name || 'No file uploaded'}
                         </p>
                         {description && (
                             <p className="text-secondary text-[10px] font-medium">
@@ -72,14 +124,9 @@ const FilePreview: React.FC<IFilePreview> = ({
                         )}
 
                         <div className="flex items-center gap-2">
-                            {/* <PElement className="text-secondary text-sm">200 KB</PElement> */}
-                            {/* <div className="h-3 border-l border-gray-300" /> */}
                             <div className="flex items-center gap-1">
-                                <CheckCircleOutlined
-                                    className="text-success-600 dark:text-white"
-                                    color="#414651"
-                                />
-                                <span className="text-success-600 text-sm font-medium">
+                                <CheckCircleOutlined className="text-green-600" />
+                                <span className="text-green-600 text-sm font-medium">
                                     Yuklangan
                                 </span>
                             </div>
@@ -89,115 +136,169 @@ const FilePreview: React.FC<IFilePreview> = ({
             </div>
             <div className="flex items-center gap-2">
                 <Button
-                    icon={
-                        <MdOutlineRemoveRedEye className="text-lg text-gray-500" />
-                    }
+                    icon={<Eye size={16} />}
                     className="!px-3 !py-2 !rounded-full !bg-white hover:!bg-gray-100"
                     onClick={() => {
                         setOpen(true);
+                        setLoading(true);
+                        setError(null);
+                        // start a timeout to avoid spinner forever
+                        if (loadingTimeoutRef.current) {
+                            clearTimeout(loadingTimeoutRef.current);
+                        }
+                        // after 12s show error fallback
+                        loadingTimeoutRef.current = window.setTimeout(() => {
+                            setLoading(false);
+                            setError(
+                                "Fayl yuklanishida muammo bo'ldi. Iltimos, yuklab oling."
+                            );
+                            loadingTimeoutRef.current = null;
+                        }, 12000);
                     }}
                 />
                 {isDownload && (
                     <Button
-                        icon={<HiDownload className="text-lg text-gray-500" />}
+                        icon={<Download size={16} />}
                         className="!px-3 !py-2 !rounded-full !bg-white hover:!bg-gray-100"
-                        href={fileURL || undefined}
-                        download={isDownload}
+                        href={previewURL || undefined}
+                        download={file_name || 'file'}
                         target="_blank"
                     />
                 )}
                 {onDelete && file && (
                     <Button
-                        icon={<BiTrash className="text-lg text-red-500" />}
+                        icon={<Trash2 size={16} />}
                         onClick={() => onDelete(file)}
-                        className="w-6 h-6 !rounded-full bg-white hover:bg-gray-100"
+                        className="!px-3 !py-2 !rounded-full !bg-white hover:!bg-red-50 !text-red-500"
+                        danger
                     />
                 )}
             </div>
 
             <Modal
-                title="File Preview"
+                title="Fayl ko'rish"
                 open={open}
                 footer={null}
-                onCancel={() => setOpen(false)}
+                onCancel={() => {
+                    setOpen(false);
+                    setLoading(false);
+                    setError(null);
+                    if (loadingTimeoutRef.current) {
+                        clearTimeout(loadingTimeoutRef.current);
+                        loadingTimeoutRef.current = null;
+                    }
+                }}
                 width={800}
+                style={{ top: 20 }}
             >
-                <Spin spinning={loading} />
-                {/* Rasm fayllar */}
-                {['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(
-                    format_file
-                ) &&
-                    fileURL && (
-                        <div className="text-center">
-                            <img
-                                src={fileURL}
-                                alt={fileName || 'Preview'}
-                                className="max-w-full max-h-[80vh] object-contain mx-auto"
-                                onLoad={handleIframeLoad}
-                            />
-                        </div>
-                    )}
-
-                {/* PDF fayl */}
-                {format_file === 'pdf' && fileURL && (
-                    <embed
-                        src={fileURL}
-                        type="application/pdf"
-                        width="100%"
-                        className="h-[80vh]"
-                        onLoad={handleIframeLoad}
-                    />
+                {loading && (
+                    <div className="flex justify-center py-8">
+                        <Spin size="large" />
+                    </div>
                 )}
 
-                {/* Word yoki PowerPoint faqat URL bo'lsa */}
-                {['doc', 'docx', 'ppt', 'pptx'].includes(format_file) &&
-                    !isBlobFile && (
+                {error && (
+                    <div className="text-center py-4 text-red-600">{error}</div>
+                )}
+
+                <div className={loading ? 'hidden' : ''}>
+                    {/* Rasm fayllar */}
+                    {['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(
+                        format_file
+                    ) &&
+                        fileURL && (
+                            <div className="text-center">
+                                <img
+                                    src={fileURL}
+                                    alt={fileName || 'Preview'}
+                                    className="max-w-full max-h-[70vh] object-contain mx-auto"
+                                    onLoad={handleIframeLoad}
+                                />
+                            </div>
+                        )}
+
+                    {/* PDF fayl */}
+                    {format_file === 'pdf' && previewURL && (
                         <iframe
-                            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-                                fileURL || ''
-                            )}`}
+                            src={previewURL}
+                            title="PDF Preview"
                             width="100%"
-                            className="h-[80vh]"
+                            height="600px"
                             onLoad={handleIframeLoad}
-                            title="Office Viewer"
+                            onError={handlePreviewError}
                         />
                     )}
 
-                {(format_file.includes('ppt') || format_file.includes('doc')) &&
-                    isBlobFile && (
-                        <div className="text-center">
-                            <p className="mb-4">
-                                Brauzer orqali ko'rsatib bo'lmaydi. Yuklab oling
-                                va oching.
-                            </p>
-                            <Button
-                                href={fileURL || undefined}
-                                download={file_name || 'file'}
-                                type="primary"
-                            >
-                                Yuklab olish
-                            </Button>
+                    {/* Word yoki PowerPoint faqat URL bo'lsa */}
+                    {['doc', 'docx', 'ppt', 'pptx'].includes(format_file) &&
+                        !isBlobFile &&
+                        fileURL && (
+                            <iframe
+                                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+                                    previewURL || ''
+                                )}`}
+                                width="100%"
+                                height="600px"
+                                onLoad={handleIframeLoad}
+                                onError={handlePreviewError}
+                                title="Office Viewer"
+                            />
+                        )}
+
+                    {/* Local Word/PowerPoint fayllar */}
+                    {(format_file.includes('ppt') ||
+                        format_file.includes('doc')) &&
+                        isBlobFile && (
+                            <div className="text-center py-8">
+                                <p className="mb-4 text-gray-600">
+                                    Brauzer orqali ko'rsatib bo'lmaydi. Yuklab
+                                    oling va oching.
+                                </p>
+                                <Button
+                                    type="primary"
+                                    icon={<Download size={16} />}
+                                    href={fileURL || undefined}
+                                    download={file_name || 'file'}
+                                >
+                                    Yuklab olish
+                                </Button>
+                            </div>
+                        )}
+
+                    {/* Qo'llab-quvvatlanmagan fayl turi */}
+                    {![
+                        'pdf',
+                        'doc',
+                        'docx',
+                        'ppt',
+                        'pptx',
+                        'jpg',
+                        'jpeg',
+                        'png',
+                        'gif',
+                        'webp',
+                        'svg',
+                    ].includes(format_file || '') && (
+                        <div className="text-center py-8 text-gray-500">
+                            <File
+                                size={48}
+                                className="mx-auto mb-4 text-gray-400"
+                            />
+                            <p>Bu fayl formatini ko'rsatib bo'lmaydi.</p>
+                            {fileURL && (
+                                <Button
+                                    type="primary"
+                                    icon={<Download size={16} />}
+                                    className="mt-4"
+                                    href={fileURL}
+                                    download={file_name || 'file'}
+                                >
+                                    Yuklab olish
+                                </Button>
+                            )}
                         </div>
                     )}
-
-                {/* Qo'llab-quvvatlanmagan fayl turi */}
-                {![
-                    'pdf',
-                    'doc',
-                    'docx',
-                    'ppt',
-                    'pptx',
-                    'jpg',
-                    'jpeg',
-                    'png',
-                    'gif',
-                    'webp',
-                    'svg',
-                ].includes(format_file || '') && (
-                    <div className="text-center text-gray-500">
-                        Bu fayl formatini ko'rsatib bo'lmaydi.
-                    </div>
-                )}
+                </div>
             </Modal>
         </div>
     );

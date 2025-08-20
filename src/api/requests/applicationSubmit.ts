@@ -5,6 +5,7 @@ import {
     ApplicationSubmitRequest1Form,
     ApplicationSubmitRequest2Form,
     ApplicationSubmitRequest3Form,
+    ApplicationSubmitRequest4Form,
 } from '../../types/applicationSubmit/applicationSubmitType.ts';
 import { TokenService } from '../../utils/storage.ts';
 import { GetApplication1 } from '../../types/applicationSubmit/applicationSubmitOne.ts';
@@ -15,6 +16,8 @@ const urls = {
         `/api/v1/application/${application_id}/property/`,
     applicationSubmission3: (application_id: number) =>
         `/api/v1/application/${application_id}/research/`,
+    applicationSubmission4: (application_id: number) =>
+        `/api/v1/application/${application_id}/additional/`,
 };
 
 export class ApplicationSubmitApi {
@@ -45,6 +48,17 @@ export class ApplicationSubmitApi {
     ) => {
         const result: AxiosResponse<ApplicationResponse> = await this.api.post(
             urls.applicationSubmission3(application_id),
+            body
+        );
+        return result.data;
+    };
+
+    applicationSubmission4 = async (
+        application_id: number,
+        body: ApplicationSubmitRequest4Form
+    ) => {
+        const result: AxiosResponse<ApplicationResponse> = await this.api.post(
+            urls.applicationSubmission4(application_id),
             body
         );
         return result.data;

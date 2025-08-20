@@ -22,65 +22,28 @@ import {
 import UploadForm from '../../components/shared/UploadForm';
 import type { RcFile } from 'antd/es/upload/interface';
 import OrganizationSearch from '../../components/shared/OrganizationSearch';
+import {
+    useApplicationSubmit4Mutate,
+    useGetApplication,
+} from '../../hooks/useApplicationSubmitMutation';
+import {
+    useIndustryAffiliationsQuery,
+    useQualityLevelsQuery,
+} from '../../hooks/useAllRegionsQuery';
+import { ApplicationSubmitRequest4Form } from '../../types/applicationSubmit/applicationSubmitType';
 
 const { TextArea } = Input;
 const { Option } = Select;
 // Removed Dragger usage after switching to ImageCropUpload
 
 interface Step4Props {
-    onNext: (values: any) => void;
+    onNext: () => void;
     onBack: () => void;
     initialValues?: any;
 }
 
 const MAX_COMMERCIALIZATION_WORDS = 50;
 const MAX_SOCIAL_IMPACT_WORDS = 120;
-const INDUSTRIES = [
-    'Agriculture',
-    'Energy',
-    'Healthcare',
-    'Information Technology',
-    'Manufacturing',
-    'Environment',
-    'Transportation',
-    'Education',
-    'Finance',
-    'Construction',
-    'Food Processing',
-    'Textiles',
-    'Mining',
-    'Tourism',
-    'Telecommunications',
-    'Biotechnology',
-    'Aerospace',
-    'Automotive',
-    'Chemical',
-    'Defense',
-    'Entertainment',
-    'Fashion',
-    'Forestry',
-    'Gaming',
-    'Insurance',
-    'Legal Services',
-    'Logistics',
-    'Media',
-    'Pharmaceuticals',
-    'Real Estate',
-    'Retail',
-    'Security',
-    'Sports',
-    'Utilities',
-    'Waste Management',
-];
-
-const MATURITY_LEVELS = [
-    { value: 'undefined', label: 'Undefined' },
-    { value: 'idea', label: 'Idea' },
-    { value: 'experimental_research', label: 'Experimental Research' },
-    { value: 'industrial_sample', label: 'Industrial Sample' },
-    { value: 'new_product_creation', label: 'New Product Creation' },
-    { value: 'production_expansion', label: 'Production Expansion' },
-];
 
 const Step4AdditionalInfo: React.FC<Step4Props> = ({
     onNext,
@@ -88,8 +51,13 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
     initialValues,
 }) => {
     const [form] = Form.useForm();
-    const [submitting, setSubmitting] = useState(false);
-    const [designSchematic, setDesignSchematic] = useState<RcFile[]>([]);
+    const [designSchematic, setDesignSchematic] = useState<string[]>([]);
+    const [fileMap, setFileMap] = useState<
+        Record<string, { id: number; file: string }[]>
+    >({});
+    const { data: industryAffiliations } = useIndustryAffiliationsQuery();
+    const { data: qualityLevels } = useQualityLevelsQuery();
+    const { mutate: submitApplication } = useApplicationSubmit4Mutate();
 
     const [orgInnInput, setOrgInnInput] = useState('');
     const [selectedOrganization, setSelectedOrganization] = useState<{
@@ -99,14 +67,10 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
     } | null>(null);
 
     useEffect(() => {
-        // Keep form in sync with selectedOrganization so validation/submission works
         form.setFieldsValue({
             executingOrganization: selectedOrganization ?? undefined,
         });
     }, [selectedOrganization, form]);
-
-    const industries = INDUSTRIES;
-    const maturityLevels = MATURITY_LEVELS;
 
     useEffect(() => {
         if (initialValues) form.setFieldsValue(initialValues);
@@ -125,18 +89,24 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
         [socialImpactText]
     );
 
-    const beforeUploadLarge = () => false;
-    const handleFilesChange = (files: RcFile[], fieldName: string) => {
-        form.setFieldsValue({ [fieldName]: files });
+    const handleFilesChange = (
+        files: { id: number; file: string }[],
+        fieldName: string
+    ) => {
+        const urls = files.map((f) => f.file);
+        form.setFieldsValue({ [fieldName]: urls });
+        setFileMap((prev) => ({ ...prev, [fieldName]: files }));
     };
+
     const handleFileChange = (
-        files: RcFile[],
+        files: { id: number; file: string }[],
         setState?: (v: string | RcFile | null) => void,
         fieldName?: string
     ) => {
-        const first = files?.[0] || null;
+        const first = (files?.[0]?.file as string) || null;
         if (setState) setState(first);
         if (fieldName) form.setFieldsValue({ [fieldName]: first });
+        if (fieldName) setFileMap((prev) => ({ ...prev, [fieldName]: files }));
     };
 
     // Limit commercializationProject input to MAX_COMMERCIALIZATION_WORDS words
@@ -160,18 +130,111 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
         | RcFile
         | string
         | null;
+    const { data: applicationData } = useGetApplication();
 
     const handleNext = async () => {
         try {
-            setSubmitting(true);
             const values = await form.validateFields();
-            const submitValues = {
-                ...values,
-                designSchematic,
-            };
-            onNext(submitValues);
-        } finally {
-            setSubmitting(false);
+
+            // `additional_info` should be the inner object expected by the API
+            // Use Partial so we can build it incrementally without all required fields
+            const additional_info: Partial<
+                ApplicationSubmitRequest4Form['additional_info']
+            > = {};
+
+            if (values.commercializationProject)
+                additional_info.name = values.commercializationProject;
+
+            if (values.industryBelonging && values.industryBelonging.length)
+                additional_info.industry_affiliation = Number(
+                    Array.isArray(values.industryBelonging)
+                        ? values.industryBelonging[0]
+                        : values.industryBelonging
+                );
+
+            if (values.maturityLevel)
+                additional_info.quality_level = Number(values.maturityLevel);
+
+            if (values.bankInformation)
+                additional_info.bank_information = values.bankInformation;
+
+            if (values.exportFigures && values.exportFigures.length)
+                additional_info.export_indicator = JSON.stringify(
+                    values.exportFigures
+                );
+
+            if (
+                values.salesContracts &&
+                typeof values.salesContracts.contractCount !== 'undefined'
+            )
+                additional_info.contract_count = Number(
+                    values.salesContracts.contractCount
+                );
+
+            if (
+                values.salesContracts &&
+                typeof values.salesContracts.contractValue !== 'undefined' &&
+                values.salesContracts.contractValue !== null
+            )
+                additional_info.contract_amount = String(
+                    values.salesContracts.contractValue
+                );
+
+            const prodDocs = fileMap['productionLocationDocument'];
+            if (prodDocs && prodDocs.length)
+                additional_info.production_facility_document = prodDocs[0].id;
+
+            if (values.developmentChallenges)
+                additional_info.development_challenge =
+                    values.developmentChallenges;
+
+            if (values.socialImpact)
+                additional_info.social_impact = values.socialImpact;
+
+            if (selectedOrganization?.id) {
+                const orgId = Number(selectedOrganization.id);
+                if (!Number.isNaN(orgId)) {
+                    additional_info.consumer_organization = [orgId];
+                }
+            }
+
+            // Use innovationPhotos for additional_info.files — include only valid server ids
+            const innovationFiles = fileMap['innovationPhotos'] || [];
+            const validInnovationFiles = innovationFiles.filter(
+                (f) => typeof f.id === 'number' && f.id > 0
+            );
+            if (validInnovationFiles.length)
+                additional_info.files = validInnovationFiles.map((f, idx) => ({
+                    file: Number(f.id),
+                    is_main: idx === 0,
+                }));
+
+            const customs = fileMap['customsDocumentation'] || [];
+            if (customs.length)
+                additional_info.customs_documents = customs.map((f) => ({
+                    file: Number(f.id),
+                }));
+
+            const photos = [...(fileMap['manufacturingProcessPhotos'] || [])];
+            if (photos.length)
+                additional_info.photo_evidences = photos.map((f) => ({
+                    file: Number(f.id),
+                }));
+
+            const payload = { additional_info } as any;
+
+            const application_id = applicationData?.id ?? 0;
+
+            submitApplication(
+                { application_id, body: payload },
+                {
+                    onSuccess: () => {
+                        onNext();
+                    },
+                }
+            );
+        } catch (error) {
+            console.error('Error submitting form:', error);
         }
     };
 
@@ -282,7 +345,6 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                             ) as any
                                         }
                                         accept=".jpg,.jpeg,.png"
-                                        beforeUpload={beforeUploadLarge}
                                         onchange={(files) =>
                                             handleFilesChange(
                                                 files,
@@ -334,7 +396,6 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                             ) as any
                                         }
                                         accept=".jpg,.jpeg,.png"
-                                        beforeUpload={beforeUploadLarge}
                                         onchange={(files) =>
                                             handleFilesChange(
                                                 files,
@@ -362,14 +423,16 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         maxTagCount="responsive"
                                         size="large"
                                     >
-                                        {industries.map((industry) => (
-                                            <Option
-                                                key={industry}
-                                                value={industry}
-                                            >
-                                                {industry}
-                                            </Option>
-                                        ))}
+                                        {industryAffiliations?.map(
+                                            (industry) => (
+                                                <Option
+                                                    key={industry.id}
+                                                    value={industry.id}
+                                                >
+                                                    {industry.name}
+                                                </Option>
+                                            )
+                                        )}
                                     </Select>
                                 </Form.Item>
                             </Col>
@@ -396,12 +459,12 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         optionFilterProp="children"
                                         size="large"
                                     >
-                                        {maturityLevels.map((level) => (
+                                        {qualityLevels?.map((level) => (
                                             <Option
-                                                key={level.value}
-                                                value={level.value}
+                                                key={level.id}
+                                                value={level.id}
                                             >
-                                                {level.label}
+                                                {level.name}
                                             </Option>
                                         ))}
                                     </Select>
@@ -593,15 +656,17 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         label="Fayl yuklang"
                                         multiple={!customsDoc}
                                         value={customsDoc}
-                                        onchange={(files: RcFile[]) =>
+                                        onchange={(files) =>
                                             handleFileChange(
-                                                files,
+                                                files as {
+                                                    id: number;
+                                                    file: string;
+                                                }[],
                                                 undefined,
                                                 'customsDocumentation'
                                             )
                                         }
                                         accept=".pdf"
-                                        beforeUpload={beforeUploadLarge}
                                     />
                                 </Form.Item>
                             </Col>
@@ -633,15 +698,17 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         label="Fayl yuklang"
                                         multiple={!productionDoc}
                                         value={productionDoc}
-                                        onchange={(files: RcFile[]) =>
+                                        onchange={(files) =>
                                             handleFileChange(
-                                                files,
+                                                files as {
+                                                    id: number;
+                                                    file: string;
+                                                }[],
                                                 undefined,
                                                 'productionLocationDocument'
                                             )
                                         }
                                         accept=".pdf"
-                                        beforeUpload={beforeUploadLarge}
                                     />
                                 </Form.Item>
                             </Col>
@@ -663,12 +730,17 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                 value={designSchematic}
                                                 maxFiles={5}
                                                 maxFile={5}
-                                                onchange={(files: RcFile[]) =>
-                                                    setDesignSchematic(files)
-                                                }
+                                                onchange={(files) => {
+                                                    handleFilesChange(
+                                                        files,
+                                                        'designSchematic'
+                                                    );
+                                                    setDesignSchematic(
+                                                        files.map((f) => f.file)
+                                                    );
+                                                }}
                                                 accept=".pdf"
                                                 required={false}
-                                                beforeUpload={beforeUploadLarge}
                                             />
                                         </Col>
                                         {/* Right: Numeric inputs stacked */}
@@ -806,7 +878,6 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                 icon={<ArrowRightOutlined />}
                                 iconPosition="end"
                                 size="large"
-                                loading={submitting}
                                 disabled={
                                     commercializationWordCount >
                                         MAX_COMMERCIALIZATION_WORDS ||
