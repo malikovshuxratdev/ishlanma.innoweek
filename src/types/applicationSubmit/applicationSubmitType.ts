@@ -48,9 +48,10 @@ export interface ApplicationSubmitRequest4Form {
         production_facility_document: number;
         development_challenge: string;
         social_impact: string;
-        consumer_organization: number[];
+        consumer_organizations_tin: string[];
         files: FileData[];
-        customs_documents: CustomsDocument[];
+        contract_files: ContractFile[];
+        customs_documents: ContractFile[];
         photo_evidences: PhotoEvidence[];
     };
 }
@@ -60,7 +61,7 @@ export interface FileData {
     is_main: boolean;
 }
 
-export interface CustomsDocument {
+export interface ContractFile {
     file: number;
 }
 

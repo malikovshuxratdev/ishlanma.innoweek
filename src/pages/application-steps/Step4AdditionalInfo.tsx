@@ -16,11 +16,10 @@ import type { UploadFile } from 'antd';
 import {
     ArrowLeftOutlined,
     ArrowRightOutlined,
-    PlusOutlined,
-    MinusCircleOutlined,
     QuestionCircleOutlined,
 } from '@ant-design/icons';
 import OrganizationSearch from '../../components/shared/OrganizationSearch';
+import MultiOrganizationSearch from '../../components/shared/MultiOrganizationSearch';
 import {
     useApplicationSubmit4Mutate,
     useGetApplication,
@@ -84,6 +83,9 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
         name: string;
         inn: string;
     } | null>(null);
+    const [selectedOrganizations, setSelectedOrganizations] = useState<
+        { id: number | string; name: string; inn: string }[]
+    >([]);
 
     useEffect(() => {
         form.setFieldsValue({
@@ -113,9 +115,9 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
             const limited = words
                 .slice(0, MAX_COMMERCIALIZATION_WORDS)
                 .join(' ');
-            form.setFieldsValue({ commercializationProject: limited });
+            form.setFieldsValue({ name: limited });
         } else {
-            form.setFieldsValue({ commercializationProject: value });
+            form.setFieldsValue({ name: value });
         }
     };
 
@@ -147,43 +149,68 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
             if (values.bankInformation)
                 additional_info.bank_information = values.bankInformation;
 
-            if (values.exportFigures && values.exportFigures.length)
-                additional_info.export_indicator = JSON.stringify(
-                    values.exportFigures
-                );
+            // export_indicator: send as object mapping year -> amount, e.g. { "2020": 12 }
+            if (values.export_indicator) {
+                const ei = values.export_indicator;
+                const year =
+                    ei.year !== undefined &&
+                    ei.year !== null &&
+                    String(ei.year).trim() !== ''
+                        ? String(ei.year)
+                        : null;
+                const emount =
+                    ei.emount !== undefined &&
+                    ei.emount !== null &&
+                    String(ei.emount).trim() !== ''
+                        ? Number(ei.emount)
+                        : null;
+
+                // Only include if we have a year. If emount missing, default to 0.
+                if (year) {
+                    additional_info.export_indicator = {
+                        [year]: emount ?? 0,
+                    } as any;
+                }
+            }
 
             if (
-                values.salesContracts &&
-                typeof values.salesContracts.contractCount !== 'undefined'
+                typeof values.contract_count !== 'undefined' &&
+                values.contract_count !== null
             )
-                additional_info.contract_count = Number(
-                    values.salesContracts.contractCount
-                );
+                additional_info.contract_count = Number(values.contract_count);
 
             if (
-                values.salesContracts &&
-                typeof values.salesContracts.contractValue !== 'undefined' &&
-                values.salesContracts.contractValue !== null
+                typeof values.contract_amount !== 'undefined' &&
+                values.contract_amount !== null
             )
                 additional_info.contract_amount = String(
-                    values.salesContracts.contractValue
+                    values.contract_amount
                 );
 
-            const prodDocs = fileMap['productionLocationDocument'];
-            if (prodDocs && prodDocs.length)
-                additional_info.production_facility_document = prodDocs[0].id;
+            const prodDocs = fileMap['production_facility_document'] || [];
+            if (prodDocs.length)
+                additional_info.production_facility_document = Number(
+                    prodDocs[0].id
+                );
 
-            if (values.developmentChallenges)
+            if (values.development_challenge)
                 additional_info.development_challenge =
-                    values.developmentChallenges;
+                    values.development_challenge;
 
-            if (values.socialImpact)
-                additional_info.social_impact = values.socialImpact;
+            if (values.social_impact)
+                additional_info.social_impact = values.social_impact;
 
-            if (selectedOrganization?.id) {
-                const orgId = Number(selectedOrganization.id);
-                if (!Number.isNaN(orgId)) {
-                    additional_info.consumer_organization = [orgId];
+            if (selectedOrganizations && selectedOrganizations.length) {
+                const orgIds = selectedOrganizations
+                    .map((o) => String(o.id))
+                    .filter(Boolean) as string[];
+                if (orgIds.length)
+                    additional_info.consumer_organizations_tin = orgIds;
+            } else if (selectedOrganization?.id) {
+                // fallback for single selection (backwards compatibility)
+                const orgId = String(selectedOrganization.id);
+                if (orgId) {
+                    additional_info.consumer_organizations_tin = [orgId];
                 }
             }
 
@@ -198,13 +225,21 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                     is_main: idx === 0,
                 }));
 
-            const customs = fileMap['customsDocumentation'] || [];
-            if (customs.length)
-                additional_info.customs_documents = customs.map((f) => ({
+            // contract_files -> map to additional_info.contract_files
+            const contractFiles = fileMap['contract_files'] || [];
+            if (contractFiles.length)
+                additional_info.contract_files = contractFiles.map((f) => ({
                     file: Number(f.id),
                 }));
 
-            const photos = [...(fileMap['manufacturingProcessPhotos'] || [])];
+            const customs = fileMap['customs_documents'] || [];
+            if (customs.length) {
+                additional_info.customs_documents = customs.map((f) => ({
+                    file: Number(f.id),
+                }));
+            }
+
+            const photos = [...(fileMap['photo_evidences'] || [])];
             if (photos.length)
                 additional_info.photo_evidences = photos.map((f) => ({
                     file: Number(f.id),
@@ -470,7 +505,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                             </Col>
                             <Col xs={24} md={12}>
                                 <Form.Item
-                                    name="consumer_organization"
+                                    name="consumer_organizations_tin"
                                     label={
                                         <span className="font-medium text-lg flex items-center">
                                             Sotib olgan isteʼmolchi tashkilotlar
@@ -486,17 +521,34 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     }
                                 >
                                     <div>
-                                        <OrganizationSearch
-                                            value={selectedOrganization}
-                                            onChange={(v) => {
-                                                setSelectedOrganization(v);
-                                                setOrgInnInput(v?.inn || '');
+                                        <MultiOrganizationSearch
+                                            value={selectedOrganizations}
+                                            onChange={(list) => {
+                                                setSelectedOrganizations(
+                                                    list || []
+                                                );
                                             }}
                                             inputValue={orgInnInput}
                                             onInputChange={(v) =>
                                                 setOrgInnInput(v)
                                             }
                                         />
+                                        {/* keep single selection in sync for compatibility */}
+                                        <div className="sr-only">
+                                            <OrganizationSearch
+                                                value={selectedOrganization}
+                                                onChange={(v) => {
+                                                    setSelectedOrganization(v);
+                                                    setOrgInnInput(
+                                                        v?.inn || ''
+                                                    );
+                                                }}
+                                                inputValue={orgInnInput}
+                                                onInputChange={(v) =>
+                                                    setOrgInnInput(v)
+                                                }
+                                            />
+                                        </div>
                                     </div>
                                 </Form.Item>
                             </Col>
@@ -510,109 +562,54 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         </span>
                                     }
                                 >
-                                    <Form.List name="export_indicator">
-                                        {(fields, { add, remove }) => (
-                                            <>
-                                                {fields.map(
-                                                    ({
-                                                        key,
-                                                        name,
-                                                        ...restField
-                                                    }) => (
-                                                        <Space
-                                                            key={key}
-                                                            className="flex w-full mb-2"
-                                                            align="start"
-                                                        >
-                                                            <Form.Item
-                                                                {...restField}
-                                                                name={[
-                                                                    name,
-                                                                    'year',
-                                                                ]}
-                                                                rules={[
-                                                                    {
-                                                                        required:
-                                                                            true,
-                                                                        message:
-                                                                            'Yil',
-                                                                    },
-                                                                ]}
-                                                                className="!mb-0"
-                                                            >
-                                                                <InputNumber
-                                                                    placeholder="Yil"
-                                                                    min={2000}
-                                                                    max={2035}
-                                                                    className="!w-28"
-                                                                    size="large"
-                                                                />
-                                                            </Form.Item>
-                                                            <Form.Item
-                                                                {...restField}
-                                                                name={[
-                                                                    name,
-                                                                    'amount',
-                                                                ]}
-                                                                rules={[
-                                                                    {
-                                                                        required:
-                                                                            true,
-                                                                        message:
-                                                                            'Miqdor',
-                                                                    },
-                                                                ]}
-                                                                className="!mb-0 flex-1"
-                                                            >
-                                                                <InputNumber
-                                                                    placeholder="So'mda miqdor"
-                                                                    className="w-full"
-                                                                    formatter={(
-                                                                        value
-                                                                    ) =>
-                                                                        `${value}`.replace(
-                                                                            /\B(?=(\d{3})+(?!\d))/g,
-                                                                            ','
-                                                                        )
-                                                                    }
-                                                                    size="large"
-                                                                    parser={(
-                                                                        value
-                                                                    ) =>
-                                                                        value!.replace(
-                                                                            /\$\s?|(,*)/g,
-                                                                            ''
-                                                                        )
-                                                                    }
-                                                                />
-                                                            </Form.Item>
-                                                            <Button
-                                                                type="text"
-                                                                danger
-                                                                onClick={() =>
-                                                                    remove(name)
-                                                                }
-                                                                icon={
-                                                                    <MinusCircleOutlined />
-                                                                }
-                                                            />
-                                                        </Space>
-                                                    )
-                                                )}
-                                                <Form.Item className="!mb-2">
-                                                    <Button
-                                                        type="dashed"
-                                                        onClick={() => add()}
-                                                        block
-                                                        icon={<PlusOutlined />}
+                                    <div>
+                                        <Row gutter={[8, 8]}>
+                                            <Col xs={24} md={6}>
+                                                <Form.Item
+                                                    name={[
+                                                        'export_indicator',
+                                                        'year',
+                                                    ]}
+                                                    className="!mb-0"
+                                                >
+                                                    <InputNumber
+                                                        placeholder="Yil"
+                                                        min={2000}
+                                                        max={2035}
+                                                        className="!w-28"
                                                         size="large"
-                                                    >
-                                                        Yil qo'shish
-                                                    </Button>
+                                                    />
                                                 </Form.Item>
-                                            </>
-                                        )}
-                                    </Form.List>
+                                            </Col>
+                                            <Col xs={24} md={18}>
+                                                <Form.Item
+                                                    name={[
+                                                        'export_indicator',
+                                                        'emount',
+                                                    ]}
+                                                    className="!mb-0 flex-1"
+                                                >
+                                                    <InputNumber
+                                                        placeholder="So'mda miqdor"
+                                                        className="w-full"
+                                                        formatter={(value) =>
+                                                            `${value}`.replace(
+                                                                /\B(?=(\d{3})+(?!\d))/g,
+                                                                ','
+                                                            )
+                                                        }
+                                                        size="large"
+                                                        parser={(value) =>
+                                                            value!.replace(
+                                                                /\$\s?|(,*)/g,
+                                                                ''
+                                                            )
+                                                        }
+                                                    />
+                                                </Form.Item>
+                                            </Col>
+                                        </Row>
+                                    </div>
                                 </Form.Item>
                             </Col>
                             <Col xs={24} md={12}>
@@ -636,7 +633,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     <FileUpload
                                         accept=".pdf"
                                         maxSize={10}
-                                        maxCount={5}
+                                        maxCount={1}
                                         title="Click or drag PDF files here"
                                         vertical={true}
                                         value={
@@ -649,6 +646,16 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                 'customs_documents',
                                                 files
                                             )
+                                        }
+                                        disabled={
+                                            // disable when there is at least one uploaded file
+                                            (fileMap['customs_documents'] || [])
+                                                .length > 0 ||
+                                            (
+                                                form.getFieldValue(
+                                                    'customs_documents'
+                                                ) || []
+                                            ).length > 0
                                         }
                                     />
                                 </Form.Item>
@@ -680,7 +687,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     <FileUpload
                                         accept=".pdf"
                                         maxSize={10}
-                                        maxCount={5}
+                                        maxCount={1}
                                         title="Click or drag PDF files here"
                                         vertical={true}
                                         value={
@@ -693,6 +700,18 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                 'production_facility_document',
                                                 files
                                             )
+                                        }
+                                        disabled={
+                                            (
+                                                fileMap[
+                                                    'production_facility_document'
+                                                ] || []
+                                            ).length > 0 ||
+                                            (
+                                                form.getFieldValue(
+                                                    'production_facility_document'
+                                                ) || []
+                                            ).length > 0
                                         }
                                     />
                                 </Form.Item>
@@ -707,37 +726,45 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     }
                                 >
                                     <Row gutter={[16, 16]}>
-                                        {/* Left: File upload */}
                                         <Col xs={24} md={12}>
-                                            <FileUpload
-                                                accept=".pdf"
-                                                maxSize={10}
-                                                maxCount={5}
-                                                title="Click or drag PDF files here"
-                                                vertical={true}
-                                                value={
-                                                    form.getFieldValue([
-                                                        'salesContracts',
-                                                        'files',
-                                                    ]) || []
-                                                }
-                                                onChange={(files) =>
-                                                    handleFilesChange(
-                                                        'salesContracts',
-                                                        files
-                                                    )
-                                                }
-                                            />
+                                            <Form.Item
+                                                name={'contract_files'}
+                                                label="Asoslovchi hujjatlar"
+                                                rules={[
+                                                    {
+                                                        required: true,
+                                                        message:
+                                                            'Asoslovchi hujjatlarni yuklang',
+                                                    },
+                                                ]}
+                                                valuePropName="value"
+                                            >
+                                                <FileUpload
+                                                    accept=".pdf"
+                                                    maxSize={10}
+                                                    maxCount={5}
+                                                    title="Click or drag PDF files here"
+                                                    vertical={true}
+                                                    value={
+                                                        form.getFieldValue(
+                                                            'contract_files'
+                                                        ) || []
+                                                    }
+                                                    onChange={(files) =>
+                                                        handleFilesChange(
+                                                            'contract_files',
+                                                            files
+                                                        )
+                                                    }
+                                                />
+                                            </Form.Item>
                                         </Col>
                                         {/* Right: Numeric inputs stacked */}
                                         <Col xs={24} md={12}>
                                             <Row gutter={[16, 16]}>
                                                 <Col span={24}>
                                                     <Form.Item
-                                                        name={[
-                                                            'salesContracts',
-                                                            'contractCount',
-                                                        ]}
+                                                        name={'contract_count'}
                                                         label="Shartnomalar soni"
                                                     >
                                                         <InputNumber
@@ -750,10 +777,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                 </Col>
                                                 <Col span={24}>
                                                     <Form.Item
-                                                        name={[
-                                                            'salesContracts',
-                                                            'contractValue',
-                                                        ]}
+                                                        name={'contract_amount'}
                                                         label="Shartnoma summasi (so'm)"
                                                     >
                                                         <InputNumber
@@ -784,7 +808,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                             </Col>
                             <Col span={24} md={24}>
                                 <Form.Item
-                                    name="developmentChallenges"
+                                    name="development_challenge"
                                     label={
                                         <span className="font-medium text-lg">
                                             Ishlanmani yaratishda yuzaga kelgan
@@ -801,7 +825,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                             </Col>
                             <Col span={24} md={24}>
                                 <Form.Item
-                                    name="socialImpact"
+                                    name="social_impact"
                                     label={
                                         <span className="font-medium text-lg flex items-center">
                                             Ishlanmaning ijtimoiy ahamiyati

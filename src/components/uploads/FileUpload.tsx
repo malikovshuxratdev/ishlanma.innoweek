@@ -30,6 +30,7 @@ interface FileUploadProps {
     maxCount?: number;
     value?: UploadFile[];
     onChange?: (fileList: UploadFile[]) => void;
+    disabled?: boolean;
     title?: string;
     vertical?: boolean;
 }
@@ -40,6 +41,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
     maxCount = 10,
     value = [],
     onChange,
+    disabled = false,
     title = 'Upload Files',
     vertical = false,
 }) => {
@@ -270,6 +272,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         onRemove: () => false,
         showUploadList: false,
         accept,
+        disabled,
     };
 
     return (
