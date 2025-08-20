@@ -24,7 +24,7 @@ import {
     useApplicationSubmit3Mutate,
     useGetApplication,
 } from '../../hooks/useApplicationSubmitMutation';
-import { ApplicationSubmitRequest3Form } from '../../types/applicationSubmit/applicationSubmitType';
+// type import removed because payload is built dynamically
 
 const { Option } = Select;
 
@@ -134,36 +134,40 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
         try {
             const values = await form.validateFields();
 
-            const research_project: ApplicationSubmitRequest3Form = {
-                research_project: {
-                    name: '',
-                    implemented_deadline: '',
-                    region: 0,
-                    project_manager: 0,
-                    tin: '',
-                    science_field: 0,
-                },
+            // Build payload incrementally — only include fields that exist.
+            // Use `any` here so we can omit empty fields (e.g. tin) without TypeScript
+            // requiring all properties to be present.
+            const research_project: any = {
+                research_project: {},
             };
+
             if (values.researchProjectTitle)
-                research_project.research_project.name =
+                research_project.research_project!.name =
                     values.researchProjectTitle;
+
             if (values.implementationPeriod)
-                research_project.research_project.implemented_deadline =
+                research_project.research_project!.implemented_deadline =
                     values.implementationPeriod.format('YYYY-MM-DD');
+
             if (values.regionOfImplementation)
-                research_project.research_project.region = Number(
+                research_project.research_project!.region = Number(
                     values.regionOfImplementation
                 );
+
             if (selectedProjectManager?.id)
-                research_project.research_project.project_manager = Number(
+                research_project.research_project!.project_manager = Number(
                     selectedProjectManager.id
                 );
-            if (selectedOrganization?.id)
-                research_project.research_project.tin = String(
-                    selectedOrganization.id
-                );
+
+            if (selectedOrganization?.id) {
+                const tinStr = String(selectedOrganization.id).trim();
+                if (tinStr) {
+                    research_project.research_project!.tin = tinStr;
+                }
+            }
+
             if (values.scientificField)
-                research_project.research_project.science_field = Number(
+                research_project.research_project!.science_field = Number(
                     values.scientificField
                 );
 
@@ -172,7 +176,7 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
             const application_id = applicationData?.id ?? 0;
 
             submitApplication(
-                { application_id, body: payload },
+                { application_id, body: payload as any },
                 {
                     onSuccess: () => {
                         onNext(values);

@@ -68,7 +68,23 @@ export interface PhotoEvidence {
     file: number;
 }
 
-export interface ApplicationSubmitRequest5Form {}
+export interface ApplicationSubmitRequest5Form {
+    finance: {
+        net_income: string;
+        cost_of_goods_sold: string;
+        gross_profit_or_loss: string;
+        selling_expenses: string;
+        administrative_expenses: string;
+        other_operating_expenses: string;
+        other_income: string;
+        rental_income: string;
+        foreign_exchange_gain: string;
+        other_financial_income: string;
+        foreign_exchange_loss: string;
+        extraordinary_profit_or_loss: string;
+        income_tax: string;
+    };
+}
 
 export interface ApplicationResponse {
     id: number;

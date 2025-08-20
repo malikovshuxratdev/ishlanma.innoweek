@@ -57,7 +57,8 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
     >({});
     const { data: industryAffiliations } = useIndustryAffiliationsQuery();
     const { data: qualityLevels } = useQualityLevelsQuery();
-    const { mutate: submitApplication } = useApplicationSubmit4Mutate();
+    const { mutate: submitApplication, isPending } =
+        useApplicationSubmit4Mutate();
 
     const [orgInnInput, setOrgInnInput] = useState('');
     const [selectedOrganization, setSelectedOrganization] = useState<{
@@ -109,7 +110,6 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
         if (fieldName) setFileMap((prev) => ({ ...prev, [fieldName]: files }));
     };
 
-    // Limit commercializationProject input to MAX_COMMERCIALIZATION_WORDS words
     const handleCommercializationChange = (value: string) => {
         const words = value.trim().split(/\s+/).filter(Boolean);
         if (words.length > MAX_COMMERCIALIZATION_WORDS) {
@@ -136,8 +136,6 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
         try {
             const values = await form.validateFields();
 
-            // `additional_info` should be the inner object expected by the API
-            // Use Partial so we can build it incrementally without all required fields
             const additional_info: Partial<
                 ApplicationSubmitRequest4Form['additional_info']
             > = {};
@@ -251,7 +249,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                         <Row gutter={[24, 8]}>
                             <Col xs={24} md={24}>
                                 <Form.Item
-                                    name="commercializationProject"
+                                    name="name"
                                     label={
                                         <span className="font-medium text-lg">
                                             Yangi ishlanmani tijoratlashtirishga
@@ -312,7 +310,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                             </Col>
                             <Col xs={24} md={12}>
                                 <Form.Item
-                                    name="innovationPhotos"
+                                    name="files"
                                     label={
                                         <span className="font-medium text-lg">
                                             Yangi ishlanmani tijoratlashtirishga
@@ -356,7 +354,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                             </Col>
                             <Col xs={24} md={12}>
                                 <Form.Item
-                                    name="manufacturingProcessPhotos"
+                                    name="photo_evidences"
                                     label={
                                         <span className="font-medium text-lg">
                                             Ishlanmaning sanoat namunasini
@@ -407,7 +405,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                             </Col>
                             <Col xs={24} md={12}>
                                 <Form.Item
-                                    name="industryBelonging"
+                                    name="industry_affiliation"
                                     label={
                                         <span className="font-medium text-lg">
                                             Ishlanmaning sanoat mansubligi
@@ -415,7 +413,6 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     }
                                 >
                                     <Select
-                                        mode="multiple"
                                         placeholder="Sanoat tarmoqlarini tanlang"
                                         allowClear
                                         showSearch
@@ -438,7 +435,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                             </Col>
                             <Col xs={24} md={12}>
                                 <Form.Item
-                                    name="maturityLevel"
+                                    name="quality_level"
                                     label={
                                         <span className="font-medium text-lg">
                                             Ishlanmaning mukammallik (yetuklik)
@@ -472,7 +469,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                             </Col>
                             <Col xs={24} md={12}>
                                 <Form.Item
-                                    name="bankInformation"
+                                    name="bank_information"
                                     label={
                                         <span className="font-medium text-lg">
                                             Xizmat ko'rsatuvchi bankdan
@@ -489,7 +486,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                             </Col>
                             <Col xs={24} md={12}>
                                 <Form.Item
-                                    name="buyerOrganizations"
+                                    name="consumer_organization"
                                     label={
                                         <span className="font-medium text-lg flex items-center">
                                             Sotib olgan isteʼmolchi tashkilotlar
@@ -529,7 +526,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         </span>
                                     }
                                 >
-                                    <Form.List name="exportFigures">
+                                    <Form.List name="export_indicator">
                                         {(fields, { add, remove }) => (
                                             <>
                                                 {fields.map(
@@ -636,7 +633,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                             </Col>
                             <Col xs={24} md={12}>
                                 <Form.Item
-                                    name="customsDocumentation"
+                                    name="customs_documents"
                                     label={
                                         <span className="font-medium text-lg flex items-center">
                                             Bojxona xizmatlaridan
@@ -672,7 +669,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                             </Col>
                             <Col xs={24} md={12}>
                                 <Form.Item
-                                    name="productionLocationDocument"
+                                    name="production_facility_document"
                                     label={
                                         <span className="font-medium text-lg flex items-center">
                                             Ishlanmani ishlab chiqarish joyi
@@ -877,6 +874,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                 htmlType="submit"
                                 icon={<ArrowRightOutlined />}
                                 iconPosition="end"
+                                loading={isPending}
                                 size="large"
                                 disabled={
                                     commercializationWordCount >

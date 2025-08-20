@@ -23,7 +23,6 @@ interface IProps {
 
 interface FileItem {
     id?: number;
-    uid: string;
     url: string;
     name: string;
     type: string;
@@ -65,14 +64,12 @@ const UploadForm: React.FC<IProps> = ({
         return items.map((item, index) => {
             if (typeof item === 'string') {
                 return {
-                    uid: `${index}-${item}`,
                     url: item,
                     name: item.split('/').pop() || `File ${index + 1}`,
                     type: item.split('.').pop()?.toLowerCase() || '',
                 };
             } else {
                 return {
-                    uid: `${item.name}-${index}-${Date.now()}`,
                     url: URL.createObjectURL(item),
                     name: item.name,
                     type: item.name.split('.').pop()?.toLowerCase() || '',
@@ -112,12 +109,7 @@ const UploadForm: React.FC<IProps> = ({
         }
 
         const fileType = file.name.split('.').pop()?.toLowerCase() || '';
-        const tempUid = `${file.name}-${Date.now()}-${Math.random()
-            .toString(36)
-            .slice(2, 8)}`;
-
         const tempItem: FileItem = {
-            uid: tempUid,
             url: file.name,
             name: file.name,
             type: fileType,
@@ -140,7 +132,7 @@ const UploadForm: React.FC<IProps> = ({
 
             setFileList((prev) => {
                 const updatedList = prev.map((item) =>
-                    item.uid === tempUid && item.isUploading
+                    item.name === file.name && item.isUploading
                         ? {
                               ...item,
                               id: response.id,
