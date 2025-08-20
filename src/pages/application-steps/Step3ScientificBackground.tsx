@@ -353,6 +353,7 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                                 iconPosition="end"
                                 size="large"
                                 loading={isPending}
+                                disabled={isPending}
                             >
                                 Keyingi
                             </Button>

@@ -893,7 +893,8 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     commercializationWordCount >
                                         MAX_COMMERCIALIZATION_WORDS ||
                                     socialImpactWordCount >
-                                        MAX_SOCIAL_IMPACT_WORDS
+                                        MAX_SOCIAL_IMPACT_WORDS ||
+                                    isPending
                                 }
                             >
                                 Keyingi

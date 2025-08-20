@@ -448,6 +448,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                 iconPosition="end"
                                 size="large"
                                 loading={isPending}
+                                disabled={isPending}
                                 className="bg-green-600 hover:bg-green-700"
                             >
                                 Yuborish

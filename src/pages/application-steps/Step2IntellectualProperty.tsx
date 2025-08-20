@@ -375,6 +375,7 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                                 iconPosition="end"
                                 size="large"
                                 loading={isSubmitting}
+                                disabled={isSubmitting}
                             >
                                 Keyingi
                             </Button>

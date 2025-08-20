@@ -552,7 +552,8 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                 loading={isSubmitting}
                                 disabled={
                                     descriptionWordCount >
-                                    MAX_COMMERCIALIZATION_WORDS
+                                        MAX_COMMERCIALIZATION_WORDS ||
+                                    isSubmitting
                                 }
                             >
                                 Keyingi

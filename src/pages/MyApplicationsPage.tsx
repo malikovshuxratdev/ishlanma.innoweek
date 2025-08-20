@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, Button, Input, Select, Typography, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import ApplicationCard from '../components/cards/ApplicationCard';
+import { useGetMyApplicationQuery } from '../hooks/useGetApplicationQuery';
 
 const { Title } = Typography;
 const { Search } = Input;
@@ -28,6 +29,7 @@ interface Application {
 const MyApplicationsPage: React.FC = () => {
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('');
+    const {} = useGetMyApplicationQuery();
 
     const mockApplications: Application[] = [
         {
