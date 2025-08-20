@@ -12,6 +12,7 @@ import {
     Divider,
     Tooltip,
 } from 'antd';
+import type { UploadFile } from 'antd';
 import {
     ArrowLeftOutlined,
     ArrowRightOutlined,
@@ -19,8 +20,6 @@ import {
     MinusCircleOutlined,
     QuestionCircleOutlined,
 } from '@ant-design/icons';
-import UploadForm from '../../components/shared/UploadForm';
-import type { RcFile } from 'antd/es/upload/interface';
 import OrganizationSearch from '../../components/shared/OrganizationSearch';
 import {
     useApplicationSubmit4Mutate,
@@ -31,10 +30,10 @@ import {
     useQualityLevelsQuery,
 } from '../../hooks/useAllRegionsQuery';
 import { ApplicationSubmitRequest4Form } from '../../types/applicationSubmit/applicationSubmitType';
+import FileUpload from '../../components/uploads/FileUpload';
 
 const { TextArea } = Input;
 const { Option } = Select;
-// Removed Dragger usage after switching to ImageCropUpload
 
 interface Step4Props {
     onNext: () => void;
@@ -51,10 +50,29 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
     initialValues,
 }) => {
     const [form] = Form.useForm();
-    const [designSchematic, setDesignSchematic] = useState<string[]>([]);
     const [fileMap, setFileMap] = useState<
         Record<string, { id: number; file: string }[]>
     >({});
+
+    const handleFilesChange = (field: string, files: UploadFile[]) => {
+        // Update form field value for UI consistency
+        form.setFieldsValue({ [field]: files });
+
+        // Map UploadFile[] to server-side entries { id, file }
+        const mapped = files
+            .map((f) => {
+                const serverId = (f as any).serverId ?? (f as any).id ?? null;
+                const fileName = f.name || (f as any).file || f.url || '';
+                if (typeof serverId === 'number' && !Number.isNaN(serverId)) {
+                    return { id: Number(serverId), file: fileName };
+                }
+                // If serverId not present yet, skip — handleNext filters by numeric ids
+                return null;
+            })
+            .filter(Boolean) as { id: number; file: string }[];
+
+        setFileMap((prev) => ({ ...prev, [field]: mapped }));
+    };
     const { data: industryAffiliations } = useIndustryAffiliationsQuery();
     const { data: qualityLevels } = useQualityLevelsQuery();
     const { mutate: submitApplication, isPending } =
@@ -77,8 +95,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
         if (initialValues) form.setFieldsValue(initialValues);
     }, [initialValues, form]);
 
-    const commercializationText: string =
-        Form.useWatch('commercializationProject', form) || '';
+    const commercializationText: string = Form.useWatch('name', form) || '';
     const socialImpactText: string = Form.useWatch('socialImpact', form) || '';
 
     const commercializationWordCount = useMemo(
@@ -89,26 +106,6 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
         () => socialImpactText.trim().split(/\s+/).filter(Boolean).length,
         [socialImpactText]
     );
-
-    const handleFilesChange = (
-        files: { id: number; file: string }[],
-        fieldName: string
-    ) => {
-        const urls = files.map((f) => f.file);
-        form.setFieldsValue({ [fieldName]: urls });
-        setFileMap((prev) => ({ ...prev, [fieldName]: files }));
-    };
-
-    const handleFileChange = (
-        files: { id: number; file: string }[],
-        setState?: (v: string | RcFile | null) => void,
-        fieldName?: string
-    ) => {
-        const first = (files?.[0]?.file as string) || null;
-        if (setState) setState(first);
-        if (fieldName) form.setFieldsValue({ [fieldName]: first });
-        if (fieldName) setFileMap((prev) => ({ ...prev, [fieldName]: files }));
-    };
 
     const handleCommercializationChange = (value: string) => {
         const words = value.trim().split(/\s+/).filter(Boolean);
@@ -122,14 +119,6 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
         }
     };
 
-    const customsDoc = Form.useWatch('customsDocumentation', form) as
-        | RcFile
-        | string
-        | null;
-    const productionDoc = Form.useWatch('productionLocationDocument', form) as
-        | RcFile
-        | string
-        | null;
     const { data: applicationData } = useGetApplication();
 
     const handleNext = async () => {
@@ -140,18 +129,20 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                 ApplicationSubmitRequest4Form['additional_info']
             > = {};
 
-            if (values.commercializationProject)
-                additional_info.name = values.commercializationProject;
+            if (values.name) additional_info.name = values.name;
 
-            if (values.industryBelonging && values.industryBelonging.length)
+            if (
+                values.industry_affiliation &&
+                values.industry_affiliation.length
+            )
                 additional_info.industry_affiliation = Number(
-                    Array.isArray(values.industryBelonging)
-                        ? values.industryBelonging[0]
-                        : values.industryBelonging
+                    Array.isArray(values.industry_affiliation)
+                        ? values.industry_affiliation[0]
+                        : values.industry_affiliation
                 );
 
-            if (values.maturityLevel)
-                additional_info.quality_level = Number(values.maturityLevel);
+            if (values.quality_level)
+                additional_info.quality_level = Number(values.quality_level);
 
             if (values.bankInformation)
                 additional_info.bank_information = values.bankInformation;
@@ -196,8 +187,8 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                 }
             }
 
-            // Use innovationPhotos for additional_info.files — include only valid server ids
-            const innovationFiles = fileMap['innovationPhotos'] || [];
+            // Use 'files' field (form key) mapped in fileMap as 'files'
+            const innovationFiles = fileMap['files'] || [];
             const validInnovationFiles = innovationFiles.filter(
                 (f) => typeof f.id === 'number' && f.id > 0
             );
@@ -331,23 +322,17 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         </span>
                                     }
                                 >
-                                    <UploadForm
-                                        label="Rasmlarni yuklang (birinchi rasim asosiy bo'lishi kerak)"
-                                        multiple
-                                        maxFile={10}
-                                        maxFiles={10}
-                                        value={
-                                            Form.useWatch(
-                                                'innovationPhotos',
-                                                form
-                                            ) as any
-                                        }
+                                    <FileUpload
                                         accept=".jpg,.jpeg,.png"
-                                        onchange={(files) =>
-                                            handleFilesChange(
-                                                files,
-                                                'innovationPhotos'
-                                            )
+                                        maxSize={5}
+                                        maxCount={10}
+                                        title="Click or drag images here"
+                                        vertical={true}
+                                        value={
+                                            form.getFieldValue('files') || []
+                                        }
+                                        onChange={(files) =>
+                                            handleFilesChange('files', files)
                                         }
                                     />
                                 </Form.Item>
@@ -382,22 +367,21 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         </span>
                                     }
                                 >
-                                    <UploadForm
-                                        label="Rasmlarni yuklang"
-                                        multiple
-                                        maxFile={5}
-                                        maxFiles={5}
-                                        value={
-                                            Form.useWatch(
-                                                'manufacturingProcessPhotos',
-                                                form
-                                            ) as any
-                                        }
+                                    <FileUpload
                                         accept=".jpg,.jpeg,.png"
-                                        onchange={(files) =>
+                                        maxSize={5}
+                                        maxCount={5}
+                                        title="Click or drag images here"
+                                        vertical={true}
+                                        value={
+                                            form.getFieldValue(
+                                                'photo_evidences'
+                                            ) || []
+                                        }
+                                        onChange={(files) =>
                                             handleFilesChange(
-                                                files,
-                                                'manufacturingProcessPhotos'
+                                                'photo_evidences',
+                                                files
                                             )
                                         }
                                     />
@@ -649,21 +633,23 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     }
                                     valuePropName="value"
                                 >
-                                    <UploadForm
-                                        label="Fayl yuklang"
-                                        multiple={!customsDoc}
-                                        value={customsDoc}
-                                        onchange={(files) =>
-                                            handleFileChange(
-                                                files as {
-                                                    id: number;
-                                                    file: string;
-                                                }[],
-                                                undefined,
-                                                'customsDocumentation'
+                                    <FileUpload
+                                        accept=".pdf"
+                                        maxSize={10}
+                                        maxCount={5}
+                                        title="Click or drag PDF files here"
+                                        vertical={true}
+                                        value={
+                                            form.getFieldValue(
+                                                'customs_documents'
+                                            ) || []
+                                        }
+                                        onChange={(files) =>
+                                            handleFilesChange(
+                                                'customs_documents',
+                                                files
                                             )
                                         }
-                                        accept=".pdf"
                                     />
                                 </Form.Item>
                             </Col>
@@ -691,21 +677,23 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     ]}
                                     valuePropName="value"
                                 >
-                                    <UploadForm
-                                        label="Fayl yuklang"
-                                        multiple={!productionDoc}
-                                        value={productionDoc}
-                                        onchange={(files) =>
-                                            handleFileChange(
-                                                files as {
-                                                    id: number;
-                                                    file: string;
-                                                }[],
-                                                undefined,
-                                                'productionLocationDocument'
+                                    <FileUpload
+                                        accept=".pdf"
+                                        maxSize={10}
+                                        maxCount={5}
+                                        title="Click or drag PDF files here"
+                                        vertical={true}
+                                        value={
+                                            form.getFieldValue(
+                                                'production_facility_document'
+                                            ) || []
+                                        }
+                                        onChange={(files) =>
+                                            handleFilesChange(
+                                                'production_facility_document',
+                                                files
                                             )
                                         }
-                                        accept=".pdf"
                                     />
                                 </Form.Item>
                             </Col>
@@ -721,23 +709,24 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     <Row gutter={[16, 16]}>
                                         {/* Left: File upload */}
                                         <Col xs={24} md={12}>
-                                            <UploadForm
-                                                label="Asoslovchi Hujjat (pdf bir nechta )"
-                                                multiple
-                                                value={designSchematic}
-                                                maxFiles={5}
-                                                maxFile={5}
-                                                onchange={(files) => {
-                                                    handleFilesChange(
-                                                        files,
-                                                        'designSchematic'
-                                                    );
-                                                    setDesignSchematic(
-                                                        files.map((f) => f.file)
-                                                    );
-                                                }}
+                                            <FileUpload
                                                 accept=".pdf"
-                                                required={false}
+                                                maxSize={10}
+                                                maxCount={5}
+                                                title="Click or drag PDF files here"
+                                                vertical={true}
+                                                value={
+                                                    form.getFieldValue([
+                                                        'salesContracts',
+                                                        'files',
+                                                    ]) || []
+                                                }
+                                                onChange={(files) =>
+                                                    handleFilesChange(
+                                                        'salesContracts',
+                                                        files
+                                                    )
+                                                }
                                             />
                                         </Col>
                                         {/* Right: Numeric inputs stacked */}
