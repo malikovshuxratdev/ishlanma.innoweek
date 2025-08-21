@@ -9,3 +9,12 @@ export const useGetMyApplicationQuery = () => {
         },
     });
 };
+
+export const useGetApplicationByIdQuery = (id: number) => {
+    return useQuery({
+        queryKey: ['getApplicationById', id],
+        queryFn: async () => {
+            return await applicationGetApi.getApplicationById(id);
+        },
+    });
+};

@@ -3,17 +3,23 @@ import { Button, Typography, Tooltip } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import ApplicationCard from '../components/cards/ApplicationCard';
 import { useGetMyApplicationQuery } from '../hooks/useGetApplicationQuery';
+import { useNavigate } from 'react-router-dom';
 
 const { Title } = Typography;
 
 const MyApplicationsPage: React.FC = () => {
     const { data } = useGetMyApplicationQuery();
+    const navigate = useNavigate();
 
     const handleEdit = () => {};
 
     const hasDraft = (data?.results ?? []).some(
         (app) => app.status_display === 'Draft'
     );
+
+    const handleCreate = () => {
+        navigate('/submit-application');
+    };
 
     return (
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 animate-fade-in">
@@ -26,9 +32,7 @@ const MyApplicationsPage: React.FC = () => {
                         <Button
                             type="primary"
                             icon={<PlusOutlined />}
-                            onClick={() =>
-                                (window.location.href = '/submit-application')
-                            }
+                            onClick={handleCreate}
                             className="w-full sm:w-auto"
                             disabled
                         >
@@ -39,9 +43,7 @@ const MyApplicationsPage: React.FC = () => {
                     <Button
                         type="primary"
                         icon={<PlusOutlined />}
-                        onClick={() =>
-                            (window.location.href = '/submit-application')
-                        }
+                        onClick={handleCreate}
                         className="w-full sm:w-auto"
                     >
                         Yangi ariza

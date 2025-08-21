@@ -22,8 +22,7 @@ export interface ApplicationSubmitRequest2Form {
 }
 
 export interface Author {
-    id: number;
-    science_id: string;
+    author: number;
 }
 
 export interface ApplicationSubmitRequest3Form {

@@ -184,8 +184,8 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
 
             // include authors only if we have at least one with a science_id
             const mappedAuthors = authors
-                .map((a) => ({ id: a.id || null }))
-                .filter((a) => a.id && a.id !== null);
+                .map((a) => ({ author: a.id || null }))
+                .filter((a) => a.author && a.author !== null);
             if (mappedAuthors.length > 0) ip.authors = mappedAuthors;
 
             const payload: ApplicationSubmitRequest2Form = {

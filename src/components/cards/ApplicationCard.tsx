@@ -5,8 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import fallbackImage from '../../assets/images/hero-bg.svg';
 import { MyApplication } from '../../types/get-application/getApplicationType';
 import { TokenService } from '../../utils/storage';
+import moment from 'moment';
 
-const { Title, Paragraph } = Typography;
+const { Title } = Typography;
 const URL = import.meta.env.VITE_BASE_URI;
 
 interface ApplicationCardProps {
@@ -63,7 +64,10 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
     };
 
     return (
-        <Card className="application-card animate-slide-up">
+        <Card
+            className="application-card animate-slide-up"
+            onClick={isDraft ? undefined : handleViewDetails}
+        >
             <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-shrink-0">
                     <div className="relative w-full lg:w-64 h-48 lg:h-40">
@@ -84,7 +88,9 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                             <Title
                                 level={4}
                                 className="mb-0 text-text line-clamp-2 flex-1 cursor-pointer hover:text-blue-600 transition-colors"
-                                onClick={handleViewDetails}
+                                onClick={
+                                    isDraft ? undefined : handleViewDetails
+                                }
                             >
                                 {application.project.name}
                             </Title>
@@ -111,12 +117,10 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                                 </span>
                             </div>
                         </div>
-                        <Paragraph className="text-text-secondary mb-3 line-clamp-2 cursor-pointer">
-                            {application.detail || application.project?.name}
-                        </Paragraph>
+                        <div></div>
                         <div className="mb-3">
                             <div className="text-xs text-text-tertiary mb-1">
-                                Submitted by:
+                                Muallif:
                             </div>
                             <div className="text-sm font-medium text-text">
                                 {application.project?.created_by?.full_name ||
@@ -125,7 +129,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                         </div>
                         <div className="mb-3">
                             <div className="text-xs text-text-tertiary mb-1">
-                                Organization:
+                                Tashkilot:
                             </div>
                             <div className="text-sm font-medium text-text">
                                 {application.project?.organization
@@ -135,12 +139,10 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                     </div>
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mt-4">
                         <div className="mt-2 text-xs text-text-secondary">
-                            Submitted:{' '}
-                            {application.created_at
-                                ? new Date(
-                                      application.created_at
-                                  ).toLocaleDateString()
-                                : 'N/A'}
+                            Yuborilgan sana:{' '}
+                            {moment(application.created_at).format(
+                                'DD MMMM YYYY'
+                            )}
                         </div>
                         <div>
                             {showRating && (

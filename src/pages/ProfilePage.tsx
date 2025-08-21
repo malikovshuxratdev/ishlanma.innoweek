@@ -8,6 +8,7 @@ import {
     Descriptions,
     Spin,
     Button,
+    Tooltip,
 } from 'antd';
 import {
     UserOutlined,
@@ -19,6 +20,7 @@ import {
 } from '@ant-design/icons';
 import { useUserProfileQuery } from '../hooks/useOauthScienceIdMutate';
 import { useNavigate } from 'react-router-dom';
+import { useGetMyApplicationQuery } from '../hooks/useGetApplicationQuery';
 
 const { Title, Text } = Typography;
 const ImageUrl = import.meta.env.VITE_BASE_URI;
@@ -26,6 +28,10 @@ const ImageUrl = import.meta.env.VITE_BASE_URI;
 const ProfilePage: React.FC = () => {
     const { data: userProfile, isLoading: userLoading } = useUserProfileQuery();
     const navigate = useNavigate();
+    const { data } = useGetMyApplicationQuery();
+    const hasDraft = (data?.results ?? []).some(
+        (app) => app.status_display === 'Draft'
+    );
 
     if (userLoading) {
         return <Spin className="flex justify-center items-center h-full" />;
@@ -63,20 +69,38 @@ const ProfilePage: React.FC = () => {
                         </div>
 
                         <div className="mb-2 flex-row gap-3">
-                            <Button
-                                type="primary"
-                                block
-                                size="large"
-                                onClick={() => navigate('/submit-application')}
-                            >
-                                Ariza topshirish
-                            </Button>
+                            {hasDraft ? (
+                                <Tooltip title="Sizda tugallanmagan ariza bor">
+                                    <Button
+                                        type="primary"
+                                        block
+                                        size="large"
+                                        disabled
+                                        onClick={() =>
+                                            navigate('/submit-application')
+                                        }
+                                    >
+                                        Ariza topshirish
+                                    </Button>
+                                </Tooltip>
+                            ) : (
+                                <Button
+                                    block
+                                    size="large"
+                                    type="primary"
+                                    icon={<FolderOpenOutlined />}
+                                    onClick={() => navigate('/my-applications')}
+                                >
+                                    Mening arizalarim
+                                </Button>
+                            )}
+
                             <Button
                                 block
                                 size="large"
                                 icon={<FolderOpenOutlined />}
-                                className="bg-surface-secondary mt-2"
                                 onClick={() => navigate('/my-applications')}
+                                className="bg-surface-secondary mt-2"
                             >
                                 Mening arizalarim
                             </Button>
