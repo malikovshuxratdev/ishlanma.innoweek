@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Upload,
     Card,
@@ -47,6 +47,32 @@ const FileUpload: React.FC<FileUploadProps> = ({
 }) => {
     const { mutate: uploadFile } = useUploadFileMutation();
     const [fileList, setFileList] = useState<UploadFile[]>(value);
+    // Keep internal fileList in sync when parent passes existing files (server-side)
+    useEffect(() => {
+        if (!value || !Array.isArray(value)) return;
+
+        const normalized = value.map((f, idx) => {
+            const uid =
+                (f as any).uid ??
+                `server-${(f as any).serverId ?? `v-${Date.now()}-${idx}`}`;
+            const serverId = (f as any).serverId ?? (f as any).id ?? undefined;
+            const url = (f as any).url ?? (f as any).file ?? '';
+            const name = f.name || String((f as any).name || url || uid);
+            const status = (f as any).status ?? 'done';
+
+            const normalizedFile: UploadFile & { serverId?: number } = {
+                ...f,
+                uid,
+                name,
+                status,
+                url,
+            } as UploadFile & { serverId?: number };
+            if (serverId) (normalizedFile as any).serverId = Number(serverId);
+            return normalizedFile;
+        });
+
+        setFileList(normalized);
+    }, [value]);
     const [previewVisible, setPreviewVisible] = useState(false);
     const [previewFile, setPreviewFile] = useState<UploadFile | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>('');
@@ -323,16 +349,6 @@ const FileUpload: React.FC<FileUploadProps> = ({
                                                     }}
                                                 >
                                                     {file.name}
-                                                </Text>
-                                                <Text
-                                                    type="secondary"
-                                                    className="text-xs"
-                                                >
-                                                    {file.size
-                                                        ? formatFileSize(
-                                                              file.size
-                                                          )
-                                                        : 'Unknown size'}
                                                 </Text>
                                             </div>
                                         </div>

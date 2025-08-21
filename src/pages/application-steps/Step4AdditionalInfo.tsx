@@ -30,6 +30,10 @@ import {
 } from '../../hooks/useAllRegionsQuery';
 import { ApplicationSubmitRequest4Form } from '../../types/applicationSubmit/applicationSubmitType';
 import FileUpload from '../../components/uploads/FileUpload';
+import {
+    GetApplication1,
+    AdditionalInfo,
+} from '../../types/applicationSubmit/applicationSubmitOne';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -52,6 +56,20 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
     const [fileMap, setFileMap] = useState<
         Record<string, { id: number; file: string }[]>
     >({});
+    const { data: industryAffiliations } = useIndustryAffiliationsQuery();
+    const { data: qualityLevels } = useQualityLevelsQuery();
+    const { data: applicationData } = useGetApplication();
+    const { mutate: submitApplication, isPending } =
+        useApplicationSubmit4Mutate();
+    const [orgInnInput, setOrgInnInput] = useState('');
+    const [selectedOrganization, setSelectedOrganization] = useState<{
+        id: number | string;
+        name: string;
+        inn: string;
+    } | null>(null);
+    const [selectedOrganizations, setSelectedOrganizations] = useState<
+        { id: number | string; name: string; inn: string }[]
+    >([]);
 
     const handleFilesChange = (field: string, files: UploadFile[]) => {
         // Update form field value for UI consistency
@@ -72,20 +90,6 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
 
         setFileMap((prev) => ({ ...prev, [field]: mapped }));
     };
-    const { data: industryAffiliations } = useIndustryAffiliationsQuery();
-    const { data: qualityLevels } = useQualityLevelsQuery();
-    const { mutate: submitApplication, isPending } =
-        useApplicationSubmit4Mutate();
-
-    const [orgInnInput, setOrgInnInput] = useState('');
-    const [selectedOrganization, setSelectedOrganization] = useState<{
-        id: number | string;
-        name: string;
-        inn: string;
-    } | null>(null);
-    const [selectedOrganizations, setSelectedOrganizations] = useState<
-        { id: number | string; name: string; inn: string }[]
-    >([]);
 
     useEffect(() => {
         form.setFieldsValue({
@@ -97,16 +101,243 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
         if (initialValues) form.setFieldsValue(initialValues);
     }, [initialValues, form]);
 
+    // Populate form and local state from applicationData.additional_info when available
+    useEffect(() => {
+        if (!applicationData) return;
+        const ai = (applicationData as GetApplication1)?.project
+            ?.additional_info as AdditionalInfo | null;
+        if (!ai) return;
+
+        // map server file records to UploadFile[] for FileUpload component
+        const API_URL = (import.meta as any).env?.VITE_BASE_URI || '';
+
+        const mapServerFilesToUploadFiles = (
+            items?: Array<
+                | number
+                | string
+                | { file?: number | string; file_name?: string; id?: number }
+            > | null
+        ): UploadFile[] => {
+            if (!items) return [];
+            return items
+                .map((it) => {
+                    // it can be number (id), string (file path/URL) or object {id, file, file_name}
+                    let id: number | null = null;
+                    let filePath: string | null = null;
+                    if (typeof it === 'number') {
+                        id = it;
+                    } else if (typeof it === 'string') {
+                        filePath = it;
+                    } else if (typeof it === 'object' && it !== null) {
+                        id = typeof it.id === 'number' ? it.id : null;
+                        const fp = it.file ?? it.file_name ?? null;
+                        filePath = fp != null ? String(fp) : null;
+                    }
+
+                    // If we don't have any identifying info, skip
+                    if (!id && !filePath) return null;
+
+                    const uid = `server-${
+                        id ?? Math.random().toString(36).slice(2, 9)
+                    }`;
+
+                    const name = filePath
+                        ? String(filePath).split('/').pop() || String(filePath)
+                        : String(id);
+
+                    // Resolve URL: if filePath is absolute (http) use it, else prepend API_URL
+                    let url = '';
+                    if (filePath) {
+                        if (/^https?:\/\//i.test(filePath)) url = filePath;
+                        else
+                            url = `${API_URL.replace(/\/$/, '')}${
+                                filePath.startsWith('/') ? '' : '/'
+                            }${filePath}`;
+                    }
+
+                    const f: UploadFile & { serverId?: number } = {
+                        uid,
+                        name,
+                        status: 'done',
+                        url,
+                    } as UploadFile & { serverId?: number };
+                    if (id) (f as any).serverId = Number(id);
+                    return f;
+                })
+                .filter(Boolean) as UploadFile[];
+        };
+
+        // Scalars
+        form.setFieldsValue({
+            name: ai.name ?? undefined,
+            industry_affiliation: ai?.industry_affiliation?.id ?? undefined,
+            quality_level: ai?.quality_level?.id ?? undefined,
+            bankInformation: ai?.bank_information ?? undefined,
+            development_challenge: ai?.development_challenge ?? undefined,
+            social_impact: ai?.social_impact ?? undefined,
+            contract_count:
+                typeof ai?.contract_count !== 'undefined'
+                    ? ai?.contract_count
+                    : undefined,
+            contract_amount:
+                typeof ai?.contract_amount !== 'undefined'
+                    ? ai?.contract_amount
+                    : undefined,
+        });
+
+        // export_indicator: take first entry if present
+        if (ai?.export_indicator && typeof ai?.export_indicator === 'object') {
+            const years = Object.keys(ai?.export_indicator || {});
+            if (years.length) {
+                const y = years[0];
+                const v = ai?.export_indicator[y];
+                form.setFieldsValue({
+                    export_indicator: { year: Number(y), amount: v },
+                });
+            }
+        }
+
+        const co = (ai as any).consumer_organizations;
+        if (Array.isArray(co) && co.length) {
+            const orgs = co
+                .map((item: any) => {
+                    if (!item) return null;
+                    if (typeof item === 'number' || typeof item === 'string') {
+                        return { id: item, name: '', inn: String(item) };
+                    }
+                    // assume object shape
+                    return {
+                        id: item.id ?? item.file ?? item.tin ?? '',
+                        name: item.short_name || item.name || '',
+                        inn: item.tin
+                            ? String(item.tin)
+                            : String(item.id ?? ''),
+                    };
+                })
+                .filter(Boolean) as {
+                id: number | string;
+                name: string;
+                inn: string;
+            }[];
+            if (orgs.length) {
+                setSelectedOrganizations(orgs);
+                setOrgInnInput(String(orgs[0]?.inn || ''));
+            }
+        } else if (co) {
+            const single = co as any;
+            if (typeof single === 'number' || typeof single === 'string') {
+                setSelectedOrganization({
+                    id: single,
+                    name: '',
+                    inn: String(single),
+                });
+                setOrgInnInput(String(single || ''));
+            } else if (typeof single === 'object') {
+                setSelectedOrganization({
+                    id: single.id ?? '',
+                    name: single.short_name || single.name || '',
+                    inn: String(single.tin ?? single.id ?? ''),
+                });
+                setOrgInnInput(String(single.tin ?? single.id ?? ''));
+            }
+        }
+
+        // Files
+        const files = mapServerFilesToUploadFiles(
+            (ai.files || []).map((f: any) => (typeof f === 'object' ? f : f))
+        );
+        if (files.length) {
+            form.setFieldsValue({ files });
+            setFileMap((prev) => ({
+                ...prev,
+                files: (ai.files || [])
+                    .map((f: any) => ({
+                        id: Number(f.id ?? f.file ?? f),
+                        file: String(f.file_name ?? f.file ?? f ?? ''),
+                    }))
+                    .filter((it) => Number.isFinite(it.id) && it.id > 0),
+            }));
+        }
+
+        const contractFiles = mapServerFilesToUploadFiles(
+            (ai.contract_files || []).map((f: any) =>
+                typeof f === 'object' ? f : f
+            )
+        );
+        if (contractFiles.length) {
+            form.setFieldsValue({ contract_files: contractFiles });
+            setFileMap((prev) => ({
+                ...prev,
+                contract_files: (ai.contract_files || [])
+                    .map((f: any) => ({
+                        id: Number(f.id ?? f.file ?? f),
+                        file: String(f.file_name ?? f.file ?? f ?? ''),
+                    }))
+                    .filter((it) => Number.isFinite(it.id) && it.id > 0),
+            }));
+        }
+
+        const customs = mapServerFilesToUploadFiles(
+            (ai.customs_documents || []).map((f: any) =>
+                typeof f === 'object' ? f : f
+            )
+        );
+        if (customs.length) {
+            form.setFieldsValue({ customs_documents: customs });
+            setFileMap((prev) => ({
+                ...prev,
+                customs_documents: (ai.customs_documents || [])
+                    .map((f: any) => ({
+                        id: Number(f.id ?? f.file ?? f),
+                        file: String(f.file_name ?? f.file ?? f ?? ''),
+                    }))
+                    .filter((it) => Number.isFinite(it.id) && it.id > 0),
+            }));
+        }
+
+        const photos = mapServerFilesToUploadFiles(
+            (ai.photo_evidences || []).map((f: any) =>
+                typeof f === 'object' ? f : f
+            )
+        );
+        if (photos.length) {
+            form.setFieldsValue({ photo_evidences: photos });
+            setFileMap((prev) => ({
+                ...prev,
+                photo_evidences: (ai.photo_evidences || [])
+                    .map((f: any) => ({
+                        id: Number(f.id ?? f.file ?? f),
+                        file: String(f.file_name ?? f.file ?? f ?? ''),
+                    }))
+                    .filter((it) => Number.isFinite(it.id) && it.id > 0),
+            }));
+        }
+
+        // production_facility_document may be single value or array
+        const pf = ai.production_facility_document;
+        if (pf) {
+            const pfArr = Array.isArray(pf) ? pf : [pf];
+            const mapped = mapServerFilesToUploadFiles(
+                pfArr.map((f: any) => (typeof f === 'object' ? f : f))
+            );
+            form.setFieldsValue({ production_facility_document: mapped });
+            setFileMap((prev) => ({
+                ...prev,
+                production_facility_document: pfArr
+                    .map((f: any) => ({
+                        id: Number(f.id ?? f.file ?? f),
+                        file: String(f.file_name ?? f.file ?? f ?? ''),
+                    }))
+                    .filter((it) => Number.isFinite(it.id) && it.id > 0),
+            }));
+        }
+    }, [applicationData, form]);
+
     const commercializationText: string = Form.useWatch('name', form) || '';
-    const socialImpactText: string = Form.useWatch('socialImpact', form) || '';
 
     const commercializationWordCount = useMemo(
         () => commercializationText.trim().split(/\s+/).filter(Boolean).length,
         [commercializationText]
-    );
-    const socialImpactWordCount = useMemo(
-        () => socialImpactText.trim().split(/\s+/).filter(Boolean).length,
-        [socialImpactText]
     );
 
     const handleCommercializationChange = (value: string) => {
@@ -120,8 +351,6 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
             form.setFieldsValue({ name: value });
         }
     };
-
-    const { data: applicationData } = useGetApplication();
 
     const handleNext = async () => {
         try {
@@ -187,7 +416,9 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                     values.contract_amount
                 );
 
-            const prodDocs = fileMap['production_facility_document'] || [];
+            const prodDocs = (
+                fileMap['production_facility_document'] || []
+            ).filter((f) => typeof f.id === 'number' && f.id > 0);
             if (prodDocs.length)
                 additional_info.production_facility_document = Number(
                     prodDocs[0].id
@@ -200,46 +431,81 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
             if (values.social_impact)
                 additional_info.social_impact = values.social_impact;
 
+            // Build consumer_organizations_tin using inn/tin when possible.
+            const buildValidTins = (
+                list: { id: number | string; name: string; inn: string }[]
+            ) =>
+                list
+                    .map((o) => String(o.inn || o.id || ''))
+                    .map((s) => s.trim())
+                    .filter((s) => s.length >= 9);
+
             if (selectedOrganizations && selectedOrganizations.length) {
-                const orgIds = selectedOrganizations
-                    .map((o) => String(o.id))
-                    .filter(Boolean) as string[];
-                if (orgIds.length)
-                    additional_info.consumer_organizations_tin = orgIds;
+                const validTins = buildValidTins(selectedOrganizations);
+                if (validTins.length)
+                    additional_info.consumer_organizations_tin = validTins;
+                else {
+                    // If no valid TINs, set a form error so user can fix input
+                    form.setFields([
+                        {
+                            name: 'consumer_organizations_tin',
+                            errors: [
+                                'Iltimos, har bir tashkilot uchun kamida 9 ta belgidan iborat INN kiriting',
+                            ],
+                        },
+                    ]);
+                    return;
+                }
             } else if (selectedOrganization?.id) {
-                // fallback for single selection (backwards compatibility)
-                const orgId = String(selectedOrganization.id);
-                if (orgId) {
-                    additional_info.consumer_organizations_tin = [orgId];
+                const tin = String(
+                    selectedOrganization.inn || selectedOrganization.id || ''
+                ).trim();
+                if (tin.length >= 9) {
+                    additional_info.consumer_organizations_tin = [tin];
+                } else {
+                    form.setFields([
+                        {
+                            name: 'consumer_organizations_tin',
+                            errors: [
+                                'Iltimos, tanlangan tashkilot uchun kamida 9 ta belgidan iborat INN kiriting',
+                            ],
+                        },
+                    ]);
+                    return;
                 }
             }
 
             // Use 'files' field (form key) mapped in fileMap as 'files'
-            const innovationFiles = fileMap['files'] || [];
-            const validInnovationFiles = innovationFiles.filter(
+            const innovationFiles = (fileMap['files'] || []).filter(
                 (f) => typeof f.id === 'number' && f.id > 0
             );
-            if (validInnovationFiles.length)
-                additional_info.files = validInnovationFiles.map((f, idx) => ({
+            if (innovationFiles.length)
+                additional_info.files = innovationFiles.map((f, idx) => ({
                     file: Number(f.id),
                     is_main: idx === 0,
                 }));
 
             // contract_files -> map to additional_info.contract_files
-            const contractFiles = fileMap['contract_files'] || [];
+            const contractFiles = (fileMap['contract_files'] || []).filter(
+                (f) => typeof f.id === 'number' && f.id > 0
+            );
             if (contractFiles.length)
                 additional_info.contract_files = contractFiles.map((f) => ({
                     file: Number(f.id),
                 }));
 
-            const customs = fileMap['customs_documents'] || [];
+            const customs = (fileMap['customs_documents'] || []).filter(
+                (f) => typeof f.id === 'number' && f.id > 0
+            );
             if (customs.length) {
                 additional_info.customs_documents = customs.map((f) => ({
                     file: Number(f.id),
                 }));
             }
 
-            const photos = [...(fileMap['photo_evidences'] || [])];
+            const photos = (fileMap['photo_evidences'] || []).filter(
+                (f) => typeof f.id === 'number' && f.id > 0
+            );
             if (photos.length)
                 additional_info.photo_evidences = photos.map((f) => ({
                     file: Number(f.id),
@@ -889,13 +1155,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                 iconPosition="end"
                                 loading={isPending}
                                 size="large"
-                                disabled={
-                                    commercializationWordCount >
-                                        MAX_COMMERCIALIZATION_WORDS ||
-                                    socialImpactWordCount >
-                                        MAX_SOCIAL_IMPACT_WORDS ||
-                                    isPending
-                                }
+                                disabled={isPending}
                             >
                                 Keyingi
                             </Button>

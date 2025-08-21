@@ -14,7 +14,7 @@ export interface Project {
     development: Development;
     intellectual_property: IntellectualProperty;
     research_project: ResearchProject;
-    additional_info: any;
+    additional_info: AdditionalInfo;
     finance: any;
 }
 
@@ -47,6 +47,38 @@ export interface ResearchProject {
     science_field: number;
 }
 
+export interface AdditionalInfo {
+    id: number;
+    name: string;
+    industry_affiliation: QualityLevel;
+    quality_level: QualityLevel;
+    bank_information: any;
+    export_indicator: ExportIndicator;
+    contract_count: number;
+    contract_amount: string;
+    production_facility_document: string;
+    development_challenge: string;
+    social_impact: string;
+    consumer_organizations: Organization[];
+    files: Files[];
+    contract_files: Files[];
+    photo_evidences: Files[];
+    customs_documents: Files[];
+}
+
+export interface QualityLevel {
+    id: number;
+    name: string;
+}
+
+export interface ExportIndicator {
+    [key: string]: number;
+}
+
+export interface Files {
+    id: number;
+    file: string;
+}
 export interface Organization {
     id: number;
     tin: string;
