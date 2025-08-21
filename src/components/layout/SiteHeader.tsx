@@ -58,8 +58,12 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
         {
             key: 'logout',
             icon: <LogoutOutlined />,
-            label: 'Logout',
-            onClick: onLogout,
+            // put the click handler on the label so it reliably fires from the Dropdown/menu
+            label: (
+                <span onClick={onLogout} role="button" tabIndex={0}>
+                    Logout
+                </span>
+            ),
         },
     ];
 
@@ -89,184 +93,189 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
     ];
 
     return (
-        <Header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-lg px-6 lg:px-8 flex justify-between items-center border-b border-gray-100 h-16">
-            {/* Left: Logo */}
-            <div className="flex items-center">
-                <Link
-                    to="/"
-                    aria-label="Bosh sahifa"
-                    className="flex items-center"
-                >
-                    <img
-                        src={logoImage}
-                        alt="Platforma logotipi"
-                        className="!w-8 !h-12 lg:!w-10 lg:!h-14"
-                    />
-                    <span className="text-xl lg:text-2xl font-semibold ml-4">
-                        Ishlanma
-                    </span>
-                </Link>
-            </div>
-
-            {/* Right: Menu + Controls */}
-            <div className="flex items-center space-x-4 lg:space-x-6">
-                <div className="hidden md:block">
-                    <Menu
-                        mode="horizontal"
-                        selectedKeys={[location.pathname]}
-                        items={menuItems}
-                        disabledOverflow
-                        className="border-0 bg-transparent flex items-center"
-                    />
-                </div>
-
-                {/* Dark Mode Toggle */}
-                <div className="flex items-center bg-gray-50 rounded-full p-1">
-                    <SunOutlined
-                        className={`mr-2 transition-all duration-300 text-sm ${
-                            !darkMode ? 'text-amber-500' : 'text-gray-400'
-                        }`}
-                    />
-                    <Switch
-                        checked={darkMode}
-                        onChange={toggleDarkMode}
-                        checkedChildren={
-                            <MoonOutlined className="text-xs text-indigo-600" />
-                        }
-                        unCheckedChildren={
-                            <SunOutlined className="text-xs text-amber-500" />
-                        }
-                        className="bg-gradient-to-r from-amber-400 to-orange-400 scale-90 lg:scale-100"
-                    />
-                    <MoonOutlined
-                        className={`ml-2 transition-all duration-300 text-sm ${
-                            darkMode ? 'text-indigo-500' : 'text-gray-400'
-                        }`}
-                    />
-                </div>
-
-                {/* User Section */}
-                {token ? (
-                    <Dropdown
-                        menu={{ items: userMenuItems }}
-                        placement="bottomRight"
-                        trigger={['click']}
+        <Header className="fixed top-0 left-0 w-full z-50 bg-white">
+            <div className="flex items-center justify-between w-full md:px-[60px] px-[15px]">
+                {/* Left: Logo */}
+                <div className="flex items-center">
+                    <Link
+                        to="/"
+                        aria-label="Bosh sahifa"
+                        className="flex items-center"
                     >
-                        <Space className="cursor-pointer hover:bg-blue-50 px-4 py-2 rounded-2xl transition-all duration-300 border border-transparent hover:border-blue-200">
-                            <Avatar
-                                src={
-                                    userProfile?.photo
-                                        ? `${ImageUrl}/${userProfile.photo}`
-                                        : undefined
-                                }
-                                icon={<UserOutlined />}
-                                size="large"
-                                className="ring-2 ring-blue-100"
-                            />
-                            <div className="text-right hidden lg:block">
-                                <div className="text-sm font-medium text-gray-800">
-                                    {userLoading
-                                        ? '...'
-                                        : userProfile?.sur_name +
-                                              ' ' +
-                                              userProfile?.first_name || ''}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                    {userLoading
-                                        ? ''
-                                        : userProfile?.science_id || ''}
-                                </div>
-                            </div>
-                        </Space>
-                    </Dropdown>
-                ) : (
-                    <Button
-                        type="primary"
-                        loading={isPending}
-                        onClick={onLoginClick}
-                        size="large"
-                        className="bg-gradient-to-r from-blue-500 to-indigo-600 border-0 rounded-2xl px-6 py-2 h-10 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 font-medium"
-                    >
-                        <span className="inline">Login</span>
-                    </Button>
-                )}
-
-                {/* Mobile Menu Button */}
-                <Button
-                    type="text"
-                    icon={<MenuOutlined />}
-                    onClick={() => setMobileMenuVisible(true)}
-                    className="md:hidden text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300"
-                />
-            </div>
-
-            {/* Mobile Drawer */}
-            <Drawer
-                title={
-                    <div className="flex items-center">
-                        <div className="mr-3 p-2 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
-                            <ExperimentOutlined className="text-blue-600 text-lg" />
-                        </div>
-                        <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent font-light">
+                        <img
+                            src={logoImage}
+                            alt="Platforma logotipi"
+                            className="!w-6 !h-10 lg:!w-8 lg:!h-12"
+                        />
+                        <span className="text-xl lg:text-xl font-semibold ml-4">
                             Ishlanma
                         </span>
-                    </div>
-                }
-                placement="left"
-                onClose={() => setMobileMenuVisible(false)}
-                open={mobileMenuVisible}
-                width={300}
-                className="md:hidden"
-                styles={{
-                    body: { padding: '24px' },
-                    header: {
-                        borderBottom: '1px solid #f3f4f6',
-                        padding: '20px 24px',
-                    },
-                }}
-            >
-                <Menu
-                    mode="vertical"
-                    selectedKeys={[location.pathname]}
-                    items={menuItems}
-                    className="border-0 bg-transparent"
-                    onClick={() => setMobileMenuVisible(false)}
-                />
-                {token && (
-                    <div className="mt-8 pt-6 border-t border-gray-100">
-                        <div className="flex items-center mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl">
-                            <Avatar
-                                src={
-                                    userProfile?.photo
-                                        ? `${ImageUrl}/${userProfile.photo}`
-                                        : undefined
-                                }
-                                icon={<UserOutlined />}
-                                className="mr-4 ring-2 ring-blue-100"
-                                size="large"
-                            />
-                            <div>
-                                <div className="text-base font-medium text-gray-800">
-                                    {userLoading
-                                        ? '...'
-                                        : userProfile?.full_name || '—'}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                    {userLoading
-                                        ? ''
-                                        : userProfile?.science_id || ''}
-                                </div>
-                            </div>
-                        </div>
+                    </Link>
+                </div>
+
+                {/* Right: Menu + Controls */}
+                <div className="flex items-center space-x-4 lg:space-x-6">
+                    <div className="hidden md:block">
                         <Menu
-                            mode="vertical"
-                            items={userMenuItems}
-                            className="border-0 bg-transparent"
-                            onClick={() => setMobileMenuVisible(false)}
+                            mode="horizontal"
+                            selectedKeys={[location.pathname]}
+                            items={menuItems}
+                            disabledOverflow
+                            className="border-0 bg-transparent flex items-center"
                         />
                     </div>
-                )}
-            </Drawer>
+
+                    {/* Dark Mode Toggle */}
+                    <div className="flex items-center bg-gray-50 rounded-full">
+                        <SunOutlined
+                            className={`mr-2 transition-all duration-300 text-sm ${
+                                !darkMode ? 'text-amber-500' : 'text-gray-400'
+                            }`}
+                        />
+                        <Switch
+                            checked={darkMode}
+                            onChange={toggleDarkMode}
+                            checkedChildren={
+                                <MoonOutlined className="text-xs text-indigo-600" />
+                            }
+                            unCheckedChildren={
+                                <SunOutlined className="text-xs text-amber-500" />
+                            }
+                            className="bg-gradient-to-r from-amber-400 to-orange-400 scale-90 lg:scale-100"
+                        />
+                        <MoonOutlined
+                            className={`ml-2 transition-all duration-300 text-sm ${
+                                darkMode ? 'text-indigo-500' : 'text-gray-400'
+                            }`}
+                        />
+                    </div>
+
+                    {/* User Section */}
+                    {token ? (
+                        <Dropdown
+                            menu={{ items: userMenuItems }}
+                            placement="bottomRight"
+                            trigger={['click']}
+                        >
+                            <Space className="cursor-pointer hover:bg-blue-50 px-4 rounded-2xl transition-all duration-300 border border-transparent hover:border-blue-200">
+                                <Avatar
+                                    src={
+                                        userProfile?.photo
+                                            ? `${ImageUrl}/${userProfile.photo}`
+                                            : undefined
+                                    }
+                                    icon={<UserOutlined />}
+                                    size="large"
+                                    className="ring-2 ring-blue-100"
+                                />
+                                <div className="text-right hidden lg:block">
+                                    <div className="text-sm font-medium text-gray-800">
+                                        {userLoading
+                                            ? '...'
+                                            : userProfile
+                                            ? `${userProfile.sur_name ?? ''} ${
+                                                  userProfile.first_name ?? ''
+                                              }`.trim()
+                                            : ''}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                        {userLoading
+                                            ? ''
+                                            : userProfile?.science_id || ''}
+                                    </div>
+                                </div>
+                            </Space>
+                        </Dropdown>
+                    ) : (
+                        <Button
+                            type="primary"
+                            loading={isPending}
+                            onClick={onLoginClick}
+                            size="large"
+                            className="bg-gradient-to-r from-blue-500 to-indigo-600 border-0 rounded-2xl px-6 py-2 h-10 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 font-medium"
+                        >
+                            <span className="inline">Login</span>
+                        </Button>
+                    )}
+
+                    {/* Mobile Menu Button */}
+                    <Button
+                        type="text"
+                        icon={<MenuOutlined />}
+                        onClick={() => setMobileMenuVisible(true)}
+                        aria-label="Open main menu"
+                        className="md:hidden text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300"
+                    />
+                </div>
+
+                {/* Mobile Drawer */}
+                <Drawer
+                    title={
+                        <div className="flex items-center">
+                            <div className="mr-3 p-2 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
+                                <ExperimentOutlined className="text-blue-600 text-lg" />
+                            </div>
+                            <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent font-light">
+                                Ishlanma
+                            </span>
+                        </div>
+                    }
+                    placement="left"
+                    onClose={() => setMobileMenuVisible(false)}
+                    open={mobileMenuVisible}
+                    width={300}
+                    className="md:hidden"
+                    styles={{
+                        body: { padding: '24px' },
+                        header: {
+                            borderBottom: '1px solid #f3f4f6',
+                            padding: '20px 24px',
+                        },
+                    }}
+                >
+                    <Menu
+                        mode="vertical"
+                        selectedKeys={[location.pathname]}
+                        items={menuItems}
+                        className="border-0 bg-transparent"
+                        onClick={() => setMobileMenuVisible(false)}
+                    />
+                    {token && (
+                        <div className="mt-8 pt-6 border-t border-gray-100">
+                            <div className="flex items-center mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl">
+                                <Avatar
+                                    src={
+                                        userProfile?.photo
+                                            ? `${ImageUrl}/${userProfile.photo}`
+                                            : undefined
+                                    }
+                                    icon={<UserOutlined />}
+                                    className="mr-4 ring-2 ring-blue-100"
+                                    size="large"
+                                />
+                                <div>
+                                    <div className="text-base font-medium text-gray-800">
+                                        {userLoading
+                                            ? '...'
+                                            : userProfile?.full_name || '—'}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                        {userLoading
+                                            ? ''
+                                            : userProfile?.science_id || ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <Menu
+                                mode="vertical"
+                                items={userMenuItems}
+                                className="border-0 bg-transparent"
+                                onClick={() => setMobileMenuVisible(false)}
+                            />
+                        </div>
+                    )}
+                </Drawer>
+            </div>
         </Header>
     );
 };
