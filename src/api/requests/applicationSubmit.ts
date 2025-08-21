@@ -80,15 +80,12 @@ export class ApplicationSubmitApi {
 
     getApplication = async () => {
         const url = TokenService.getApplication();
+
         if (!url) {
-            throw new Error('Application URL not found in TokenService');
+            throw new Error('No application URL available');
         }
 
-        const result: AxiosResponse<GetApplication1> = await this.api.get<
-            GetApplication1,
-            any,
-            any
-        >(url);
+        const result: AxiosResponse<GetApplication1> = await this.api.get(url);
         return result.data;
     };
 }

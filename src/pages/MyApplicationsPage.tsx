@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
-import { Card, Button, Input, Select, Typography, message } from 'antd';
+import React from 'react';
+import { Button, Typography, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import ApplicationCard from '../components/cards/ApplicationCard';
 import { useGetMyApplicationQuery } from '../hooks/useGetApplicationQuery';
 
 const { Title } = Typography;
-const { Search } = Input;
-const { Option } = Select;
 
 interface Application {
     id: string;
@@ -27,8 +25,6 @@ interface Application {
 }
 
 const MyApplicationsPage: React.FC = () => {
-    const [searchText, setSearchText] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>('');
     const {} = useGetMyApplicationQuery();
 
     const mockApplications: Application[] = [
@@ -88,20 +84,8 @@ const MyApplicationsPage: React.FC = () => {
         },
     ];
 
-    const filteredApplications = mockApplications.filter((app) => {
-        const matchesSearch =
-            app.title.toLowerCase().includes(searchText.toLowerCase()) ||
-            app.authors.some((author) =>
-                author.toLowerCase().includes(searchText.toLowerCase())
-            );
-        const matchesStatus = !statusFilter || app.status === statusFilter;
-
-        return matchesSearch && matchesStatus;
-    });
-
     const handleEdit = (application: Application) => {
         message.info(`Editing ${application.title}`);
-        // Navigate to edit page or open edit modal
     };
 
     return (
@@ -122,40 +106,8 @@ const MyApplicationsPage: React.FC = () => {
                 </Button>
             </div>
 
-            {/* Filters */}
-            <Card className="mb-6">
-                <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
-                    <Search
-                        placeholder="Search applications..."
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                        allowClear
-                        className="w-full sm:w-80"
-                    />
-                    <Select
-                        placeholder="Filter by Status"
-                        value={statusFilter}
-                        onChange={setStatusFilter}
-                        allowClear
-                        className="w-full sm:w-60"
-                    >
-                        <Option value="approved">Approved</Option>
-                        <Option value="rejected">Rejected</Option>
-                        <Option value="revision">Sent for Revisions</Option>
-                    </Select>
-                </div>
-            </Card>
-
-            {/* Applications Grid */}
             <div className="space-y-6">
-                {filteredApplications.length === 0 && (
-                    <Card className="text-center py-10">
-                        <p className="text-gray-500">
-                            No applications found. Try adjusting filters.
-                        </p>
-                    </Card>
-                )}
-                {filteredApplications.map((application) => (
+                {mockApplications.map((application) => (
                     <ApplicationCard
                         key={application.id}
                         application={application}

@@ -57,7 +57,7 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
         if (!res) return;
         setExtSearchResult({
             code: res.cipher || String(extSearchInput || ''),
-            projectName: res.tour_name || '',
+            projectName: res.competition_name || '',
         });
         // sync found code into the form so the hidden `code` field is populated
         try {
@@ -361,7 +361,7 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                                         ) {
                                                             return Promise.reject(
                                                                 new Error(
-                                                                    `Limit: ${words.length}/${MAX_COMMERCIALIZATION_WORDS} so'z`
+                                                                    `Limit: ${words.length}/${MAX_COMMERCIALIZATION_WORDS}`
                                                                 )
                                                             );
                                                         }

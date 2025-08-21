@@ -24,7 +24,6 @@ import {
     useApplicationSubmit3Mutate,
     useGetApplication,
 } from '../../hooks/useApplicationSubmitMutation';
-// type import removed because payload is built dynamically
 
 const { Option } = Select;
 
@@ -42,8 +41,9 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
     const { data: regionsData } = useAllRegionsQuery();
     const { data: studyFieldsData } = useStudyFieldsQuery();
     const { data: applicationData } = useGetApplication();
-    const { mutate: submitApplication, isPending } =
-        useApplicationSubmit3Mutate();
+
+    const _mutateResult: any = useApplicationSubmit3Mutate();
+    const { mutate: submitApplication, isLoading: isPending } = _mutateResult;
     const [orgInnInput, setOrgInnInput] = useState('');
     const [selectedOrganization, setSelectedOrganization] = useState<{
         id: number | string;
@@ -57,20 +57,32 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
     } | null>(null);
 
     const treeData = regionsData?.map((region) => ({
-        title: String(region.name.uz),
+        // guard against unexpected shapes (some items may lack name.uz)
+        title: String(region?.name?.uz ?? region?.name ?? ''),
         value: region.id,
         key: region.id,
         checkable: false,
         children: region.children?.map((child) => ({
-            title: String(child.name.uz),
+            title: String(child?.name?.uz ?? child?.name ?? ''),
             value: child.id,
             key: child.id,
             checkable: true,
         })),
     }));
 
-    const disabledFutureDates = (current: any) =>
-        current && current > Date.now();
+    // Use valueOf() to compare — works with dayjs or moment-like objects and plain dates
+    const disabledFutureDates = (current: any) => {
+        try {
+            if (!current) return false;
+            if (typeof current.valueOf === 'function') {
+                return current.valueOf() > Date.now();
+            }
+            return current > Date.now();
+        } catch (e) {
+            // defensive fallback
+            return false;
+        }
+    };
 
     useEffect(() => {
         form.setFieldsValue({
@@ -302,10 +314,10 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                                     >
                                         {studyFieldsData?.map((field) => (
                                             <Option
-                                                key={field.id}
-                                                value={field.id}
+                                                key={field?.id}
+                                                value={field?.id}
                                             >
-                                                {field.name}
+                                                {field?.name}
                                             </Option>
                                         ))}
                                     </Select>
