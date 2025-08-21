@@ -28,12 +28,12 @@ import {
     useIndustryAffiliationsQuery,
     useQualityLevelsQuery,
 } from '../../hooks/useAllRegionsQuery';
-import { ApplicationSubmitRequest4Form } from '../../types/applicationSubmit/applicationSubmitType';
+import { ApplicationSubmitRequest4Form } from '../../types/application-submit/applicationSubmitType';
 import FileUpload from '../../components/uploads/FileUpload';
 import {
     GetApplication1,
     AdditionalInfo,
-} from '../../types/applicationSubmit/applicationSubmitOne';
+} from '../../types/application-submit/applicationSubmitOne';
 
 const { TextArea } = Input;
 const { Option } = Select;

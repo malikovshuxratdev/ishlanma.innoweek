@@ -7,9 +7,9 @@ import {
     ApplicationSubmitRequest3Form,
     ApplicationSubmitRequest4Form,
     ApplicationSubmitRequest5Form,
-} from '../../types/applicationSubmit/applicationSubmitType.ts';
+} from '../../types/application-submit/applicationSubmitType.ts';
 import { TokenService } from '../../utils/storage.ts';
-import { GetApplication1 } from '../../types/applicationSubmit/applicationSubmitOne.ts';
+import { GetApplication1 } from '../../types/application-submit/applicationSubmitOne.ts';
 
 const urls = {
     applicationSubmission1: '/api/v1/application/submit/',

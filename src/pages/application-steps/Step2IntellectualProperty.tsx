@@ -19,7 +19,7 @@ import {
     useApplicationSubmit2Mutate,
     useGetApplication,
 } from '../../hooks/useApplicationSubmitMutation';
-import { ApplicationSubmitRequest2Form } from '../../types/applicationSubmit/applicationSubmitType';
+import { ApplicationSubmitRequest2Form } from '../../types/application-submit/applicationSubmitType';
 
 interface CoAuthor {
     id: number | string;
@@ -184,8 +184,8 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
 
             // include authors only if we have at least one with a science_id
             const mappedAuthors = authors
-                .map((a) => ({ science_id: a.science_id || '' }))
-                .filter((a) => a.science_id && a.science_id.trim() !== '');
+                .map((a) => ({ id: a.id || null }))
+                .filter((a) => a.id && a.id !== null);
             if (mappedAuthors.length > 0) ip.authors = mappedAuthors;
 
             const payload: ApplicationSubmitRequest2Form = {

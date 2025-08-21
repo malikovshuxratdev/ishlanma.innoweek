@@ -6,7 +6,7 @@ import {
     ApplicationSubmitRequest3Form,
     ApplicationSubmitRequest4Form,
     ApplicationSubmitRequest5Form,
-} from '../types/applicationSubmit/applicationSubmitType';
+} from '../types/application-submit/applicationSubmitType';
 import { useMutation, useQuery } from './useQuery';
 import { TokenService } from '../utils/storage';
 
