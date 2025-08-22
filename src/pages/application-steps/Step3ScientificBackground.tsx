@@ -100,7 +100,9 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
         // research_project comes from applicationData.project.research_project
         const rp = applicationData.project?.research_project;
 
-        const code = applicationData.project?.research_project.code;
+        if (!rp) return; // Early return if research_project doesn't exist
+
+        const code = rp.code;
 
         if (code) {
             form.setFieldsValue({
@@ -197,7 +199,7 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                     >
                         <Row gutter={[24, 4]}>
                             {applicationData?.project?.research_project
-                                .code && (
+                                ?.code && (
                                 <Col xs={24} md={12}>
                                     <Form.Item
                                         name="projectCode"
@@ -214,7 +216,7 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                                             disabled
                                             value={
                                                 applicationData?.project
-                                                    ?.research_project.code
+                                                    ?.research_project?.code
                                             }
                                         />
                                     </Form.Item>

@@ -322,12 +322,12 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                                     name="patentNumber"
                                     label={
                                         <span className="font-medium text-lg">
-                                            Papent raqami
+                                            Patent raqami
                                         </span>
                                     }
                                 >
                                     <Input
-                                        placeholder="Papent raqami"
+                                        placeholder="Patent raqami"
                                         allowClear
                                         size="large"
                                     />

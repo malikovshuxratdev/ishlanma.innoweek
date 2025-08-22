@@ -245,22 +245,8 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                                 Loyiha raqami
                                             </span>
                                         }
-                                        required
                                     >
                                         <div>
-                                            <Form.Item
-                                                rules={[
-                                                    {
-                                                        required: true,
-                                                        message:
-                                                            'Loyiha raqami kiritilishi shart',
-                                                    },
-                                                ]}
-                                                noStyle
-                                            >
-                                                <Input hidden />
-                                            </Form.Item>
-
                                             <div>
                                                 <ExternalCodeSearch
                                                     value={extSearchInput}
