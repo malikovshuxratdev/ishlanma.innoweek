@@ -58,17 +58,17 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
     >({});
     const { data: industryAffiliations } = useIndustryAffiliationsQuery();
     const { data: qualityLevels } = useQualityLevelsQuery();
-    const { data: applicationData } = useGetApplication();
+    const { data: applicationData, refetch } = useGetApplication();
     const { mutate: submitApplication, isPending } =
         useApplicationSubmit4Mutate();
     const [orgInnInput, setOrgInnInput] = useState('');
     const [selectedOrganization, setSelectedOrganization] = useState<{
-        id: number | string;
+        id: number;
         name: string;
         inn: string;
     } | null>(null);
     const [selectedOrganizations, setSelectedOrganizations] = useState<
-        { id: number | string; name: string; inn: string }[]
+        { id: number; name: string; inn: string }[]
     >([]);
 
     const handleFilesChange = (field: string, files: UploadFile[]) => {
@@ -172,7 +172,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
             name: ai.name ?? undefined,
             industry_affiliation: ai?.industry_affiliation?.id ?? undefined,
             quality_level: ai?.quality_level?.id ?? undefined,
-            bankInformation: ai?.bank_information ?? undefined,
+            bank_information: ai?.bank_information ?? undefined,
             development_challenge: ai?.development_challenge ?? undefined,
             social_impact: ai?.social_impact ?? undefined,
             contract_count:
@@ -215,7 +215,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                     };
                 })
                 .filter(Boolean) as {
-                id: number | string;
+                id: number;
                 name: string;
                 inn: string;
             }[];
@@ -227,14 +227,14 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
             const single = co as any;
             if (typeof single === 'number' || typeof single === 'string') {
                 setSelectedOrganization({
-                    id: single,
+                    id: single as number,
                     name: '',
                     inn: String(single),
                 });
                 setOrgInnInput(String(single || ''));
             } else if (typeof single === 'object') {
                 setSelectedOrganization({
-                    id: single.id ?? '',
+                    id: single.id ?? null,
                     name: single.short_name || single.name || '',
                     inn: String(single.tin ?? single.id ?? ''),
                 });
@@ -362,21 +362,16 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
 
             if (values.name) additional_info.name = values.name;
 
-            if (
-                values.industry_affiliation &&
-                values.industry_affiliation.length
-            )
+            if (values.industry_affiliation)
                 additional_info.industry_affiliation = Number(
-                    Array.isArray(values.industry_affiliation)
-                        ? values.industry_affiliation[0]
-                        : values.industry_affiliation
+                    values.industry_affiliation
                 );
 
             if (values.quality_level)
                 additional_info.quality_level = Number(values.quality_level);
 
-            if (values.bankInformation)
-                additional_info.bank_information = values.bankInformation;
+            if (values.bank_information)
+                additional_info.bank_information = values.bank_information;
 
             // export_indicator: send as object mapping year -> amount, e.g. { "2020": 12 }
             if (values.export_indicator) {
@@ -387,17 +382,17 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                     String(ei.year).trim() !== ''
                         ? String(ei.year)
                         : null;
-                const emount =
-                    ei.emount !== undefined &&
-                    ei.emount !== null &&
-                    String(ei.emount).trim() !== ''
-                        ? Number(ei.emount)
+                const amount =
+                    ei.amount !== undefined &&
+                    ei.amount !== null &&
+                    String(ei.amount).trim() !== ''
+                        ? Number(ei.amount)
                         : null;
 
-                // Only include if we have a year. If emount missing, default to 0.
+                // Only include if we have a year. If amount missing, default to 0.
                 if (year) {
                     additional_info.export_indicator = {
-                        [year]: emount ?? 0,
+                        [year]: amount ?? 0,
                     } as any;
                 }
             }
@@ -606,7 +601,8 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     label={
                                         <span className="font-medium text-lg">
                                             Yangi ishlanmani tijoratlashtirishga
-                                            tayyorlash rasmi
+                                            tayyorlash yoki tijoratlashtirish
+                                            istagini bildirgan ishlanma rasmi
                                         </span>
                                     }
                                     rules={[
@@ -627,7 +623,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         accept=".jpg,.jpeg,.png"
                                         maxSize={5}
                                         maxCount={10}
-                                        title="Click or drag images here"
+                                        title="Rasm yuklash (bir nechta)"
                                         vertical={true}
                                         value={
                                             form.getFieldValue('files') || []
@@ -672,7 +668,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         accept=".jpg,.jpeg,.png"
                                         maxSize={5}
                                         maxCount={5}
-                                        title="Click or drag images here"
+                                        title="Rasm yuklash (bir nechta)"
                                         vertical={true}
                                         value={
                                             form.getFieldValue(
@@ -696,6 +692,13 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                             Ishlanmaning sanoat mansubligi
                                         </span>
                                     }
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message:
+                                                'Sanoat mansubligini tanlang',
+                                        },
+                                    ]}
                                 >
                                     <Select
                                         placeholder="Sanoat tarmoqlarini tanlang"
@@ -761,6 +764,13 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                             ma'lumotlar
                                         </span>
                                     }
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message:
+                                                'Bank maʼlumotini kiriting',
+                                        },
+                                    ]}
                                 >
                                     <Input
                                         placeholder="Masalan: Agrobank – Toshkent filiali"
@@ -798,16 +808,45 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                             onInputChange={(v) =>
                                                 setOrgInnInput(v)
                                             }
+                                            additional_info_id={
+                                                applicationData?.project
+                                                    ?.additional_info?.id
+                                            }
+                                            refetch={() => {
+                                                refetch();
+                                            }}
                                         />
                                         {/* keep single selection in sync for compatibility */}
                                         <div className="sr-only">
                                             <OrganizationSearch
                                                 value={selectedOrganization}
                                                 onChange={(v) => {
-                                                    setSelectedOrganization(v);
-                                                    setOrgInnInput(
-                                                        v?.inn || ''
-                                                    );
+                                                    if (v) {
+                                                        setSelectedOrganization(
+                                                            {
+                                                                id: Number(
+                                                                    v.id
+                                                                ),
+                                                                name:
+                                                                    v.name ||
+                                                                    '',
+                                                                inn:
+                                                                    v.inn ||
+                                                                    String(
+                                                                        v.id
+                                                                    ),
+                                                            }
+                                                        );
+                                                        setOrgInnInput(
+                                                            v.inn ||
+                                                                String(v.id)
+                                                        );
+                                                    } else {
+                                                        setSelectedOrganization(
+                                                            null
+                                                        );
+                                                        setOrgInnInput('');
+                                                    }
                                                 }}
                                                 inputValue={orgInnInput}
                                                 onInputChange={(v) =>
@@ -840,8 +879,8 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                 >
                                                     <InputNumber
                                                         placeholder="Yil"
-                                                        min={2000}
-                                                        max={2035}
+                                                        min={0}
+                                                        max={2050}
                                                         className="!w-28"
                                                         size="large"
                                                     />
@@ -851,13 +890,14 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                 <Form.Item
                                                     name={[
                                                         'export_indicator',
-                                                        'emount',
+                                                        'amount',
                                                     ]}
                                                     className="!mb-0 flex-1"
                                                 >
                                                     <InputNumber
                                                         placeholder="So'mda miqdor"
                                                         className="w-full"
+                                                        min={0}
                                                         formatter={(value) =>
                                                             `${value}`.replace(
                                                                 /\B(?=(\d{3})+(?!\d))/g,
@@ -865,11 +905,15 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                             )
                                                         }
                                                         size="large"
-                                                        parser={(value) =>
-                                                            value!.replace(
-                                                                /\$\s?|(,*)/g,
-                                                                ''
-                                                            )
+                                                        parser={(value): 0 =>
+                                                            (value
+                                                                ? Number(
+                                                                      value.replace(
+                                                                          /,/g,
+                                                                          ''
+                                                                      )
+                                                                  )
+                                                                : 0) as 0
                                                         }
                                                     />
                                                 </Form.Item>
@@ -878,6 +922,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     </div>
                                 </Form.Item>
                             </Col>
+
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     name="customs_documents"
@@ -900,7 +945,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         accept=".pdf"
                                         maxSize={10}
                                         maxCount={1}
-                                        title="Click or drag PDF files here"
+                                        title="PDF yuklash (bitta)"
                                         vertical={true}
                                         value={
                                             form.getFieldValue(
@@ -954,7 +999,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                         accept=".pdf"
                                         maxSize={10}
                                         maxCount={1}
-                                        title="Click or drag PDF files here"
+                                        title="PDF yuklash (bitta)"
                                         vertical={true}
                                         value={
                                             form.getFieldValue(
@@ -982,7 +1027,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col span={24}>
+                            <Col span={24} md={24}>
                                 <Form.Item
                                     label={
                                         <span className="font-medium text-lg">
@@ -1009,7 +1054,7 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                     accept=".pdf"
                                                     maxSize={10}
                                                     maxCount={5}
-                                                    title="Click or drag PDF files here"
+                                                    title="PDF yuklash (bir nechta)"
                                                     vertical={true}
                                                     value={
                                                         form.getFieldValue(
@@ -1032,6 +1077,13 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                     <Form.Item
                                                         name={'contract_count'}
                                                         label="Shartnomalar soni"
+                                                        rules={[
+                                                            {
+                                                                required: true,
+                                                                message:
+                                                                    'Shartnomalar soni kiritilishi shart',
+                                                            },
+                                                        ]}
                                                     >
                                                         <InputNumber
                                                             min={0}
@@ -1045,10 +1097,18 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                     <Form.Item
                                                         name={'contract_amount'}
                                                         label="Shartnoma summasi (so'm)"
+                                                        rules={[
+                                                            {
+                                                                required: true,
+                                                                message:
+                                                                    'Shartnoma summasi kiritilishi shart',
+                                                            },
+                                                        ]}
                                                     >
                                                         <InputNumber
                                                             className="w-full"
                                                             placeholder="0"
+                                                            min={0}
                                                             formatter={(
                                                                 value
                                                             ) =>
@@ -1058,11 +1118,17 @@ const Step4AdditionalInfo: React.FC<Step4Props> = ({
                                                                 )
                                                             }
                                                             size="large"
-                                                            parser={(value) =>
-                                                                value!.replace(
-                                                                    /\$\s?|(,*)/g,
-                                                                    ''
-                                                                )
+                                                            parser={(
+                                                                value
+                                                            ): 0 =>
+                                                                (value
+                                                                    ? Number(
+                                                                          value.replace(
+                                                                              /,/g,
+                                                                              ''
+                                                                          )
+                                                                      )
+                                                                    : 0) as 0
                                                             }
                                                         />
                                                     </Form.Item>

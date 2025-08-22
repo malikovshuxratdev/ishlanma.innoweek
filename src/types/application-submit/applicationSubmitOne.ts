@@ -41,6 +41,7 @@ export interface IntellectualProperty {
 export interface ResearchProject {
     id: number;
     name: string;
+    code: string;
     implemented_deadline: string;
     region: Region;
     project_manager: ProjectManager;

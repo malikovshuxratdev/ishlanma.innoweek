@@ -15,7 +15,6 @@ import {
 } from 'antd';
 import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import OrganizationSearch from '../../components/shared/OrganizationSearch';
-import ProjectManagerSearch from '../../components/shared/ProjectManagerSearch';
 import {
     useAllRegionsQuery,
     useStudyFieldsQuery,
@@ -27,6 +26,7 @@ import {
 import { ApplicationSubmitRequest3Form } from '../../types/application-submit/applicationSubmitType';
 import type { DatePickerProps } from 'antd';
 import { X } from 'lucide-react';
+import { useUserProfileQuery } from '../../hooks/useOauthScienceIdMutate';
 
 const { Option } = Select;
 
@@ -60,18 +60,11 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
     const { mutate: submitApplication, isPending } =
         useApplicationSubmit3Mutate();
     const [orgInnInput, setOrgInnInput] = useState('');
-    const [pmInput, setPmInput] = useState('');
+    const { data: userData } = useUserProfileQuery();
     const [selectedOrganization, setSelectedOrganization] = useState<{
         id: number | string;
         name: string;
         inn: string;
-    } | null>(null);
-    const [selectedProjectManager, setSelectedProjectManager] = useState<{
-        id: number | string;
-        fullName?: string;
-        full_name?: string;
-        science_id: string;
-        photo?: string;
     } | null>(null);
 
     const treeData = regionsData?.map((region) => ({
@@ -102,16 +95,19 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
     }, [selectedOrganization, form]);
 
     useEffect(() => {
-        form.setFieldsValue({
-            projectManager: selectedProjectManager?.id ?? undefined,
-        });
-    }, [selectedProjectManager, form]);
-
-    useEffect(() => {
         if (!applicationData) return;
 
         // research_project comes from applicationData.project.research_project
         const rp = applicationData.project?.research_project;
+
+        const code = applicationData.project?.research_project.code;
+
+        if (code) {
+            form.setFieldsValue({
+                projectCode: code,
+            });
+        }
+
         // Prefill form with normalized primitives (ids/strings)
         form.setFieldsValue({
             researchProjectTitle: rp?.name ?? undefined,
@@ -140,17 +136,6 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
             setSelectedOrganization(normalized);
             setOrgInnInput(String(execOrgTin));
         }
-
-        // Set local selected project manager details
-        if (rp?.project_manager) {
-            setSelectedProjectManager({
-                id: rp.project_manager.id,
-                full_name: rp.project_manager.full_name,
-                science_id: rp.project_manager.science_id,
-                photo: rp.project_manager.photo,
-            });
-            setPmInput(rp.project_manager.science_id ?? '');
-        }
     }, [applicationData, form]);
 
     const handleNext = async () => {
@@ -171,13 +156,6 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
 
             if (values.regionOfImplementation)
                 researchProject.region = Number(values.regionOfImplementation);
-
-            // Prefer explicit form value; fallback to selectedProjectManager state
-            if (values.projectManager ?? selectedProjectManager?.id) {
-                const managerId = (values.projectManager ??
-                    selectedProjectManager?.id) as number | string;
-                researchProject.project_manager = Number(managerId);
-            }
 
             if (selectedOrganization?.id) {
                 const tinStr = String(selectedOrganization.id).trim();
@@ -218,6 +196,31 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                         scrollToFirstError
                     >
                         <Row gutter={[24, 4]}>
+                            {applicationData?.project?.research_project
+                                .code && (
+                                <Col xs={24} md={12}>
+                                    <Form.Item
+                                        name="projectCode"
+                                        label={
+                                            <span className="font-medium text-lg">
+                                                Loyiha shifri
+                                            </span>
+                                        }
+                                    >
+                                        <Input
+                                            placeholder="Loyiha shifri"
+                                            maxLength={200}
+                                            size="large"
+                                            disabled
+                                            value={
+                                                applicationData?.project
+                                                    ?.research_project.code
+                                            }
+                                        />
+                                    </Form.Item>
+                                </Col>
+                            )}
+
                             <Col xs={24} md={12}>
                                 <Form.Item
                                     name="projectManager"
@@ -227,55 +230,25 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                                         </span>
                                     }
                                 >
-                                    <ProjectManagerSearch
-                                        value={selectedProjectManager}
-                                        onChange={(v) => {
-                                            setSelectedProjectManager(v);
-                                            setPmInput(v?.science_id || '');
-                                        }}
-                                        inputValue={pmInput}
-                                        onInputChange={(v) => setPmInput(v)}
-                                    />
-                                    {selectedProjectManager?.id && (
-                                        <div className="mt-4">
-                                            <div className="flex items-center justify-between px-4 py-3 rounded-md border-2">
-                                                <div className="flex items-center gap-3 flex-1">
-                                                    <div className="flex-1">
-                                                        <p className="font-medium text-sm">
-                                                            {selectedProjectManager?.fullName
-                                                                ? selectedProjectManager.fullName
-                                                                : selectedProjectManager?.full_name}
-                                                        </p>
-                                                        <p className="text-sm text-gray-500">
-                                                            Science ID:{' '}
-                                                            <span className="text-blue-600 font-mono">
-                                                                {
-                                                                    selectedProjectManager?.science_id
-                                                                }
-                                                            </span>
-                                                        </p>
-                                                    </div>
+                                    <div className="mt-4">
+                                        <div className="flex items-center justify-between px-4 py-3 rounded-md border-2">
+                                            <div className="flex items-center gap-3 flex-1">
+                                                <div className="flex-1">
+                                                    <p className="font-medium text-sm">
+                                                        {userData?.full_name}
+                                                    </p>
+                                                    <p className="text-sm text-gray-500">
+                                                        Science ID:{' '}
+                                                        <span className="text-blue-600 font-mono">
+                                                            {
+                                                                userData?.science_id
+                                                            }
+                                                        </span>
+                                                    </p>
                                                 </div>
-                                                <Button
-                                                    type="text"
-                                                    onClick={() => {
-                                                        setSelectedProjectManager(
-                                                            null
-                                                        );
-                                                        setPmInput('');
-                                                        form.setFieldsValue({
-                                                            projectManager:
-                                                                undefined,
-                                                        });
-                                                    }}
-                                                    size="small"
-                                                    className="bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 border-0 rounded-full ml-3 transition-colors"
-                                                >
-                                                    <X size={16} />
-                                                </Button>
                                             </div>
                                         </div>
-                                    )}
+                                    </div>
                                 </Form.Item>
                             </Col>
 

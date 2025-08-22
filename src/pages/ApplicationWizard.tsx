@@ -7,9 +7,12 @@ import Step5FinancialPerformance from './application-steps/Step5FinancialPerform
 import { TokenService } from '../utils/storage';
 
 const STEPS: { id: number; label: string }[] = [
-    { id: 1, label: 'Innovatsion ma’lumotlar' },
-    { id: 2, label: 'Intellektual mulk' },
-    { id: 3, label: 'Ilmiy faoliyat' },
+    { id: 1, label: 'Ishlanmalar to‘g‘risida ma’lumot' },
+    { id: 2, label: 'Intellektual mulk huquqi' },
+    {
+        id: 3,
+        label: 'Ishlanma yaratilishi uchun avval bajarilgan ilmiy-tadqiqot loyihasi',
+    },
     { id: 4, label: 'Qo‘shimcha ma’lumot' },
     { id: 5, label: 'Moliyaviy ko‘rsatkichlar' },
 ];

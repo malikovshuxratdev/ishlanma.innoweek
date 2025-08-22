@@ -97,10 +97,18 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             larni sotishdan sof tushum
                                         </span>
                                     }
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message:
+                                                'Mahsulot (tovar, ish va xizmat) larni sotishdan sof tushum kiritilishi shart',
+                                        },
+                                    ]}
                                 >
                                     <InputNumber
                                         placeholder="So'mda miqdor"
                                         className="w-full"
+                                        min={0}
                                         formatter={(value) =>
                                             `${value}`.replace(
                                                 /\B(?=(\d{3})+(?!\d))/g,
@@ -108,8 +116,15 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             )
                                         }
                                         size="large"
-                                        parser={(value) =>
-                                            value!.replace(/\$\s?|(,*)/g, '')
+                                        parser={(value): 0 =>
+                                            (value
+                                                ? Number(
+                                                      value.replace(
+                                                          /\$\s?|(,*)/g,
+                                                          ''
+                                                      )
+                                                  )
+                                                : 0) as 0
                                         }
                                     />
                                 </Form.Item>
@@ -123,10 +138,18 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             xizmat) larning tannarxi
                                         </span>
                                     }
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message:
+                                                'Sotilgan mahsulot (tovar, ish va xizmat) larning tannarxi kiritilishi shart',
+                                        },
+                                    ]}
                                 >
                                     <InputNumber
                                         placeholder="So'mda miqdor"
                                         className="w-full"
+                                        min={0}
                                         formatter={(value) =>
                                             `${value}`.replace(
                                                 /\B(?=(\d{3})+(?!\d))/g,
@@ -134,8 +157,15 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             )
                                         }
                                         size="large"
-                                        parser={(value) =>
-                                            value!.replace(/\$\s?|(,*)/g, '')
+                                        parser={(value): 0 =>
+                                            (value
+                                                ? Number(
+                                                      value.replace(
+                                                          /\$\s?|(,*)/g,
+                                                          ''
+                                                      )
+                                                  )
+                                                : 0) as 0
                                         }
                                     />
                                 </Form.Item>
@@ -150,10 +180,18 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             (zarari)
                                         </span>
                                     }
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message:
+                                                'Mahsulot (tovar, ish va xizmat) larni sotishning yalpi foydasi (zarari) kiritilishi shart',
+                                        },
+                                    ]}
                                 >
                                     <InputNumber
                                         placeholder="So'mda miqdor"
                                         className="w-full"
+                                        min={0}
                                         formatter={(value) =>
                                             `${value}`.replace(
                                                 /\B(?=(\d{3})+(?!\d))/g,
@@ -161,8 +199,15 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             )
                                         }
                                         size="large"
-                                        parser={(value) =>
-                                            value!.replace(/\$\s?|(,*)/g, '')
+                                        parser={(value): 0 =>
+                                            (value
+                                                ? Number(
+                                                      value.replace(
+                                                          /\$\s?|(,*)/g,
+                                                          ''
+                                                      )
+                                                  )
+                                                : 0) as 0
                                         }
                                     />
                                 </Form.Item>
@@ -175,10 +220,18 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             Sotish xarajatlari
                                         </span>
                                     }
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message:
+                                                'Sotish xarajatlari kiritilishi shart',
+                                        },
+                                    ]}
                                 >
                                     <InputNumber
                                         placeholder="So'mda miqdor"
                                         className="w-full"
+                                        min={0}
                                         formatter={(value) =>
                                             `${value}`.replace(
                                                 /\B(?=(\d{3})+(?!\d))/g,
@@ -186,8 +239,15 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             )
                                         }
                                         size="large"
-                                        parser={(value) =>
-                                            value!.replace(/\$\s?|(,*)/g, '')
+                                        parser={(value): 0 =>
+                                            (value
+                                                ? Number(
+                                                      value.replace(
+                                                          /\$\s?|(,*)/g,
+                                                          ''
+                                                      )
+                                                  )
+                                                : 0) as 0
                                         }
                                     />
                                 </Form.Item>
@@ -207,6 +267,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                     <InputNumber
                                         placeholder="So'mda miqdor"
                                         className="w-full"
+                                        min={0}
                                         formatter={(value) =>
                                             `${value}`.replace(
                                                 /\B(?=(\d{3})+(?!\d))/g,
@@ -214,8 +275,15 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             )
                                         }
                                         size="large"
-                                        parser={(value) =>
-                                            value!.replace(/\$\s?|(,*)/g, '')
+                                        parser={(value): 0 =>
+                                            (value
+                                                ? Number(
+                                                      value.replace(
+                                                          /\$\s?|(,*)/g,
+                                                          ''
+                                                      )
+                                                  )
+                                                : 0) as 0
                                         }
                                     />
                                 </Form.Item>
@@ -235,6 +303,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                     <InputNumber
                                         placeholder="So'mda miqdor"
                                         className="w-full"
+                                        min={0}
                                         formatter={(value) =>
                                             `${value}`.replace(
                                                 /\B(?=(\d{3})+(?!\d))/g,
@@ -242,8 +311,15 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             )
                                         }
                                         size="large"
-                                        parser={(value) =>
-                                            value!.replace(/\$\s?|(,*)/g, '')
+                                        parser={(value): 0 =>
+                                            (value
+                                                ? Number(
+                                                      value.replace(
+                                                          /\$\s?|(,*)/g,
+                                                          ''
+                                                      )
+                                                  )
+                                                : 0) as 0
                                         }
                                     />
                                 </Form.Item>
@@ -253,13 +329,15 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                     name={['finance', 'other_income']}
                                     label={
                                         <span className="font-medium text-lg">
-                                            Boshqa asosiy faoliyat daromadlari
+                                            Asosiy faoliyatning boshqa
+                                            daromadlari
                                         </span>
                                     }
                                 >
                                     <InputNumber
                                         placeholder="So'mda miqdor"
                                         className="w-full"
+                                        min={0}
                                         formatter={(value) =>
                                             `${value}`.replace(
                                                 /\B(?=(\d{3})+(?!\d))/g,
@@ -267,8 +345,15 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             )
                                         }
                                         size="large"
-                                        parser={(value) =>
-                                            value!.replace(/\$\s?|(,*)/g, '')
+                                        parser={(value): 0 =>
+                                            (value
+                                                ? Number(
+                                                      value.replace(
+                                                          /\$\s?|(,*)/g,
+                                                          ''
+                                                      )
+                                                  )
+                                                : 0) as 0
                                         }
                                     />
                                 </Form.Item>
@@ -285,6 +370,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                     <InputNumber
                                         placeholder="So'mda miqdor"
                                         className="w-full"
+                                        min={0}
                                         formatter={(value) =>
                                             `${value}`.replace(
                                                 /\B(?=(\d{3})+(?!\d))/g,
@@ -292,8 +378,15 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             )
                                         }
                                         size="large"
-                                        parser={(value) =>
-                                            value!.replace(/\$\s?|(,*)/g, '')
+                                        parser={(value): 0 =>
+                                            (value
+                                                ? Number(
+                                                      value.replace(
+                                                          /\$\s?|(,*)/g,
+                                                          ''
+                                                      )
+                                                  )
+                                                : 0) as 0
                                         }
                                     />
                                 </Form.Item>
@@ -310,6 +403,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                     <InputNumber
                                         placeholder="So'mda miqdor"
                                         className="w-full"
+                                        min={0}
                                         formatter={(value) =>
                                             `${value}`.replace(
                                                 /\B(?=(\d{3})+(?!\d))/g,
@@ -317,8 +411,15 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             )
                                         }
                                         size="large"
-                                        parser={(value) =>
-                                            value!.replace(/\$\s?|(,*)/g, '')
+                                        parser={(value): 0 =>
+                                            (value
+                                                ? Number(
+                                                      value.replace(
+                                                          /\$\s?|(,*)/g,
+                                                          ''
+                                                      )
+                                                  )
+                                                : 0) as 0
                                         }
                                     />
                                 </Form.Item>
@@ -336,6 +437,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                     <InputNumber
                                         placeholder="So'mda miqdor"
                                         className="w-full"
+                                        min={0}
                                         formatter={(value) =>
                                             `${value}`.replace(
                                                 /\B(?=(\d{3})+(?!\d))/g,
@@ -343,8 +445,15 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             )
                                         }
                                         size="large"
-                                        parser={(value) =>
-                                            value!.replace(/\$\s?|(,*)/g, '')
+                                        parser={(value): 0 =>
+                                            (value
+                                                ? Number(
+                                                      value.replace(
+                                                          /\$\s?|(,*)/g,
+                                                          ''
+                                                      )
+                                                  )
+                                                : 0) as 0
                                         }
                                     />
                                 </Form.Item>
@@ -361,6 +470,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                     <InputNumber
                                         placeholder="So'mda miqdor"
                                         className="w-full"
+                                        min={0}
                                         formatter={(value) =>
                                             `${value}`.replace(
                                                 /\B(?=(\d{3})+(?!\d))/g,
@@ -368,8 +478,15 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             )
                                         }
                                         size="large"
-                                        parser={(value) =>
-                                            value!.replace(/\$\s?|(,*)/g, '')
+                                        parser={(value): 0 =>
+                                            (value
+                                                ? Number(
+                                                      value.replace(
+                                                          /\$\s?|(,*)/g,
+                                                          ''
+                                                      )
+                                                  )
+                                                : 0) as 0
                                         }
                                     />
                                 </Form.Item>
@@ -389,6 +506,7 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                     <InputNumber
                                         placeholder="So'mda miqdor"
                                         className="w-full"
+                                        min={0}
                                         formatter={(value) =>
                                             `${value}`.replace(
                                                 /\B(?=(\d{3})+(?!\d))/g,
@@ -396,8 +514,15 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             )
                                         }
                                         size="large"
-                                        parser={(value) =>
-                                            value!.replace(/\$\s?|(,*)/g, '')
+                                        parser={(value): 0 =>
+                                            (value
+                                                ? Number(
+                                                      value.replace(
+                                                          /\$\s?|(,*)/g,
+                                                          ''
+                                                      )
+                                                  )
+                                                : 0) as 0
                                         }
                                     />
                                 </Form.Item>
@@ -410,10 +535,18 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             Foyda soligʻi
                                         </span>
                                     }
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message:
+                                                'Foyda soligʻi kiritilishi shart',
+                                        },
+                                    ]}
                                 >
                                     <InputNumber
                                         placeholder="So'mda miqdor"
                                         className="w-full"
+                                        min={0}
                                         formatter={(value) =>
                                             `${value}`.replace(
                                                 /\B(?=(\d{3})+(?!\d))/g,
@@ -421,8 +554,15 @@ const Step5FinancialPerformance: React.FC<Step5Props> = ({
                                             )
                                         }
                                         size="large"
-                                        parser={(value) =>
-                                            value!.replace(/\$\s?|(,*)/g, '')
+                                        parser={(value): 0 =>
+                                            (value
+                                                ? Number(
+                                                      value.replace(
+                                                          /\$\s?|(,*)/g,
+                                                          ''
+                                                      )
+                                                  )
+                                                : 0) as 0
                                         }
                                     />
                                 </Form.Item>

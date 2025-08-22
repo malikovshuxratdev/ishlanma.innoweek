@@ -167,19 +167,23 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                 ? values.dateOfCreation.format('YYYY-MM-DD')
                 : undefined;
 
-            // optional certificate fields - only add when present
-            if (values.certificateDate) {
-                development.certificate_date = values.certificateDate.format
-                    ? values.certificateDate.format('YYYY-MM-DD')
-                    : String(values.certificateDate);
+            // optional certificate fields - include only if non-empty
+            const certType = values.certificateType;
+            const certNumber = values.certificateNumber
+                ? String(values.certificateNumber).trim()
+                : '';
+            const certDate = values.certificateDate;
+
+            if (certType) {
+                development.certificate_type = certType;
             }
-            if (values.certificateType) {
-                development.certificate_type = values.certificateType;
+            if (certNumber) {
+                development.certificate_number = certNumber;
             }
-            if (values.certificateNumber) {
-                development.certificate_number = String(
-                    values.certificateNumber
-                );
+            if (certDate) {
+                development.certificate_date = certDate.format
+                    ? certDate.format('YYYY-MM-DD')
+                    : String(certDate);
             }
 
             // organization tin - include only if present
@@ -305,14 +309,14 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                     name="projectTitle"
                                     label={
                                         <span className="font-medium text-lg">
-                                            Loyiha nomi
+                                            Ishlanma nomi
                                         </span>
                                     }
                                     rules={[
                                         {
                                             required: true,
                                             message:
-                                                'Loyiha nomi kiritilishi shart',
+                                                'Ishlanma nomi kiritilishi shart',
                                         },
                                         {
                                             max: 200,
@@ -321,10 +325,11 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                     ]}
                                 >
                                     <Input
-                                        placeholder="Loyiha nomi"
+                                        placeholder="Ishlanma nomi"
                                         maxLength={200}
                                         showCount
                                         size="large"
+                                        className="text-lg font-medium"
                                     />
                                 </Form.Item>
                             </Col>
@@ -471,69 +476,77 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col xs={24} md={8}>
+                            <Col span={24}>
                                 <Form.Item
-                                    name="certificateType"
                                     label={
                                         <span className="font-medium text-lg">
-                                            Sertifikat turi
+                                            Ishlanmani ishlab chiqarish uchun
+                                            olingan mahsulot (xizmat)
+                                            sertifikati raqami hamda sanasi
+                                            (agar mavjud boʻlsa)
                                         </span>
                                     }
-                                >
-                                    <Select
-                                        className="w-full"
-                                        placeholder="Sertifikat turini tanlang"
-                                        size="large"
-                                        allowClear
-                                    >
-                                        <Select.Option value="compliance">
-                                            Compliance
-                                        </Select.Option>
-                                        <Select.Option value="hygiene">
-                                            Hygiene
-                                        </Select.Option>
-                                        <Select.Option value="fire">
-                                            Fire
-                                        </Select.Option>
-                                        <Select.Option value="other">
-                                            Other
-                                        </Select.Option>
-                                    </Select>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={24} md={8}>
-                                <Form.Item
-                                    name="certificateNumber"
-                                    label={
-                                        <span className="font-medium text-lg">
-                                            Sertifikat raqami
-                                        </span>
+                                    tooltip={
+                                        'Muvofiqlik sertifikatlari, gigiyenik, yongʻin xavfsizligi va boshqalar. (Agar sertifikat talab etilmasa talab etilmasligi toʻgʻrisidagi Oʻzstandart agentligi maʼlumotnomasi taqdim qilinishi shart.)'
                                     }
                                 >
-                                    <Input
-                                        className="w-full"
-                                        placeholder="Sertifikat raqamini kiriting"
-                                        size="large"
-                                    />
-                                </Form.Item>
-                            </Col>
-                            <Col xs={24} md={8}>
-                                <Form.Item
-                                    name="certificateDate"
-                                    label={
-                                        <span className="font-medium text-lg">
-                                            Sertifikat sanasi
-                                        </span>
-                                    }
-                                >
-                                    <DatePicker
-                                        className="w-full"
-                                        placeholder="Sertifikat sanasini tanlang"
-                                        disabledDate={disabledFutureDates}
-                                        size="large"
-                                        format="YYYY-MM-DD"
-                                        inputReadOnly
-                                    />
+                                    <Row gutter={[24, 2]}>
+                                        <Col xs={24} md={8}>
+                                            <Form.Item
+                                                name="certificateType"
+                                                noStyle
+                                            >
+                                                <Select
+                                                    className="w-full"
+                                                    placeholder="Sertifikat turini tanlang"
+                                                    size="large"
+                                                    allowClear
+                                                >
+                                                    <Select.Option value="compliance">
+                                                        Compliance
+                                                    </Select.Option>
+                                                    <Select.Option value="hygiene">
+                                                        Hygiene
+                                                    </Select.Option>
+                                                    <Select.Option value="fire">
+                                                        Fire
+                                                    </Select.Option>
+                                                    <Select.Option value="other">
+                                                        Other
+                                                    </Select.Option>
+                                                </Select>
+                                            </Form.Item>
+                                        </Col>
+                                        <Col xs={24} md={8}>
+                                            <Form.Item
+                                                name="certificateNumber"
+                                                noStyle
+                                            >
+                                                <Input
+                                                    className="w-full"
+                                                    placeholder="Sertifikat raqamini kiriting"
+                                                    size="large"
+                                                />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col xs={24} md={8}>
+                                            <Form.Item
+                                                name="certificateDate"
+                                                noStyle
+                                            >
+                                                <DatePicker
+                                                    className="w-full"
+                                                    placeholder="Sertifikat sanasini tanlang"
+                                                    disabledDate={
+                                                        disabledFutureDates
+                                                    }
+                                                    size="large"
+                                                    format="YYYY-MM-DD"
+                                                    inputReadOnly
+                                                />
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
                                 </Form.Item>
                             </Col>
                         </Row>

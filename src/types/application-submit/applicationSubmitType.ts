@@ -30,7 +30,6 @@ export interface ApplicationSubmitRequest3Form {
         name: string;
         implemented_deadline: string;
         region: number;
-        project_manager: number;
         tin: string;
         science_field: number;
     };

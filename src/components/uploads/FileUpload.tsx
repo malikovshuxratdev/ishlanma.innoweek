@@ -8,6 +8,8 @@ import {
     Col,
     Typography,
     Modal,
+    Tag,
+    Popconfirm,
 } from 'antd';
 import {
     DeleteOutlined,
@@ -92,6 +94,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
     const [previewVisible, setPreviewVisible] = useState(false);
     const [previewFile, setPreviewFile] = useState<UploadFile | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>('');
+    const [lastUploadedUid, setLastUploadedUid] = useState<string>('');
 
     const getFileIcon = (fileName: string) => {
         const extension = fileName.toLowerCase().split('.').pop();
@@ -149,39 +152,12 @@ const FileUpload: React.FC<FileUploadProps> = ({
         return `${(size / (1024 * 1024)).toFixed(1)} MB`;
     };
 
-    const handleChange: UploadProps['onChange'] = (info) => {
-        // Use antd's canonical fileList as base
-        const nextList = [...info.fileList];
-
-        // Filter out files that exceed size limit
-        const filtered = nextList.filter((file) => {
-            if (file.size && file.size > maxSize * 1024 * 1024) {
-                message.error(`${file.name} exceeds ${maxSize}MB size limit`);
-                return false;
-            }
-            return true;
-        });
-
-        // Only update if list actually changed
-        const isSame =
-            fileList.length === filtered.length &&
-            fileList.every((a, i) => {
-                const b = filtered[i] as any;
-                const aAny = a as any;
-                return (
-                    a.uid === b.uid &&
-                    a.name === b.name &&
-                    a.status === b.status &&
-                    (a.url || '') === (b.url || '') &&
-                    (a.size || 0) === (b.size || 0) &&
-                    (aAny.serverId || 0) === (b.serverId || 0)
-                );
-            });
-
-        if (!isSame) {
-            setFileList(filtered);
-            onChange?.(filtered);
-        }
+    const isImageLike = (file: UploadFile) => {
+        const nameOrUrl = (file.name || file.url || '').toString();
+        const ext = nameOrUrl.split('.').pop()?.toLowerCase();
+        return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(
+            ext || ''
+        );
     };
 
     const handleRemove = (file: UploadFile) => {
@@ -217,6 +193,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
     };
 
     const beforeUpload = (file: File) => {
+        if (disabled) return false;
+
         const isAcceptedType = accept
             .split(',')
             .some((type) =>
@@ -283,6 +261,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                         return f;
                     });
                     onChange?.(next as UploadFile[]);
+                    setLastUploadedUid(uid);
                     return next as UploadFile[];
                 });
 
@@ -311,7 +290,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         multiple: true,
         fileList,
         beforeUpload,
-        onChange: handleChange,
+        // We manage fileList manually in beforeUpload/upload callbacks to prevent duplicates
         onRemove: () => false,
         showUploadList: false,
         accept,
@@ -320,12 +299,16 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
     return (
         <div className="w-full">
-            <Dragger {...uploadProps} className="mb-4 sm:mb-6">
+            <Dragger
+                {...uploadProps}
+                className="mb-4 sm:mb-6"
+                disabled={disabled}
+            >
                 <p className="ant-upload-drag-icon">
                     <CloudUploadOutlined
                         style={{
                             fontSize: window.innerWidth < 640 ? '32px' : '48px',
-                            color: '#1890ff',
+                            color: disabled ? '#8c8c8c' : '#1890ff',
                         }}
                     />
                 </p>
@@ -335,27 +318,36 @@ const FileUpload: React.FC<FileUploadProps> = ({
             </Dragger>
 
             {fileList.length > 0 && (
-                <div>
-                    <Title
-                        level={4}
-                        className="mb-3 sm:mb-4 text-base sm:text-lg"
-                    >
-                        Uploaded Files ({fileList.length})
-                    </Title>
-
+                <div className="flex flex-col gap-2 mt-2">
                     {vertical ? (
                         <div className="space-y-2 sm:space-y-3">
                             {fileList.map((file) => (
                                 <Card
                                     key={file.uid}
                                     size="small"
-                                    className="transition-all duration-300 hover:shadow-md"
+                                    className={`transition-all duration-300 hover:shadow-md ${
+                                        lastUploadedUid === file.uid
+                                            ? 'ring-2 ring-blue-400'
+                                            : ''
+                                    }`}
                                     bodyStyle={{ padding: '8px 12px' }}
                                 >
                                     <div className="flex items-center justify-between gap-2">
                                         <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                                             <div className="flex-shrink-0">
-                                                {getFileIcon(file.name)}
+                                                {isImageLike(file) &&
+                                                (file.url || file.preview) ? (
+                                                    <img
+                                                        src={
+                                                            (file.url ||
+                                                                file.preview) as string
+                                                        }
+                                                        alt={file.name}
+                                                        className="w-8 h-8 rounded object-cover"
+                                                    />
+                                                ) : (
+                                                    getFileIcon(file.name)
+                                                )}
                                             </div>
 
                                             <div className="flex-1 min-w-0">
@@ -367,6 +359,44 @@ const FileUpload: React.FC<FileUploadProps> = ({
                                                 >
                                                     {file.name}
                                                 </Text>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <Text
+                                                        type="secondary"
+                                                        className="text-[10px] sm:text-xs"
+                                                    >
+                                                        {file.size
+                                                            ? formatFileSize(
+                                                                  file.size
+                                                              )
+                                                            : ''}
+                                                    </Text>
+                                                    {file.status === 'done' && (
+                                                        <Tag
+                                                            color="green"
+                                                            className="m-0 text-[10px] sm:text-xs"
+                                                        >
+                                                            Yuklandi
+                                                        </Tag>
+                                                    )}
+                                                    {file.status ===
+                                                        'error' && (
+                                                        <Tag
+                                                            color="red"
+                                                            className="m-0 text-[10px] sm:text-xs"
+                                                        >
+                                                            Xato
+                                                        </Tag>
+                                                    )}
+                                                    {file.status ===
+                                                        'uploading' && (
+                                                        <Tag
+                                                            color="blue"
+                                                            className="m-0 text-[10px] sm:text-xs"
+                                                        >
+                                                            Yuklanmoqda...
+                                                        </Tag>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
 
@@ -381,17 +411,26 @@ const FileUpload: React.FC<FileUploadProps> = ({
                                                 title="Preview"
                                                 className="text-blue-500 hover:text-blue-700 p-1"
                                             />
-                                            <Button
-                                                type="text"
-                                                size="small"
-                                                danger
-                                                icon={<DeleteOutlined />}
-                                                onClick={() =>
+                                            <Popconfirm
+                                                title="Faylni o'chirish?"
+                                                okText="Ha"
+                                                cancelText="Yo'q"
+                                                onConfirm={() =>
                                                     handleRemove(file)
                                                 }
-                                                title="Remove"
-                                                className="p-1"
-                                            />
+                                            >
+                                                <Button
+                                                    type="text"
+                                                    size="small"
+                                                    danger
+                                                    icon={<DeleteOutlined />}
+                                                    onClick={() =>
+                                                        handleRemove(file)
+                                                    }
+                                                    title="Remove"
+                                                    className="p-1"
+                                                />
+                                            </Popconfirm>
                                         </div>
                                     </div>
                                 </Card>
@@ -410,10 +449,15 @@ const FileUpload: React.FC<FileUploadProps> = ({
                                 >
                                     <Card
                                         size="small"
-                                        className="h-full transition-all duration-300 hover:shadow-md"
+                                        className={`h-full transition-all duration-300 hover:shadow-md ${
+                                            lastUploadedUid === file.uid
+                                                ? 'ring-2 ring-blue-400'
+                                                : ''
+                                        }`}
                                         bodyStyle={{ padding: '8px' }}
                                         actions={[
                                             <Button
+                                                key="preview"
                                                 type="text"
                                                 icon={<EyeOutlined />}
                                                 onClick={() =>
@@ -423,21 +467,42 @@ const FileUpload: React.FC<FileUploadProps> = ({
                                                 className="text-blue-500 hover:text-blue-700"
                                                 size="small"
                                             />,
-                                            <Button
-                                                type="text"
-                                                danger
-                                                icon={<DeleteOutlined />}
-                                                onClick={() =>
+                                            <Popconfirm
+                                                key="delete"
+                                                title="Faylni o'chirish?"
+                                                okText="Ha"
+                                                cancelText="Yo'q"
+                                                onConfirm={() =>
                                                     handleRemove(file)
                                                 }
-                                                title="Remove"
-                                                size="small"
-                                            />,
+                                            >
+                                                <Button
+                                                    type="text"
+                                                    danger
+                                                    icon={<DeleteOutlined />}
+                                                    title="Remove"
+                                                    size="small"
+                                                />
+                                            </Popconfirm>,
                                         ].filter(Boolean)}
                                     >
                                         <div className="flex flex-col items-center text-center">
-                                            <div className="mb-1 sm:mb-2">
-                                                {getFileIcon(file.name)}
+                                            <div className="mb-1 sm:mb-2 w-full">
+                                                {isImageLike(file) &&
+                                                (file.url || file.preview) ? (
+                                                    <img
+                                                        src={
+                                                            (file.url ||
+                                                                file.preview) as string
+                                                        }
+                                                        alt={file.name}
+                                                        className="w-full h-24 sm:h-28 object-cover rounded"
+                                                    />
+                                                ) : (
+                                                    <div className="flex items-center justify-center w-full h-24 sm:h-28 bg-gray-50 rounded">
+                                                        {getFileIcon(file.name)}
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <Text
@@ -450,14 +515,43 @@ const FileUpload: React.FC<FileUploadProps> = ({
                                                 {file.name}
                                             </Text>
 
-                                            <Text
-                                                type="secondary"
-                                                className="text-xs"
-                                            >
-                                                {file.size
-                                                    ? formatFileSize(file.size)
-                                                    : 'Unknown size'}
-                                            </Text>
+                                            <div className="flex items-center gap-2">
+                                                <Text
+                                                    type="secondary"
+                                                    className="text-xs"
+                                                >
+                                                    {file.size
+                                                        ? formatFileSize(
+                                                              file.size
+                                                          )
+                                                        : ''}
+                                                </Text>
+                                                {file.status === 'done' && (
+                                                    <Tag
+                                                        color="green"
+                                                        className="m-0 text-[10px] sm:text-xs"
+                                                    >
+                                                        Yuklandi
+                                                    </Tag>
+                                                )}
+                                                {file.status === 'error' && (
+                                                    <Tag
+                                                        color="red"
+                                                        className="m-0 text-[10px] sm:text-xs"
+                                                    >
+                                                        Xato
+                                                    </Tag>
+                                                )}
+                                                {file.status ===
+                                                    'uploading' && (
+                                                    <Tag
+                                                        color="blue"
+                                                        className="m-0 text-[10px] sm:text-xs"
+                                                    >
+                                                        Yuklanmoqda...
+                                                    </Tag>
+                                                )}
+                                            </div>
                                         </div>
                                     </Card>
                                 </Col>

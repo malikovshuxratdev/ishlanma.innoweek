@@ -20,9 +20,10 @@ import {
     useGetApplication,
 } from '../../hooks/useApplicationSubmitMutation';
 import { ApplicationSubmitRequest2Form } from '../../types/application-submit/applicationSubmitType';
+import { useDeleteAuthorMutate } from '../../hooks/useSearchAuthorMutate';
 
 interface CoAuthor {
-    id: number | string;
+    id: number;
     fullName: string;
     science_id: string;
 }
@@ -41,8 +42,9 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
     const [form] = Form.useForm();
     const { mutate: submitApplication, isPending: isSubmitting } =
         useApplicationSubmit2Mutate();
-    const { data: applicationData } = useGetApplication();
+    const { data: applicationData, refetch } = useGetApplication();
     const [authors, setAuthors] = useState<CoAuthor[]>([]);
+    const { mutate: deleteAuthor } = useDeleteAuthorMutate();
 
     useEffect(() => {
         if (initialValues) {
@@ -161,7 +163,24 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
         });
     };
 
-    const handleRemoveCoAuthor = (id: number | string) => {
+    const handleRemoveCoAuthor = (id: number) => {
+        const ipId = applicationData?.project?.intellectual_property?.id;
+        const authorIdNum = Number(id);
+
+        if (ipId && !Number.isNaN(authorIdNum)) {
+            deleteAuthor(
+                {
+                    author_id: authorIdNum,
+                    intellectual_property_id: ipId,
+                },
+                {
+                    onSuccess: () => {
+                        refetch();
+                    },
+                }
+            );
+        }
+
         setAuthors((prev) => prev.filter((a) => String(a.id) !== String(id)));
     };
 
@@ -303,12 +322,12 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                                     name="patentNumber"
                                     label={
                                         <span className="font-medium text-lg">
-                                            Patent raqami
+                                            Papent raqami
                                         </span>
                                     }
                                 >
                                     <Input
-                                        placeholder="Patent raqami"
+                                        placeholder="Papent raqami"
                                         allowClear
                                         size="large"
                                     />
@@ -321,6 +340,13 @@ const Step2IntellectualProperty: React.FC<Step2Props> = ({
                                     label={
                                         <span className="font-medium text-lg">
                                             Roʻyyxatdan oʻtkazilgan sana
+                                        </span>
+                                    }
+                                    tooltip={
+                                        <span>
+                                            Oʻzbekiston Respublikasi ixtirolar
+                                            davlat reestrida roʻyyxatdan
+                                            oʻtkazilgan sana
                                         </span>
                                     }
                                 >

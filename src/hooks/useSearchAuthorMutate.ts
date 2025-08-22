@@ -20,6 +20,24 @@ export const useSearchAuthorMutate = () => {
     return mutate;
 };
 
+export const useDeleteAuthorMutate = () => {
+    const mutate = useMutation({
+        mutationFn: async ({
+            author_id,
+            intellectual_property_id,
+        }: {
+            author_id: number;
+            intellectual_property_id: number;
+        }) => {
+            return await searchAuthorApi.deleteAuthor(
+                author_id,
+                intellectual_property_id
+            );
+        },
+    });
+    return mutate;
+};
+
 export const useSearchOrganizationMutate = () => {
     const mutate = useMutation({
         mutationFn: async (tin: number) => {
@@ -33,6 +51,24 @@ export const useSearchOrganizationMutate = () => {
         },
     });
 
+    return mutate;
+};
+
+export const useDeleteOrganizationMutate = () => {
+    const mutate = useMutation({
+        mutationFn: async ({
+            additional_info_id,
+            organization_id,
+        }: {
+            additional_info_id: number;
+            organization_id: number;
+        }) => {
+            return await searchOrganizationApi.deleteOrganization(
+                additional_info_id,
+                organization_id
+            );
+        },
+    });
     return mutate;
 };
 

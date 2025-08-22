@@ -86,6 +86,29 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                                     ko'rsatkichlari
                                 </h4>
                                 <div className="space-y-1">
+                                    {/* Calculate and display total sum */}
+                                    {(() => {
+                                        const totalSum = Object.values(
+                                            additionalInfo.export_indicator
+                                        ).reduce(
+                                            (sum, value) => sum + value,
+                                            0
+                                        );
+                                        return (
+                                            <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                                <p className="text-sm font-semibold text-blue-800">
+                                                    Jami eksport summasi:{' '}
+                                                    <span className="text-blue-900">
+                                                        {formatCurrency(
+                                                            totalSum.toString()
+                                                        )}
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {/* Individual year values */}
                                     {Object.entries(
                                         additionalInfo.export_indicator
                                     ).map(([year, value]) => (

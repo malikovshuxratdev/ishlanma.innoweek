@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Input, Button } from 'antd';
 import { Search as IconSearch, X as IconX } from 'lucide-react';
-import { useSearchOrganizationMutate } from '../../hooks/useSearchAuthorMutate';
+import {
+    useDeleteOrganizationMutate,
+    useSearchOrganizationMutate,
+} from '../../hooks/useSearchAuthorMutate';
 
 interface Organization {
-    id: number | string;
+    id: number;
     name: string;
     inn: string;
 }
@@ -15,6 +18,8 @@ interface Props {
     disabled?: boolean;
     inputValue?: string;
     onInputChange?: (v: string) => void;
+    additional_info_id?: number;
+    refetch?: () => void;
 }
 
 const MultiOrganizationSearch: React.FC<Props> = ({
@@ -23,12 +28,16 @@ const MultiOrganizationSearch: React.FC<Props> = ({
     disabled,
     inputValue,
     onInputChange,
+    additional_info_id,
+    refetch,
 }) => {
     const [localInput, setLocalInput] = useState(inputValue ?? '');
     const [error, setError] = useState<string | null>(null);
     const [items, setItems] = useState<Organization[]>(value ?? []);
     const { mutate: searchOrganization, isPending } =
         useSearchOrganizationMutate();
+    const { mutate: deleteOrganization, isPending: isDeleting } =
+        useDeleteOrganizationMutate();
 
     useEffect(() => {
         if (typeof inputValue !== 'undefined') setLocalInput(inputValue || '');
@@ -74,7 +83,20 @@ const MultiOrganizationSearch: React.FC<Props> = ({
         });
     };
 
-    const handleRemove = (id: number | string) => {
+    const handleRemove = (id: number) => {
+        if (additional_info_id) {
+            deleteOrganization(
+                {
+                    additional_info_id,
+                    organization_id: id,
+                },
+                {
+                    onSuccess: () => {
+                        refetch?.();
+                    },
+                }
+            );
+        }
         setItems((prev) => {
             const next = prev.filter((p) => String(p.id) !== String(id));
             onChange?.(next);
@@ -134,6 +156,7 @@ const MultiOrganizationSearch: React.FC<Props> = ({
                                 type="text"
                                 onClick={() => handleRemove(it.id)}
                                 icon={<IconX size={16} />}
+                                loading={isDeleting}
                                 size="small"
                                 className="bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 border-0 rounded-full ml-3 transition-colors"
                             />
