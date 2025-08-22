@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Button } from 'antd';
-import { Search as IconSearch, X as IconX } from 'lucide-react';
+import { Search as IconSearch } from 'lucide-react';
 import { useSearchAuthorMutate } from '../../hooks/useSearchAuthorMutate';
 import { AuthorAssignType } from '../../types/admin-assign/adminAssiginTpe';
 
 interface ProjectManager {
     id: number | string;
-    fullName: string;
+    fullName?: string; // camelCase from search normalization
+    full_name?: string; // snake_case when coming from backend prefill
     science_id: string;
+    photo?: string;
 }
 
 interface Props {
@@ -25,12 +27,7 @@ const ProjectManagerSearch: React.FC<Props> = ({
 }) => {
     const [localInput, setLocalInput] = useState(inputValue ?? '');
     const [error, setError] = useState<string | null>(null);
-    const {
-        mutate: searchAuthor,
-        reset: resetSearchAuthor,
-        isPending,
-        data: authorData,
-    } = useSearchAuthorMutate();
+    const { mutate: searchAuthor, isPending } = useSearchAuthorMutate();
 
     useEffect(() => {
         if (typeof inputValue !== 'undefined') setLocalInput(inputValue || '');
@@ -67,8 +64,9 @@ const ProjectManagerSearch: React.FC<Props> = ({
                     } as ProjectManager;
 
                     onChange?.(normalized);
-                    setLocalInput('');
-                    onInputChange?.('');
+                    // keep science id visible after selection so parent can persist/submit
+                    // setLocalInput('');
+                    // onInputChange?.('');
                 } else {
                     setError('Rahbar topilmadi');
                 }
@@ -102,17 +100,14 @@ const ProjectManagerSearch: React.FC<Props> = ({
                     placeholder="Muallif ID sini kiriting (masalan: ABC-1234-5678)"
                     size="large"
                     aria-label="Project manager science id input"
-                    disabled={
-                        // prefer controlled `value` from parent; fallback to latest authorData
-                        value?.id ? true : authorData?.id ? true : false
-                    }
+                    disabled={value?.id ? true : false}
                 />
                 <Button
                     type="primary"
                     size="large"
                     onClick={handleFind}
                     loading={isPending}
-                    disabled={value?.id ? true : authorData?.id ? true : false}
+                    disabled={value?.id ? true : false}
                     icon={<IconSearch size={18} />}
                 />
             </div>
@@ -123,47 +118,7 @@ const ProjectManagerSearch: React.FC<Props> = ({
                 </div>
             )}
 
-            {/* show selected manager from prop `value` first, otherwise fall back to latest API authorData */}
-            {(value?.id || authorData?.id) && (
-                <div className="mt-4">
-                    <div className="flex items-center justify-between px-4 py-3 rounded-md border-2">
-                        <div className="flex-1">
-                            <p className="font-medium text-sm">
-                                {value?.fullName
-                                    ? value.fullName
-                                    : authorData?.sur_name &&
-                                      authorData?.first_name
-                                    ? authorData.sur_name +
-                                      ' ' +
-                                      authorData.first_name
-                                    : ''}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                                Science ID:{' '}
-                                <span className="text-blue-600 font-mono">
-                                    {value?.science_id ??
-                                        authorData?.science_id}
-                                </span>
-                            </p>
-                        </div>
-                        <Button
-                            type="text"
-                            onClick={() => {
-                                // clear parent-controlled value
-                                onChange?.(null);
-                                // clear local input and notify parent
-                                setLocalInput('');
-                                onInputChange?.('');
-                                // reset mutation state so authorData is cleared
-                                resetSearchAuthor?.();
-                            }}
-                            icon={<IconX size={16} />}
-                            size="small"
-                            className="bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 border-0 rounded-full ml-3 transition-colors"
-                        />
-                    </div>
-                </div>
-            )}
+            {/* Rendering of search result is intentionally left to parent via props */}
         </div>
     );
 };

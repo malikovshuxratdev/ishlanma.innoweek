@@ -42,9 +42,29 @@ export interface ResearchProject {
     id: number;
     name: string;
     implemented_deadline: string;
-    region: number;
-    project_manager: number;
-    science_field: number;
+    region: Region;
+    project_manager: ProjectManager;
+    science_field: {
+        id: number;
+        name: string;
+    };
+    executor_organization: Organization;
+}
+
+export interface ProjectManager {
+    id: number;
+    science_id: string;
+    full_name: string;
+    photo: string;
+}
+
+export interface Region {
+    id: number;
+    code: number;
+    name: {
+        ru: string;
+        uz: string;
+    };
 }
 
 export interface AdditionalInfo {

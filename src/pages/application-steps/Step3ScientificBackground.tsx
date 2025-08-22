@@ -24,13 +24,28 @@ import {
     useApplicationSubmit3Mutate,
     useGetApplication,
 } from '../../hooks/useApplicationSubmitMutation';
+import { ApplicationSubmitRequest3Form } from '../../types/application-submit/applicationSubmitType';
+import type { DatePickerProps } from 'antd';
+import { X } from 'lucide-react';
 
 const { Option } = Select;
 
+type Step3FormValues = {
+    researchProjectTitle?: string;
+    implementationPeriod?: moment.Moment;
+    regionOfImplementation?: number;
+    scientificField?: number;
+    projectManager?: number;
+    executingOrganization?: {
+        id: number | string;
+        name: string;
+        inn: string;
+    };
+};
+
 interface Step3Props {
-    onNext: (values: any) => void;
+    onNext: (values: Step3FormValues) => void;
     onBack: () => void;
-    initialValues?: any;
 }
 
 const Step3ScientificBackground: React.FC<Step3Props> = ({
@@ -42,9 +57,10 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
     const { data: studyFieldsData } = useStudyFieldsQuery();
     const { data: applicationData } = useGetApplication();
 
-    const _mutateResult: any = useApplicationSubmit3Mutate();
-    const { mutate: submitApplication, isLoading: isPending } = _mutateResult;
+    const { mutate: submitApplication, isPending } =
+        useApplicationSubmit3Mutate();
     const [orgInnInput, setOrgInnInput] = useState('');
+    const [pmInput, setPmInput] = useState('');
     const [selectedOrganization, setSelectedOrganization] = useState<{
         id: number | string;
         name: string;
@@ -52,8 +68,10 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
     } | null>(null);
     const [selectedProjectManager, setSelectedProjectManager] = useState<{
         id: number | string;
-        fullName: string;
+        fullName?: string;
+        full_name?: string;
         science_id: string;
+        photo?: string;
     } | null>(null);
 
     const treeData = regionsData?.map((region) => ({
@@ -70,20 +88,13 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
         })),
     }));
 
-    // Use valueOf() to compare — works with dayjs or moment-like objects and plain dates
-    const disabledFutureDates = (current: any) => {
-        try {
-            if (!current) return false;
-            if (typeof current.valueOf === 'function') {
-                return current.valueOf() > Date.now();
-            }
-            return current > Date.now();
-        } catch (e) {
-            // defensive fallback
-            return false;
-        }
+    // Disable future dates in DatePicker (antd uses dayjs under the hood)
+    const disabledFutureDates: DatePickerProps['disabledDate'] = (current) => {
+        if (!current) return false;
+        return current.valueOf() > Date.now();
     };
 
+    // keep executingOrganization form field in sync with selection
     useEffect(() => {
         form.setFieldsValue({
             executingOrganization: selectedOrganization ?? undefined,
@@ -96,17 +107,15 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
         });
     }, [selectedProjectManager, form]);
 
-    // When applicationData is available, populate form and related local state
     useEffect(() => {
         if (!applicationData) return;
 
+        // research_project comes from applicationData.project.research_project
         const rp = applicationData.project?.research_project;
-        if (!rp) return;
-
-        // project title / name
+        // Prefill form with normalized primitives (ids/strings)
         form.setFieldsValue({
-            researchProjectTitle: rp.name ?? undefined,
-            implementationPeriod: rp.implemented_deadline
+            researchProjectTitle: rp?.name ?? undefined,
+            implementationPeriod: rp?.implemented_deadline
                 ? moment(
                       rp.implemented_deadline,
                       moment.ISO_8601,
@@ -115,80 +124,78 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                     ? moment(rp.implemented_deadline)
                     : undefined
                 : undefined,
-            regionOfImplementation: rp.region ?? undefined,
-            scientificField: rp.science_field ?? undefined,
-            projectManager: rp.project_manager ?? undefined,
+            regionOfImplementation: rp?.region?.id ?? undefined,
+            scientificField: rp?.science_field?.id ?? undefined,
+            projectManager: rp?.project_manager?.id ?? undefined,
         });
 
-        // selected organization (tin) may not include full org details in applicationData
-        const tinVal = (rp as any).tin ?? (rp as any).tin;
-        if (tinVal) {
+        // Executor organization comes as object; extract TIN for our OrganizationSearch value
+        const execOrgTin = rp?.executor_organization?.tin;
+        if (execOrgTin) {
             const normalized = {
-                id: tinVal,
-                name: '',
-                inn: String(tinVal),
+                id: execOrgTin, // we use tin as identifier when submitting
+                name: rp?.executor_organization?.short_name ?? '',
+                inn: String(execOrgTin),
             } as { id: number | string; name: string; inn: string };
             setSelectedOrganization(normalized);
-            setOrgInnInput(String(tinVal));
+            setOrgInnInput(String(execOrgTin));
         }
 
-        // project manager - API returns id only, set local selectedProjectManager with id placeholder
-        if (rp.project_manager) {
+        // Set local selected project manager details
+        if (rp?.project_manager) {
             setSelectedProjectManager({
-                id: rp.project_manager,
-                fullName: '',
-                science_id: '',
+                id: rp.project_manager.id,
+                full_name: rp.project_manager.full_name,
+                science_id: rp.project_manager.science_id,
+                photo: rp.project_manager.photo,
             });
+            setPmInput(rp.project_manager.science_id ?? '');
         }
     }, [applicationData, form]);
 
     const handleNext = async () => {
         try {
-            const values = await form.validateFields();
+            const values = (await form.validateFields()) as Step3FormValues;
 
-            // Build payload incrementally — only include fields that exist.
-            // Use `any` here so we can omit empty fields (e.g. tin) without TypeScript
-            // requiring all properties to be present.
-            const research_project: any = {
-                research_project: {},
-            };
+            // Build payload incrementally — include only provided fields using proper types
+            const researchProject: Partial<
+                ApplicationSubmitRequest3Form['research_project']
+            > = {};
 
             if (values.researchProjectTitle)
-                research_project.research_project!.name =
-                    values.researchProjectTitle;
+                researchProject.name = values.researchProjectTitle;
 
             if (values.implementationPeriod)
-                research_project.research_project!.implemented_deadline =
+                researchProject.implemented_deadline =
                     values.implementationPeriod.format('YYYY-MM-DD');
 
             if (values.regionOfImplementation)
-                research_project.research_project!.region = Number(
-                    values.regionOfImplementation
-                );
+                researchProject.region = Number(values.regionOfImplementation);
 
-            if (selectedProjectManager?.id)
-                research_project.research_project!.project_manager = Number(
-                    selectedProjectManager.id
-                );
+            // Prefer explicit form value; fallback to selectedProjectManager state
+            if (values.projectManager ?? selectedProjectManager?.id) {
+                const managerId = (values.projectManager ??
+                    selectedProjectManager?.id) as number | string;
+                researchProject.project_manager = Number(managerId);
+            }
 
             if (selectedOrganization?.id) {
                 const tinStr = String(selectedOrganization.id).trim();
-                if (tinStr) {
-                    research_project.research_project!.tin = tinStr;
-                }
+                if (tinStr) researchProject.tin = tinStr;
             }
 
             if (values.scientificField)
-                research_project.research_project!.science_field = Number(
-                    values.scientificField
-                );
+                researchProject.science_field = Number(values.scientificField);
 
-            const payload = research_project;
+            const payload: ApplicationSubmitRequest3Form = {
+                research_project:
+                    researchProject as ApplicationSubmitRequest3Form['research_project'],
+            };
 
             const application_id = applicationData?.id ?? 0;
 
             submitApplication(
-                { application_id, body: payload as any },
+                { application_id, body: payload },
                 {
                     onSuccess: () => {
                         onNext(values);
@@ -222,10 +229,53 @@ const Step3ScientificBackground: React.FC<Step3Props> = ({
                                 >
                                     <ProjectManagerSearch
                                         value={selectedProjectManager}
-                                        onChange={(v) =>
-                                            setSelectedProjectManager(v)
-                                        }
+                                        onChange={(v) => {
+                                            setSelectedProjectManager(v);
+                                            setPmInput(v?.science_id || '');
+                                        }}
+                                        inputValue={pmInput}
+                                        onInputChange={(v) => setPmInput(v)}
                                     />
+                                    {selectedProjectManager?.id && (
+                                        <div className="mt-4">
+                                            <div className="flex items-center justify-between px-4 py-3 rounded-md border-2">
+                                                <div className="flex items-center gap-3 flex-1">
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-sm">
+                                                            {selectedProjectManager?.fullName
+                                                                ? selectedProjectManager.fullName
+                                                                : selectedProjectManager?.full_name}
+                                                        </p>
+                                                        <p className="text-sm text-gray-500">
+                                                            Science ID:{' '}
+                                                            <span className="text-blue-600 font-mono">
+                                                                {
+                                                                    selectedProjectManager?.science_id
+                                                                }
+                                                            </span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    type="text"
+                                                    onClick={() => {
+                                                        setSelectedProjectManager(
+                                                            null
+                                                        );
+                                                        setPmInput('');
+                                                        form.setFieldsValue({
+                                                            projectManager:
+                                                                undefined,
+                                                        });
+                                                    }}
+                                                    size="small"
+                                                    className="bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 border-0 rounded-full ml-3 transition-colors"
+                                                >
+                                                    <X size={16} />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </Form.Item>
                             </Col>
 

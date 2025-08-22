@@ -39,22 +39,22 @@ const FileUpload: React.FC<FileUploadProps> = ({
     accept = '.jpg,.jpeg,.png,.gif,.pdf,.docx,.pptx',
     maxSize = 10,
     maxCount = 10,
-    value = [],
+    value,
     onChange,
     disabled = false,
     title = 'Upload Files',
     vertical = false,
 }) => {
     const { mutate: uploadFile } = useUploadFileMutation();
-    const [fileList, setFileList] = useState<UploadFile[]>(value);
+    const [fileList, setFileList] = useState<UploadFile[]>(value ?? []);
     // Keep internal fileList in sync when parent passes existing files (server-side)
     useEffect(() => {
         if (!value || !Array.isArray(value)) return;
 
+        // Normalize incoming value to a stable shape
         const normalized = value.map((f, idx) => {
             const uid =
-                (f as any).uid ??
-                `server-${(f as any).serverId ?? `v-${Date.now()}-${idx}`}`;
+                (f as any).uid ?? `server-${(f as any).serverId ?? `v-${idx}`}`;
             const serverId = (f as any).serverId ?? (f as any).id ?? undefined;
             const url = (f as any).url ?? (f as any).file ?? '';
             const name = f.name || String((f as any).name || url || uid);
@@ -71,7 +71,23 @@ const FileUpload: React.FC<FileUploadProps> = ({
             return normalizedFile;
         });
 
-        setFileList(normalized);
+        // Only update state if it actually changed to avoid render loops
+        const isSame =
+            fileList.length === normalized.length &&
+            fileList.every((a, i) => {
+                const b = normalized[i] as any;
+                const aAny = a as any;
+                return (
+                    a.uid === b.uid &&
+                    a.name === b.name &&
+                    a.status === b.status &&
+                    (a.url || '') === (b.url || '') &&
+                    (a.size || 0) === (b.size || 0) &&
+                    (aAny.serverId || 0) === (b.serverId || 0)
+                );
+            });
+
+        if (!isSame) setFileList(normalized);
     }, [value]);
     const [previewVisible, setPreviewVisible] = useState(false);
     const [previewFile, setPreviewFile] = useState<UploadFile | null>(null);
@@ -134,22 +150,11 @@ const FileUpload: React.FC<FileUploadProps> = ({
     };
 
     const handleChange: UploadProps['onChange'] = (info) => {
-        const merged = [...fileList, ...info.fileList];
-
-        const deduped: UploadFile[] = [];
-        merged.forEach((f) => {
-            const already = deduped.some((d) => {
-                if (d.originFileObj && f.originFileObj) {
-                    return d.originFileObj === f.originFileObj;
-                }
-                if (d.uid && f.uid) return d.uid === f.uid;
-                return d.name === f.name && d.size === f.size;
-            });
-            if (!already) deduped.push(f);
-        });
+        // Use antd's canonical fileList as base
+        const nextList = [...info.fileList];
 
         // Filter out files that exceed size limit
-        const filtered = deduped.filter((file) => {
+        const filtered = nextList.filter((file) => {
             if (file.size && file.size > maxSize * 1024 * 1024) {
                 message.error(`${file.name} exceeds ${maxSize}MB size limit`);
                 return false;
@@ -157,13 +162,25 @@ const FileUpload: React.FC<FileUploadProps> = ({
             return true;
         });
 
-        setFileList(filtered);
-        onChange?.(filtered);
+        // Only update if list actually changed
+        const isSame =
+            fileList.length === filtered.length &&
+            fileList.every((a, i) => {
+                const b = filtered[i] as any;
+                const aAny = a as any;
+                return (
+                    a.uid === b.uid &&
+                    a.name === b.name &&
+                    a.status === b.status &&
+                    (a.url || '') === (b.url || '') &&
+                    (a.size || 0) === (b.size || 0) &&
+                    (aAny.serverId || 0) === (b.serverId || 0)
+                );
+            });
 
-        if (info.file.status === 'done') {
-            message.success(`${info.file.name} uploaded successfully`);
-        } else if (info.file.status === 'error') {
-            message.error(`${info.file.name} upload failed`);
+        if (!isSame) {
+            setFileList(filtered);
+            onChange?.(filtered);
         }
     };
 
