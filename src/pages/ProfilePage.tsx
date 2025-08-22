@@ -68,7 +68,7 @@ const ProfilePage: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="mb-2 flex-row gap-3">
+                        <div className="mb-2 flex flex-col gap-3">
                             {hasDraft ? (
                                 <Tooltip title="Sizda tugallanmagan ariza bor">
                                     <Button
@@ -89,9 +89,11 @@ const ProfilePage: React.FC = () => {
                                     size="large"
                                     type="primary"
                                     icon={<FolderOpenOutlined />}
-                                    onClick={() => navigate('/my-applications')}
+                                    onClick={() =>
+                                        navigate('/submit-application')
+                                    }
                                 >
-                                    Mening arizalarim
+                                    Ariza topshirish
                                 </Button>
                             )}
 
@@ -100,7 +102,7 @@ const ProfilePage: React.FC = () => {
                                 size="large"
                                 icon={<FolderOpenOutlined />}
                                 onClick={() => navigate('/my-applications')}
-                                className="bg-surface-secondary mt-2"
+                                className="bg-surface-secondary"
                             >
                                 Mening arizalarim
                             </Button>
