@@ -56,18 +56,17 @@ export interface IntellectualProperty {
 
 export interface Author {
     id: number;
-    scientist_id: number;
     science_id: string;
     full_name: string;
-    photo?: string;
+    photo: string;
 }
 
 export interface ResearchProject {
     id: number;
     name: string;
+    code: string;
     implemented_deadline: string;
     region: Region;
-    project_manager: ProjectManager;
     science_field: ScienceField;
     executor_organization: ExecutorOrganization;
 }
@@ -83,13 +82,6 @@ export interface Name {
     uz: string;
 }
 
-export interface ProjectManager {
-    id: number;
-    science_id: string;
-    full_name: string;
-    photo: string;
-}
-
 export interface ScienceField {
     id: number;
     name: string;
@@ -100,13 +92,21 @@ export interface ExecutorOrganization {
     tin: string;
     short_name: string;
     registration_date: string;
-    director: Director;
+    director: Director2;
+}
+
+export interface Director2 {
+    id: number;
+    first_name: string;
+    last_name: string;
+    middle_name: string;
+    gender: string;
 }
 
 export interface AdditionalInfo {
     id: number;
     name: string;
-    industry_affiliation: QualityLevel;
+    industry_affiliation: IndustryAffiliation;
     quality_level: QualityLevel;
     bank_information: string;
     export_indicator: ExportIndicator;
@@ -116,10 +116,15 @@ export interface AdditionalInfo {
     development_challenge: string;
     social_impact: string;
     consumer_organizations: ConsumerOrganization[];
-    files: FileData[];
-    contract_files: FileData[];
-    photo_evidences: FileData[];
-    customs_documents: FileData[];
+    files: File[];
+    contract_files: ContractFile[];
+    photo_evidences: PhotoEvidence[];
+    customs_documents: CustomsDocument[];
+}
+
+export interface IndustryAffiliation {
+    id: number;
+    name: string;
 }
 
 export interface QualityLevel {
@@ -128,7 +133,7 @@ export interface QualityLevel {
 }
 
 export interface ExportIndicator {
-    [key: string]: number;
+    '2023': number;
 }
 
 export interface ConsumerOrganization {
@@ -136,10 +141,33 @@ export interface ConsumerOrganization {
     tin: string;
     short_name: string;
     registration_date: string;
-    director: Director;
+    director: Director3;
 }
 
-export interface FileData {
+export interface Director3 {
+    id: number;
+    first_name: string;
+    last_name: string;
+    middle_name: string;
+    gender: string;
+}
+
+export interface File {
+    id: number;
+    file: string;
+}
+
+export interface ContractFile {
+    id: number;
+    file: string;
+}
+
+export interface PhotoEvidence {
+    id: number;
+    file: string;
+}
+
+export interface CustomsDocument {
     id: number;
     file: string;
 }

@@ -77,27 +77,6 @@ const ResearchProjectSection: React.FC<ResearchProjectSectionProps> = ({
 
                 <div className="pt-4 border-t">
                     <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                        <User className="w-5 h-5 mr-2 text-green-600" />
-                        Loyiha rahbari
-                    </h4>
-
-                    <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="flex items-start gap-4">
-                            <div>
-                                <p className="font-semibold text-gray-900">
-                                    {researchProject.project_manager.full_name}
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                    Science ID:{' '}
-                                    {researchProject.project_manager.science_id}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="pt-4 border-t">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                         <Building className="w-5 h-5 mr-2 text-indigo-600" />
                         Loyihaning ijrochi tashkiloti
                     </h4>
