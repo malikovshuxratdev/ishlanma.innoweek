@@ -3,7 +3,6 @@ import { Row, Col, Input, Select, Typography, Card, Pagination } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { message } from 'antd';
 import RatingModal from '../components/modals/RatingModal';
-import ApplicationCard from '../components/cards/ApplicationCard';
 
 const { Title } = Typography;
 const { Search } = Input;

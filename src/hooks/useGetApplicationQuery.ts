@@ -18,3 +18,12 @@ export const useGetApplicationByIdQuery = (id: number) => {
         },
     });
 };
+
+export const useGetAllApplicationsQuery = () => {
+    return useQuery({
+        queryKey: ['getAllApplications'],
+        queryFn: async () => {
+            return await applicationGetApi.getAllApplications();
+        },
+    });
+};

@@ -103,7 +103,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                     lineHeight: '72px',
                 }}
             >
-                <div className="flex items-center justify-between w-full max-w-7xl mx-auto h-full">
+                <div className="flex items-center justify-between w-full max-w-[1400px] mx-auto h-full">
                     {/* Logo */}
                     <Link
                         to="/"

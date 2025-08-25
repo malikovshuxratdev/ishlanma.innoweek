@@ -116,7 +116,7 @@ const InformationRegion = () => {
     }, [selectedRegion, data]);
 
     return (
-        <div className="container py-10">
+        <div className="py-12">
             <Card
                 title={
                     <div className="flex items-center justify-between">

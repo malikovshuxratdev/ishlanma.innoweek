@@ -13,11 +13,14 @@ import {
     Tooltip,
 } from 'recharts';
 import InformationRegion from '../components/InformationRegion';
+import { useGetAllApplicationsQuery } from '../hooks/useGetApplicationQuery';
+import AllApplicationCard from '../components/cards/AllApplicationCard';
 
 const { Title, Paragraph } = Typography;
 
 const HomePage: React.FC = () => {
     const [sectorAsBar, setSectorAsBar] = useState(false);
+    const { data: allApplications } = useGetAllApplicationsQuery();
 
     const sectorData = [
         {
@@ -119,9 +122,37 @@ const HomePage: React.FC = () => {
                 </div>
             </section>
 
-            {/* Statistics Section */}
-            <div className=" py-20 ">
-                <div className="container mx-auto px-6 ">
+            {/* Application Section */}
+            <div className=" max-w-[1400px] mx-auto">
+                <div className="py-12">
+                    <div className="flex items-center justify-between mb-6">
+                        <Title level={2} className="!mb-0">
+                            Ishlanmalar
+                        </Title>
+                        <Button
+                            type="primary"
+                            href="/applications"
+                            className="text-lg"
+                        >
+                            Hammasi
+                        </Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 py-4 mx-auto">
+                        {allApplications?.results
+                            .slice(0, 3)
+                            .map((application) => (
+                                <AllApplicationCard
+                                    key={application.id}
+                                    application={application}
+                                />
+                            ))}
+                    </div>
+                </div>
+
+                {/* Statistics Section */}
+
+                <div className="mx-auto ">
                     <Card
                         title={
                             <div className="flex items-center justify-between">
@@ -258,10 +289,9 @@ const HomePage: React.FC = () => {
                         </div>
                     </Card>
                 </div>
+
+                <InformationRegion />
             </div>
-
-            <InformationRegion />
-
             <style>{`
                 @keyframes fade-in-up {
                     from {
