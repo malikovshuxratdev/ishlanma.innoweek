@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import MapContainer from './cards/MapContainer';
 import RegionsGrid from './cards/RegionsGrid';
+import { Card } from 'antd';
 
 function StatCard({ title, value }: { title: string; value: string }) {
     return (
@@ -16,8 +17,6 @@ function StatCard({ title, value }: { title: string; value: string }) {
 }
 
 const InformationRegion = () => {
-    // Adjusted data shape to match later access pattern (data.regions).
-    // Wrapped in useMemo so reference stays stable (avoids unnecessary effect reruns).
     const data = useMemo(
         () => ({
             regions: [
@@ -81,54 +80,35 @@ const InformationRegion = () => {
         if (regionData) {
             setRegionStats([
                 {
-                    label: 'Foydalanuvchilar soni',
+                    label: 'Kelib tushgan arizalar',
                     value: `${regionData.users_count}`,
                 },
                 {
-                    label: 'Erkaklar',
+                    label: 'Moderatsiyadagi arizalar',
                     value: `${regionData.male_count}`,
                 },
                 {
-                    label: 'Ayollar',
+                    label: 'Qabul qilingan',
                     value: `${regionData.female_count}`,
                 },
                 {
-                    label: '40 yoshgacha',
+                    label: 'Sohalar bo‘yicha ishlanmalar',
                     value: `${regionData.less40_count}`,
-                },
-                {
-                    label: 'Ilmiy darajaga ega',
-                    value: `${regionData.scientific_degree_count}`,
-                },
-                {
-                    label: 'Ilmiy unvonga ega',
-                    value: `${
-                        regionData.scientific_title_count ??
-                        regionData.scientific_degree_count
-                    }`,
                 },
             ]);
         } else {
             setRegionStats([
                 {
-                    label: 'Foydalanuvchilar soni',
+                    label: 'Kelib tushgan arizalar',
                     value: '0',
                 },
-                { label: 'Erkaklar', value: '0' },
+                { label: 'Moderatsiyadagi arizalar', value: '0' },
                 {
-                    label: 'Ayollar',
-                    value: '0',
-                },
-                {
-                    label: '40 yoshgacha',
+                    label: 'Qabul qilingan',
                     value: '0',
                 },
                 {
-                    label: 'Ilmiy darajaga ega',
-                    value: '0',
-                },
-                {
-                    label: 'Ilmiy unvonga ega',
+                    label: 'Sohalar bo‘yicha ishlanmalar',
                     value: '0',
                 },
             ]);
@@ -136,44 +116,49 @@ const InformationRegion = () => {
     }, [selectedRegion, data]);
 
     return (
-        <div className="mx-auto px-3 sm:px-4 lg:px-6 mt-[80px]">
-            <div className="text-center mb-6 sm:mb-10">
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-medium text-gray-900 mb-3 sm:mb-6">
-                    Hududlar statistikasi
-                </h2>
-            </div>
-
-            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
-                <div className="w-full lg:w-2/3 order-2 lg:order-1 bg-gray-50 rounded-2xl shadow-sm p-6">
-                    <div className="px-6 py-4">
-                        <h2 className="text-xl sm:text-xl font-500 text-gray-900">
-                            {getRegionName(selectedRegion)}
-                        </h2>
-                    </div>
-                    <MapContainer
-                        mapId="uzbekistan-map"
-                        onSelectedRegion={setSelectedRegion}
-                        selectedRegion={selectedRegion}
-                    />
-                    {isPending ? (
-                        <RegionStatisticsLoader />
-                    ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6">
-                            {regionStats.map((stat, index) => (
-                                <StatCard
-                                    key={index}
-                                    title={stat.label}
-                                    value={stat.value}
-                                />
-                            ))}
+        <div className="container py-10">
+            <Card
+                title={
+                    <div className="flex items-center justify-between">
+                        <div className="text-lg font-semibold text-gray-900">
+                            Hududlar bo‘yicha maʼlumotlar
                         </div>
-                    )}
-                </div>
+                    </div>
+                }
+                bodyStyle={{ padding: '24px' }}
+            >
+                <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
+                    <div className="w-full lg:w-2/3 order-2 lg:order-1 bg-gray-50 rounded-2xl shadow-sm p-6">
+                        <div className="px-6 py-4">
+                            <h2 className="text-xl sm:text-xl font-500 text-gray-900">
+                                {getRegionName(selectedRegion)}
+                            </h2>
+                        </div>
+                        <MapContainer
+                            mapId="uzbekistan-map"
+                            onSelectedRegion={setSelectedRegion}
+                            selectedRegion={selectedRegion}
+                        />
+                        {isPending ? (
+                            <RegionStatisticsLoader />
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6">
+                                {regionStats.map((stat, index) => (
+                                    <StatCard
+                                        key={index}
+                                        title={stat.label}
+                                        value={stat.value}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
-                <div className="w-full lg:w-1/3 order-1 lg:order-2 mb-4 lg:mb-0">
-                    <RegionsGrid />
+                    <div className="w-full lg:w-1/3 order-1 lg:order-2 mb-4 lg:mb-0">
+                        <RegionsGrid />
+                    </div>
                 </div>
-            </div>
+            </Card>
         </div>
     );
 };

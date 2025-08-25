@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Row, Col, Card, Switch, Tooltip as AntTooltip } from 'antd';
-import { GlobalOutlined, RiseOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { Card, Switch, Tooltip as AntTooltip, Button, Typography } from 'antd';
 import {
     PieChart,
     Pie,
@@ -14,177 +13,182 @@ import {
     Tooltip,
 } from 'recharts';
 import InformationRegion from '../components/InformationRegion';
-import heroBg from '../assets/images/bgImage.webp';
+
+const { Title, Paragraph } = Typography;
 
 const HomePage: React.FC = () => {
-    // Sector (pie/bar) data
-    const sectorData = [
-        { name: 'Information Technology', value: 320, color: '#3B82F6' },
-        { name: 'Biotechnology', value: 245, color: '#10B981' },
-        { name: 'Energy & Environment', value: 180, color: '#F59E0B' },
-        { name: 'Medicine & Healthcare', value: 156, color: '#EF4444' },
-        { name: 'Agriculture', value: 89, color: '#8B5CF6' },
-        { name: 'Manufacturing', value: 67, color: '#06B6D4' },
-    ];
-    // Region bar data
-    const regionData = [
-        { region: 'Tashkent', developments: 456 },
-        { region: 'Samarkand', developments: 234 },
-        { region: 'Bukhara', developments: 189 },
-        { region: 'Fergana', developments: 167 },
-        { region: 'Andijan', developments: 134 },
-        { region: 'Namangan', developments: 98 },
-    ];
-    // Chart type toggle
     const [sectorAsBar, setSectorAsBar] = useState(false);
 
-    // Hide scrollbar during initial entrance animation to avoid flicker
-    useEffect(() => {
-        const originalOverflow = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-        return () => {
-            document.body.style.overflow = originalOverflow;
-        };
-    }, []);
-
-    const handleAnimationEnd = useCallback(() => {
-        // Restore scrolling after animation completes
-        document.body.style.overflow = '';
-    }, []);
+    const sectorData = [
+        {
+            name: 'Kelib tushgan arizalar',
+            value: 320,
+            color: '#3B82F6',
+        },
+        {
+            name: 'Moderatsiyadagi arizalar',
+            value: 245,
+            color: '#10B981',
+        },
+        {
+            name: 'Qabul qilingan',
+            value: 180,
+            color: '#F59E0B',
+        },
+        {
+            name: "Sohalar bo'yicha ishlanmalar",
+            value: 156,
+            color: '#EF4444',
+        },
+    ];
 
     return (
-        <div className="animate-fade-in" onAnimationEnd={handleAnimationEnd}>
-            {/* === Gentle Hero Section === */}
-            <section
-                aria-labelledby="hero-heading"
-                className="relative w-full min-h-[85vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden"
-            >
-                {/* Background */}
-                <div className="absolute inset-0 z-10">
-                    <img
-                        src={heroBg}
-                        alt="Background"
-                        className="w-full h-full object-cover"
-                    />
+        <div className="min-h-screen bg-white">
+            {/* Modern Hero Section */}
+            <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+                {/* Animated Background Elements */}
+                <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute -top-40 -right-32 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
+                    <div className="absolute -bottom-40 -left-32 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse-slow animation-delay-2000"></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-400/10 rounded-full blur-2xl animate-pulse-slow animation-delay-4000"></div>
+
+                    {/* Floating particles */}
+                    {[...Array(20)].map((_, i) => (
+                        <div
+                            key={i}
+                            className={`absolute w-2 h-2 bg-white/20 rounded-full animate-float-${
+                                i % 3
+                            }`}
+                            style={{
+                                left: `${Math.random() * 100}%`,
+                                top: `${Math.random() * 100}%`,
+                                animationDelay: `${Math.random() * 5}s`,
+                                animationDuration: `${3 + Math.random() * 4}s`,
+                            }}
+                        ></div>
+                    ))}
                 </div>
 
-                {/* Content Wrapper */}
                 <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-10">
-                    <div className="mx-auto max-w-4xl text-center">
-                        <h1
-                            id="hero-heading"
-                            className="font-semibold tracking-tight mt-10 sm:mt-0 text-2xl sm:text-4xl lg:text-6xl text-white drop-shadow-[0_4px_10px_rgba(0,0,0,5)]"
-                        >
-                            Yangi ishlanmalar elektron bazasi <br /> axborot
-                            tizimi
-                        </h1>
-                        <p className="mt-6 text-sm sm:text-xl text-slate-300 leading-relaxed font-medium shadow-md">
-                            Innovatsion g‘oyalar va ilmiy ishlanmalaringizni
-                            yagona platformada jamlang. Ariza topshiring,
-                            jarayonni kuzating va natijalarni tahlil qiling.
-                        </p>
+                    <div className="text-center">
+                        <div className="mb-6 overflow-hidden">
+                            <Title
+                                level={1}
+                                className="!text-white !mb-0 !font-black !text-3xl md:!text-5xl lg:!text-6xl !leading-tight animate-slide-in-up"
+                            >
+                                <span className="inline-block animate-fade-in-up animation-delay-800">
+                                    Yagona
+                                </span>{' '}
+                                <span className="inline-block animate-fade-in-up animation-delay-800">
+                                    Ishlanmalar
+                                </span>{' '}
+                                <span className="inline-block animate-fade-in-up animation-delay-800">
+                                    Bazasi
+                                </span>
+                            </Title>
+                        </div>
 
-                        {/* Stats */}
-                        <div
-                            className="mt-14 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6"
-                            aria-label="platform statistics"
-                        >
-                            {[
-                                {
-                                    label: 'Kelib tushgan arizalar',
-                                    value: 1200,
-                                },
-                                {
-                                    label: 'Moderatsiyadagi arizalar',
-                                    value: 450,
-                                },
-                                { label: 'Qabul qilingan', value: 89 },
-                                {
-                                    label: 'Sohalar bo‘yicha ishlanmalar',
-                                    value: 67,
-                                },
-                                {
-                                    label: 'Hududlar bo‘yicha ishlanmalar',
-                                    value: 67,
-                                },
-                            ].map((s) => (
-                                <div
-                                    key={s.label}
-                                    className="group relative overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70 hover:ring-indigo-300 transition-all p-4 flex flex-col items-center shadow-sm hover:shadow-md"
-                                >
-                                    <div className="text-2xl font-semibold text-slate-800 tracking-tight">
-                                        {s.value}
-                                        <span className="text-indigo-500">
-                                            +
-                                        </span>
-                                    </div>
-                                    <div className="mt-1 text-[11px] sm:text-xs font-medium text-slate-600 text-center leading-snug">
-                                        {s.label}
-                                    </div>
-                                    <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-indigo-400 via-blue-400 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                </div>
-                            ))}
+                        {/* Subtitle with Animation */}
+                        <Paragraph className="!text-xl md:!text-2xl !text-slate-200 !mb-12 max-w-4xl mx-auto !leading-relaxed font-light animate-fade-in-up animation-delay-1400">
+                            Yangi ishlanmalar elektron bazasi axborot tizimi.
+                            Innovatsiyalar va ilmiy ishlanmalarni rivojlantirish
+                            uchun zamonaviy platforma.
+                        </Paragraph>
+
+                        {/* CTA Buttons with Animation */}
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 animate-fade-in-up animation-delay-1600">
+                            <Button
+                                type="primary"
+                                size="large"
+                                className="group h-14 px-8 text-lg font-semibold border-0 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105 hover:-translate-y-1 transition-all duration-500 text-white"
+                            >
+                                <span className="flex items-center gap-2">
+                                    Ariza topshirish
+                                </span>
+                            </Button>
+                            <Button
+                                size="large"
+                                className="group h-14 px-8 text-lg font-semibold bg-white/10 backdrop-blur-md border-white/20 text-white rounded-2xl hover:bg-white/20 hover:border-white/40 transition-all duration-500 shadow-lg hover:shadow-xl hover:-translate-y-1 hover:scale-105"
+                            >
+                                <span className="flex items-center gap-2">
+                                    Loyihalar
+                                </span>
+                            </Button>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Main Content */}
-            <div id="stats" className="container mx-auto px-6 py-20">
-                {/* Charts Section */}
-                <Row gutter={[32, 32]} className="mb-20">
-                    <Col xs={24} lg={12}>
-                        <Card
-                            title={
-                                <div className="flex items-center justify-between gap-2">
-                                    <span className="flex items-center gap-2 text-lg font-semibold text-gray-800">
-                                        <GlobalOutlined className="text-blue-500" />
-                                        <span>Projects by Sector</span>
-                                    </span>
-                                    <AntTooltip
-                                        title={
-                                            sectorAsBar
-                                                ? 'Show Pie Chart'
-                                                : 'Show Bar Chart'
-                                        }
-                                    >
-                                        <Switch
-                                            size="default"
-                                            checked={sectorAsBar}
-                                            onChange={setSectorAsBar}
-                                            checkedChildren="Bar"
-                                            unCheckedChildren="Pie"
-                                            className="bg-gradient-to-r from-blue-500 to-indigo-600"
-                                        />
-                                    </AntTooltip>
+            {/* Statistics Section */}
+            <div className=" py-20 ">
+                <div className="container mx-auto px-6 ">
+                    <Card
+                        title={
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="text-xl ">
+                                        Ishlanmalar statistikasi
+                                    </div>
                                 </div>
-                            }
-                            className="!rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border-0"
-                        >
-                            <ResponsiveContainer width="100%" height={300}>
+                                <AntTooltip
+                                    title={
+                                        sectorAsBar
+                                            ? 'Doira diagramma'
+                                            : 'Ustun diagramma'
+                                    }
+                                >
+                                    <Switch
+                                        checked={sectorAsBar}
+                                        onChange={setSectorAsBar}
+                                        checkedChildren="📊"
+                                        unCheckedChildren="🥧"
+                                        className="bg-gray-300 hover:bg-blue-500 transition-colors duration-300"
+                                    />
+                                </AntTooltip>
+                            </div>
+                        }
+                        bodyStyle={{ padding: '32px' }}
+                    >
+                        <div className="flex flex-col lg:flex-row items-center gap-8">
+                            <ResponsiveContainer
+                                width="100%"
+                                height={400}
+                                className="lg:w-1/2"
+                            >
                                 {sectorAsBar ? (
-                                    <BarChart data={sectorData}>
+                                    <BarChart
+                                        data={sectorData}
+                                        margin={{
+                                            top: 20,
+                                            right: 30,
+                                            left: 20,
+                                            bottom: 5,
+                                        }}
+                                    >
                                         <CartesianGrid
                                             strokeDasharray="3 3"
-                                            stroke="#E5E7EB"
+                                            stroke="#f0f0f0"
                                         />
                                         <XAxis dataKey="name" hide />
-                                        <YAxis stroke="#6B7280" />
+                                        <YAxis stroke="#666" />
                                         <Tooltip
                                             contentStyle={{
                                                 backgroundColor: 'white',
-                                                border: '1px solid #E5E7EB',
-                                                borderRadius: '12px',
+                                                border: 'none',
+                                                borderRadius: '16px',
                                                 boxShadow:
-                                                    '0 10px 25px rgba(0,0,0,0.1)',
+                                                    '0 10px 40px rgba(0,0,0,0.15)',
                                             }}
                                         />
                                         <Bar
                                             dataKey="value"
-                                            radius={[8, 8, 0, 0]}
+                                            radius={[12, 12, 0, 0]}
                                         >
-                                            {sectorData.map((s, i) => (
-                                                <Cell key={i} fill={s.color} />
+                                            {sectorData.map((entry, index) => (
+                                                <Cell
+                                                    key={index}
+                                                    fill={entry.color}
+                                                />
                                             ))}
                                         </Bar>
                                     </BarChart>
@@ -194,15 +198,10 @@ const HomePage: React.FC = () => {
                                             data={sectorData}
                                             cx="50%"
                                             cy="50%"
-                                            innerRadius={50}
-                                            outerRadius={100}
+                                            innerRadius={60}
+                                            outerRadius={120}
                                             paddingAngle={3}
                                             dataKey="value"
-                                            label={({ percent }) =>
-                                                `${(
-                                                    (percent ?? 0) * 100
-                                                ).toFixed(0)}%`
-                                            }
                                         >
                                             {sectorData.map((entry, index) => (
                                                 <Cell
@@ -214,94 +213,155 @@ const HomePage: React.FC = () => {
                                         <Tooltip
                                             contentStyle={{
                                                 backgroundColor: 'white',
-                                                border: '1px solid #E5E7EB',
-                                                borderRadius: '12px',
+                                                border: 'none',
+                                                borderRadius: '16px',
                                                 boxShadow:
-                                                    '0 10px 25px rgba(0,0,0,0.1)',
+                                                    '0 10px 40px rgba(0,0,0,0.15)',
                                             }}
                                         />
                                     </PieChart>
                                 )}
                             </ResponsiveContainer>
-                            <div className="flex flex-wrap gap-3 mt-6">
-                                {sectorData.map((s) => (
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                                {sectorData.map((item) => (
                                     <div
-                                        key={s.name}
-                                        className="flex items-center gap-2 text-sm"
+                                        key={item.name}
+                                        className="group flex items-center gap-4 p-4 rounded-2xl hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-300 border border-transparent hover:border-blue-100"
                                     >
-                                        <span
-                                            className="inline-block w-3 h-3 rounded-sm"
-                                            style={{ background: s.color }}
-                                        />
-                                        <span className="text-gray-600">
-                                            {s.name}
-                                        </span>
+                                        <div className="flex items-center gap-3">
+                                            <div
+                                                className="w-4 h-4 rounded-full group-hover:scale-125 transition-transform duration-300"
+                                                style={{
+                                                    backgroundColor: item.color,
+                                                    boxShadow: `0 0 20px ${item.color}40`,
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-sm font-semibold text-gray-900 truncate group-hover:text-blue-900 transition-colors duration-300">
+                                                {item.name}
+                                            </div>
+                                            <div className="text-xs text-gray-500 font-medium">
+                                                {item.value} ta loyiha
+                                            </div>
+                                        </div>
+                                        <div
+                                            className="text-2xl font-bold"
+                                            style={{ color: item.color }}
+                                        >
+                                            {item.value}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
-                        </Card>
-                    </Col>
-
-                    <Col xs={24} lg={12}>
-                        <Card
-                            title={
-                                <span className="flex items-center gap-2 text-lg font-semibold text-gray-800">
-                                    <RiseOutlined className="text-purple-500" />
-                                    Projects by Region
-                                </span>
-                            }
-                            className="!rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border-0"
-                        >
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={regionData}>
-                                    <defs>
-                                        <linearGradient
-                                            id="regionGradient"
-                                            x1="0"
-                                            y1="0"
-                                            x2="0"
-                                            y2="1"
-                                        >
-                                            <stop
-                                                offset="0%"
-                                                stopColor="#8B5CF6"
-                                            />
-                                            <stop
-                                                offset="100%"
-                                                stopColor="#6366F1"
-                                            />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid
-                                        strokeDasharray="3 3"
-                                        stroke="#E5E7EB"
-                                    />
-                                    <XAxis dataKey="region" stroke="#6B7280" />
-                                    <YAxis stroke="#6B7280" />
-                                    <Tooltip
-                                        cursor={{
-                                            fill: 'rgba(139, 92, 246, 0.1)',
-                                        }}
-                                        contentStyle={{
-                                            backgroundColor: 'white',
-                                            border: '1px solid #E5E7EB',
-                                            borderRadius: '12px',
-                                            boxShadow:
-                                                '0 10px 25px rgba(0,0,0,0.1)',
-                                        }}
-                                    />
-                                    <Bar
-                                        dataKey="developments"
-                                        fill="url(#regionGradient)"
-                                        radius={[8, 8, 0, 0]}
-                                    />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </Card>
-                    </Col>
-                </Row>
+                        </div>
+                    </Card>
+                </div>
             </div>
+
             <InformationRegion />
+
+            <style>{`
+                @keyframes fade-in-up {
+                    from {
+                        opacity: 0;
+                        transform: translate3d(0, 30px, 0);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translate3d(0, 0, 0);
+                    }
+                }
+
+                @keyframes slide-in-up {
+                    from {
+                        opacity: 0;
+                        transform: translate3d(0, 100px, 0);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translate3d(0, 0, 0);
+                    }
+                }
+
+                @keyframes pulse-slow {
+                    0%, 100% { 
+                        opacity: 0.4;
+                        transform: scale(1);
+                    }
+                    50% { 
+                        opacity: 0.8;
+                        transform: scale(1.1);
+                    }
+                }
+
+                @keyframes float-0 {
+                    0%, 100% { transform: translateY(0px) translateX(0px); }
+                    25% { transform: translateY(-10px) translateX(5px); }
+                    50% { transform: translateY(-5px) translateX(-5px); }
+                    75% { transform: translateY(-15px) translateX(3px); }
+                }
+
+                @keyframes float-1 {
+                    0%, 100% { transform: translateY(0px) translateX(0px); }
+                    33% { transform: translateY(-15px) translateX(-8px); }
+                    66% { transform: translateY(-8px) translateX(8px); }
+                }
+
+                @keyframes float-2 {
+                    0%, 100% { transform: translateY(0px) translateX(0px); }
+                    50% { transform: translateY(-20px) translateX(-10px); }
+                }
+
+                .animate-fade-in-up {
+                    animation: fade-in-up 0.8s ease-out forwards;
+                }
+
+                .animate-slide-in-up {
+                    animation: slide-in-up 1s ease-out forwards;
+                }
+
+                .animate-pulse-slow {
+                    animation: pulse-slow 4s ease-in-out infinite;
+                }
+
+                .animate-float-0 {
+                    animation: float-0 6s ease-in-out infinite;
+                }
+
+                .animate-float-1 {
+                    animation: float-1 8s ease-in-out infinite;
+                }
+
+                .animate-float-2 {
+                    animation: float-2 7s ease-in-out infinite;
+                }
+
+                .animation-delay-500 { animation-delay: 0.5s; }
+                .animation-delay-800 { animation-delay: 0.8s; }
+                .animation-delay-1000 { animation-delay: 1.0s; }
+                .animation-delay-1200 { animation-delay: 1.2s; }
+                .animation-delay-1400 { animation-delay: 1.4s; }
+                .animation-delay-1600 { animation-delay: 1.6s; }
+                .animation-delay-1800 { animation-delay: 1.8s; }
+                .animation-delay-2000 { animation-delay: 2.0s; }
+                .animation-delay-4000 { animation-delay: 4.0s; }
+
+                /* Ensure animations start hidden */
+                .animate-fade-in-up,
+                .animate-slide-in-up {
+                    opacity: 0;
+                }
+
+                /* Gradient text support for older browsers */
+                .gradient-text {
+                    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                }
+            `}</style>
         </div>
     );
 };

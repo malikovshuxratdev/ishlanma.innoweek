@@ -10,7 +10,6 @@ interface Region {
 }
 
 const RegionsGrid = () => {
-    // Mahalliy vaqtinchalik data (keyinchalik API dan olinadi)
     const data: { regions: Region[] } = {
         regions: [
             {
