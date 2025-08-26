@@ -89,10 +89,6 @@ const AllApplicationCard: React.FC<ApplicationCardProps> = ({
                     </Button>
                     <Button
                         type="primary"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleViewDetails();
-                        }}
                         className="flex-1 h-10 rounded-xl font-semibold flex items-center justify-center gap-2"
                     >
                         <span className="flex items-center justify-center gap-2">
