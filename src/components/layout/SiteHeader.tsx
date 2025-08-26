@@ -7,14 +7,12 @@ import {
     Dropdown,
     Space,
     Drawer,
-    Badge,
     Divider,
 } from 'antd';
 import { Link, useLocation } from 'react-router-dom';
 import {
     UserOutlined,
     LogoutOutlined,
-    SettingOutlined,
     MenuOutlined,
     DownOutlined,
 } from '@ant-design/icons';
@@ -109,16 +107,16 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                         to="/"
                         className="flex items-center space-x-3 group transition-all duration-300 hover:scale-105"
                     >
-                        <div className="relative">
+                        <div className="flex items-center space-x-3">
                             <img
                                 src={logoImage}
-                                alt="Platforma logotipi"
-                                className="w-8 h-10 transition-transform"
+                                alt="Logo"
+                                className="w-8 h-10"
                             />
+                            <span className="text-xl font-bold">
+                                Ishlanma.ilmiy.uz
+                            </span>
                         </div>
-                        <span className="text-xl font-bold ">
-                            Ishlanma.ilmiy.uz
-                        </span>
                     </Link>
 
                     {/* Desktop Navigation */}
@@ -152,7 +150,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                                 }}
                             >
                                 <div className="cursor-pointer">
-                                    <Space className="px-4 rounded-xl bg-gradient-to-r from-gray-50 to-white border border-gray-200 hover:from-blue-50 hover:to-indigo-50 hover:border-blue-200 transition-all duration-300 shadow-sm hover:shadow-md">
+                                    <Space className="rounded-xl border border-gray-200">
                                         <Avatar
                                             src={
                                                 userProfile?.photo
@@ -164,7 +162,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                                             className="border-2 border-white shadow-sm"
                                         />
                                         <div className="hidden lg:block text-left">
-                                            <div className="text-sm font-semibold text-gray-900 max-w-32 truncate">
+                                            <div className="text-sm font-semibold text-gray-900 max-w-full truncate">
                                                 {userLoading
                                                     ? '...'
                                                     : userProfile
@@ -220,8 +218,8 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                 title={
                     <div className="flex items-center space-x-3">
                         <img src={logoImage} alt="Logo" className="w-8 h-10" />
-                        <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            Ishlanma
+                        <span className="text-xl font-bold">
+                            Ishlanma.ilmiy.uz
                         </span>
                     </div>
                 }
@@ -262,21 +260,20 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
 
                 {/* Mobile User Section */}
                 {token ? (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100">
                             <div className="flex items-center space-x-4 mb-4">
-                                <Badge dot status="success" offset={[-5, 5]}>
-                                    <Avatar
-                                        src={
-                                            userProfile?.photo
-                                                ? `${ImageUrl}/${userProfile.photo}`
-                                                : undefined
-                                        }
-                                        icon={<UserOutlined />}
-                                        size={56}
-                                        className="border-2 border-blue-200 shadow-sm"
-                                    />
-                                </Badge>
+                                <Avatar
+                                    src={
+                                        userProfile?.photo
+                                            ? `${ImageUrl}/${userProfile.photo}`
+                                            : undefined
+                                    }
+                                    icon={<UserOutlined />}
+                                    size={56}
+                                    className="border-2 border-blue-200 shadow-sm"
+                                />
+
                                 <div className="flex-1 min-w-0">
                                     <div className="font-semibold text-gray-900 truncate">
                                         {userLoading
@@ -300,9 +297,8 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                                 onClick={() => setMobileMenuVisible(false)}
                                 className="flex items-center space-x-3 p-4 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 bg-white border border-gray-100"
                             >
-                                <SettingOutlined className="text-blue-500 text-lg" />
                                 <span className="font-medium">
-                                    Profil sozlamalari
+                                    Profil ma'lumotlari
                                 </span>
                             </Link>
                             <button
@@ -341,7 +337,6 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                 )}
             </Drawer>
 
-            {/* Custom Styles */}
             <style>{`
                 .user-dropdown .ant-dropdown-menu {
                     border-radius: 12px !important;
