@@ -272,7 +272,7 @@ const HomePage: React.FC = () => {
                                 </AntTooltip>
                             </div>
                         }
-                        bodyStyle={{ padding: '24px' }}
+                        style={{ padding: '24px' }}
                         className="shadow-lg border-0 rounded-2xl overflow-visible"
                     >
                         <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">

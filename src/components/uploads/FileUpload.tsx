@@ -330,7 +330,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                                             ? 'ring-2 ring-blue-400'
                                             : ''
                                     }`}
-                                    bodyStyle={{ padding: '8px 12px' }}
+                                    style={{ padding: '8px 12px' }}
                                 >
                                     <div className="flex items-center justify-between gap-2">
                                         <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
@@ -454,7 +454,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                                                 ? 'ring-2 ring-blue-400'
                                                 : ''
                                         }`}
-                                        bodyStyle={{ padding: '8px' }}
+                                        style={{ padding: '8px' }}
                                         actions={[
                                             <Button
                                                 key="preview"
@@ -589,8 +589,6 @@ const FileUpload: React.FC<FileUploadProps> = ({
                 style={{
                     top: window.innerWidth < 640 ? 10 : 20,
                     maxWidth: window.innerWidth < 640 ? '100vw' : '90vw',
-                }}
-                bodyStyle={{
                     padding: 0,
                     height: window.innerWidth < 640 ? '60vh' : '70vh',
                     maxHeight: '80vh',

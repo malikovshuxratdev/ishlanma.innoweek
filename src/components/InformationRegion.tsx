@@ -127,7 +127,7 @@ const InformationRegion = () => {
                         </div>
                     </div>
                 }
-                bodyStyle={{ padding: '24px' }}
+                style={{ padding: '24px' }}
             >
                 <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
                     <div className="w-full lg:w-2/3 order-2 lg:order-1 bg-gray-50 rounded-2xl shadow-sm p-6">
