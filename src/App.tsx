@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, message } from 'antd';
+import { MessageProvider } from './contexts/MessageContext';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import ApplicationsPage from './pages/ApplicationsPage';
@@ -11,6 +12,8 @@ import ApplicationWizard from './pages/ApplicationWizard';
 import './App.css';
 
 const App: React.FC = () => {
+    const [messageApi, contextHolder] = message.useMessage();
+
     return (
         <ConfigProvider
             theme={{
@@ -20,40 +23,46 @@ const App: React.FC = () => {
                 },
             }}
         >
-            <Router>
-                <Routes>
-                    <Route
-                        path="*"
-                        element={
-                            <Layout>
-                                <Routes>
-                                    <Route path="/" element={<HomePage />} />
-                                    <Route
-                                        path="/applications"
-                                        element={<ApplicationsPage />}
-                                    />
-                                    <Route
-                                        path="/applications/:id"
-                                        element={<ApplicationDetailPage />}
-                                    />
-                                    <Route
-                                        path="/profile"
-                                        element={<ProfilePage />}
-                                    />
-                                    <Route
-                                        path="/my-applications"
-                                        element={<MyApplicationsPage />}
-                                    />
-                                    <Route
-                                        path="/submit-application"
-                                        element={<ApplicationWizard />}
-                                    />
-                                </Routes>
-                            </Layout>
-                        }
-                    />
-                </Routes>
-            </Router>
+            <MessageProvider value={messageApi}>
+                {contextHolder}
+                <Router>
+                    <Routes>
+                        <Route
+                            path="*"
+                            element={
+                                <Layout>
+                                    <Routes>
+                                        <Route
+                                            path="/"
+                                            element={<HomePage />}
+                                        />
+                                        <Route
+                                            path="/applications"
+                                            element={<ApplicationsPage />}
+                                        />
+                                        <Route
+                                            path="/applications/:id"
+                                            element={<ApplicationDetailPage />}
+                                        />
+                                        <Route
+                                            path="/profile"
+                                            element={<ProfilePage />}
+                                        />
+                                        <Route
+                                            path="/my-applications"
+                                            element={<MyApplicationsPage />}
+                                        />
+                                        <Route
+                                            path="/submit-application"
+                                            element={<ApplicationWizard />}
+                                        />
+                                    </Routes>
+                                </Layout>
+                            }
+                        />
+                    </Routes>
+                </Router>
+            </MessageProvider>
         </ConfigProvider>
     );
 };

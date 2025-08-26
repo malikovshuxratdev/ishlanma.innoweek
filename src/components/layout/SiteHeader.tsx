@@ -9,7 +9,7 @@ import {
     Drawer,
     Divider,
 } from 'antd';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
     UserOutlined,
     LogoutOutlined,
@@ -18,53 +18,52 @@ import {
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { TokenService } from '../../utils/storage';
-import { useUserProfileQuery } from '../../hooks/useOauthScienceIdMutate';
+import {
+    useLogOut,
+    useUserProfileQuery,
+} from '../../hooks/useOauthScienceIdMutate';
 import logoImage from '../../assets/images/Logo.svg';
 
 const ImageUrl = import.meta.env.VITE_BASE_URI;
 
 interface SiteHeaderProps {
     onLoginClick: () => void;
-    onLogout: () => void;
     isPending: boolean;
 }
 
 const { Header } = AntLayout;
 
-const SiteHeader: React.FC<SiteHeaderProps> = ({
-    onLoginClick,
-    onLogout,
-    isPending,
-}) => {
+const SiteHeader: React.FC<SiteHeaderProps> = ({ onLoginClick, isPending }) => {
     const location = useLocation();
+    const navigate = useNavigate();
     const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
     const token = TokenService.getToken();
-    const { data: userProfile, isLoading: userLoading } = useUserProfileQuery();
+    const { data: userProfile } = useUserProfileQuery();
+    const onLogout = useLogOut();
+    const handleLogout = () => {
+        onLogout();
+        navigate('/');
+    };
+
+    const handleUserMenuClick: MenuProps['onClick'] = (info) => {
+        const { key } = info;
+        if (key === 'profile') {
+            navigate('/profile');
+        } else if (key === 'logout') {
+            handleLogout();
+        }
+    };
 
     const userMenuItems: MenuProps['items'] = [
         {
             key: 'profile',
-            label: (
-                <Link
-                    to="/profile"
-                    className="text-gray-700 hover:text-blue-600"
-                >
-                    Profil ma'lumotlari
-                </Link>
-            ),
+            label: <span className="text-gray-700">Profil ma'lumotlari</span>,
         },
         { type: 'divider' },
         {
             key: 'logout',
             icon: <LogoutOutlined className="text-red-500" />,
-            label: (
-                <span
-                    onClick={onLogout}
-                    className="text-red-600 hover:text-red-700 cursor-pointer"
-                >
-                    Chiqish
-                </span>
-            ),
+            label: <span className="text-red-600">Chiqish</span>,
         },
     ];
 
@@ -102,7 +101,6 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                 }}
             >
                 <div className="flex items-center justify-between w-full max-w-[1400px] mx-auto h-full">
-                    {/* Logo */}
                     <Link
                         to="/"
                         className="flex items-center space-x-3 group transition-all duration-300 hover:scale-105"
@@ -114,7 +112,6 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                         />
                     </Link>
 
-                    {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center">
                         <Menu
                             mode="horizontal"
@@ -129,11 +126,13 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                         />
                     </div>
 
-                    {/* User Section */}
                     <div className="flex items-center space-x-4">
                         {token ? (
                             <Dropdown
-                                menu={{ items: userMenuItems }}
+                                menu={{
+                                    items: userMenuItems,
+                                    onClick: handleUserMenuClick,
+                                }}
                                 placement="bottomRight"
                                 trigger={['click']}
                                 overlayClassName="user-dropdown"
@@ -158,17 +157,8 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                                         />
                                         <div className="hidden lg:block text-left">
                                             <div className="text-sm font-semibold text-gray-900 max-w-full truncate">
-                                                {userLoading
-                                                    ? '...'
-                                                    : userProfile
-                                                    ? `${
-                                                          userProfile.sur_name ??
-                                                          ''
-                                                      } ${
-                                                          userProfile.first_name ??
-                                                          ''
-                                                      }`.trim()
-                                                    : 'Foydalanuvchi'}
+                                                {userProfile?.sur_name ?? ''}{' '}
+                                                {userProfile?.first_name ?? ''}
                                             </div>
                                             <div className="text-xs text-gray-500 max-w-32 truncate">
                                                 {userProfile?.science_id || ''}
@@ -195,8 +185,6 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                                 {isPending ? 'Yuklanmoqda...' : 'Kirish'}
                             </Button>
                         )}
-
-                        {/* Mobile Menu Button */}
                         <Button
                             type="text"
                             icon={<MenuOutlined />}
@@ -208,7 +196,6 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                 </div>
             </Header>
 
-            {/* Mobile Drawer */}
             <Drawer
                 title={
                     <div className="space-x-3">
@@ -237,7 +224,6 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                     },
                 }}
             >
-                {/* Mobile Navigation */}
                 <div className="mb-8">
                     <Menu
                         mode="vertical"
@@ -254,7 +240,6 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
 
                 <Divider className="my-6" />
 
-                {/* Mobile User Section */}
                 {token ? (
                     <div className="space-y-4">
                         <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100">
@@ -272,9 +257,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
 
                                 <div className="flex-1 min-w-0">
                                     <div className="font-semibold text-gray-900 truncate">
-                                        {userLoading
-                                            ? 'Yuklanmoqda...'
-                                            : userProfile
+                                        {userProfile
                                             ? `${userProfile.sur_name ?? ''} ${
                                                   userProfile.first_name ?? ''
                                               }`.trim()
@@ -298,10 +281,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                                 </span>
                             </Link>
                             <button
-                                onClick={() => {
-                                    onLogout();
-                                    setMobileMenuVisible(false);
-                                }}
+                                onClick={handleLogout}
                                 className="w-full flex items-center space-x-3 p-4 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-200 bg-white border border-gray-100"
                             >
                                 <LogoutOutlined className="text-red-500 text-lg" />

@@ -1,10 +1,9 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Layout as AntLayout } from 'antd';
 import SiteHeader from './layout/SiteHeader';
 import SiteFooter from './layout/SiteFooter';
 import {
     useLoginScienceId,
-    useLogOut,
     useOauthScienceId,
 } from '../hooks/useOauthScienceIdMutate';
 import { useLocation } from 'react-router-dom';
@@ -20,7 +19,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     const { mutate: loginMutate, isPending } = useLoginScienceId();
     const codeRef = useRef<string | null>(null);
     const location = useLocation();
-    const logOut = useLogOut();
 
     useEffect(() => {
         const newCode = new URLSearchParams(location.search).get('code');
@@ -36,31 +34,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         mutate();
         console.log('Login initiated');
     }, [mutate]);
-    const [darkMode, setDarkMode] = useState(false);
-
-    const toggleDarkMode = () => {
-        setDarkMode((prev) => {
-            const next = !prev;
-            document.documentElement.setAttribute(
-                'data-theme',
-                next ? 'dark' : 'light'
-            );
-            return next;
-        });
-    };
 
     return (
         <AntLayout
-            className={`min-h-screen ${darkMode ? 'dark-theme' : ''}`}
+            className={`min-h-screen`}
             style={{ overflow: 'hidden', scrollBehavior: 'smooth' }}
         >
-            <SiteHeader
-                darkMode={darkMode}
-                toggleDarkMode={toggleDarkMode}
-                onLoginClick={handleLogin}
-                onLogout={logOut}
-                isPending={isPending}
-            />
+            <SiteHeader onLoginClick={handleLogin} isPending={isPending} />
             <div className="pt-16 flex flex-col min-h-screen">
                 <Content className="flex-1 overflow-y-hidden bg-background">
                     {children}

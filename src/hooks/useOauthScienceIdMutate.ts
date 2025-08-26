@@ -7,7 +7,7 @@ import {
 } from '../types/oauthScienceIdType';
 import { TokenService } from '../utils/storage';
 import { useQuery } from './useQuery';
-import { message } from 'antd';
+import { useAppMessage } from '../contexts/MessageContext';
 
 export const useOauthScienceId = () => {
     const mutate = useMutation({
@@ -59,11 +59,13 @@ export const useUserProfileQuery = () => {
 
 export const useLogOut = () => {
     const navigate = useNavigate();
+    const appMessage = useAppMessage();
 
     const logOut = () => {
         TokenService.clearTokens();
         navigate('/');
-        message.success('Siz tizimdan chiqdingiz');
+        appMessage?.success?.('Siz tizimdan chiqdingiz');
+        window.location.reload();
     };
 
     return logOut;
