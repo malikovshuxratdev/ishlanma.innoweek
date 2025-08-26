@@ -71,8 +71,6 @@ export class BaseClient {
                 TokenService.clearTokens();
                 // 401 xatolik bo'lsa, tokenlarni tozalab, bosh sahifasiga yo'naltiramiz
                 window.location.href = '/';
-                // Sahifani qayta yuklash
-                window.location.reload();
                 return;
             }
             if (error.response?.status === 502) {

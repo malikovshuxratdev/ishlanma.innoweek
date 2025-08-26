@@ -39,7 +39,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                             Yangi ishlanmani tijoratlashtirishga tayyorlash
                             bo'yicha amalga oshirilgan loyiha:{' '}
                             <span className="font-medium text-gray-900">
-                                {additionalInfo.name}
+                                {additionalInfo?.name}
                             </span>
                         </h3>
                     </div>
@@ -51,7 +51,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                                     Ishlanmaning mukammallik (yetuklik) darajasi
                                 </h4>
                                 <p className="text-gray-900">
-                                    {additionalInfo.quality_level.name}
+                                    {additionalInfo?.quality_level?.name}
                                 </p>
                             </div>
 
@@ -64,14 +64,14 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                                     <p className="text-gray-600">
                                         Shartnomalar soni:{' '}
                                         <span className="font-semibold text-gray-900">
-                                            {additionalInfo.contract_count.toLocaleString()}
+                                            {additionalInfo?.contract_count?.toLocaleString()}
                                         </span>
                                     </p>
                                     <p className="text-gray-600">
                                         Shartnoma summasi:{' '}
                                         <span className="font-semibold text-gray-900">
                                             {formatCurrency(
-                                                additionalInfo.contract_amount
+                                                additionalInfo?.contract_amount
                                             )}
                                         </span>
                                     </p>
@@ -88,7 +88,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                                 <div className="space-y-1">
                                     {/* Individual year values */}
                                     {Object.entries(
-                                        additionalInfo.export_indicator
+                                        additionalInfo?.export_indicator
                                     ).map(([year, value]) => (
                                         <p
                                             key={year}
@@ -124,7 +124,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                                 Ishlanmani yaratishda yuzaga kelgan muammolar
                             </h4>
                             <p className="text-gray-700 leading-relaxed">
-                                {additionalInfo.development_challenge}
+                                {additionalInfo?.development_challenge}
                             </p>
                         </div>
 
@@ -133,7 +133,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                                 Ishlanmaning ijtimoiy ahamiyati
                             </h4>
                             <p className="text-gray-700 leading-relaxed">
-                                {additionalInfo.social_impact}
+                                {additionalInfo?.social_impact}
                             </p>
                         </div>
                     </div>
@@ -148,22 +148,25 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                 </h3>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {additionalInfo.consumer_organizations.map((org) => (
-                        <div key={org.id} className="bg-gray-50 rounded-lg p-4">
+                    {additionalInfo?.consumer_organizations?.map((org) => (
+                        <div
+                            key={org?.id}
+                            className="bg-gray-50 rounded-lg p-4"
+                        >
                             <h4 className="font-medium text-gray-900 mb-2">
-                                {org.short_name}
+                                {org?.short_name}
                             </h4>
                             <div className="text-sm space-y-1">
                                 <p className="text-gray-600">
                                     TIN:{' '}
                                     <span className="font-mono text-gray-900">
-                                        {org.tin}
+                                        {org?.tin}
                                     </span>
                                 </p>
                                 <p className="text-gray-600">
                                     Ro'yxatga olingan sana:{' '}
                                     <span className="text-gray-900">
-                                        {moment(org.registration_date).format(
+                                        {moment(org?.registration_date).format(
                                             'DD MMMM YYYY'
                                         )}
                                     </span>
@@ -171,8 +174,8 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                                 <p className="text-gray-600">
                                     Direktor:{' '}
                                     <span className="text-gray-900">
-                                        {org.director.last_name}{' '}
-                                        {org.director.first_name}
+                                        {org?.director?.last_name}{' '}
+                                        {org?.director?.first_name}
                                     </span>
                                 </p>
                             </div>
@@ -181,14 +184,14 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                 </div>
             </section>
 
-            {additionalInfo.files.length > 0 && (
+            {additionalInfo?.files?.length > 0 && (
                 <section className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">
                         Yangi ishlanmani tijoratlashtirishga tayyorlash yoki
                         tijoratlashtirish istagini bildirgan ishlanma rasmi
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {additionalInfo.files.map((file, idx) => (
+                        {additionalInfo?.files?.map((file, idx) => (
                             <FilePreview
                                 key={file.id ?? idx}
                                 file={`${URL}${file.file}`}
@@ -199,14 +202,14 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                 </section>
             )}
 
-            {additionalInfo.photo_evidences.length > 0 && (
+            {additionalInfo?.photo_evidences?.length > 0 && (
                 <section className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">
                         Ishlanmaning sanoat namunasini yaratish jarayonidan foto
                         lavhalar
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {additionalInfo.photo_evidences.map((file, idx) => (
+                        {additionalInfo?.photo_evidences?.map((file, idx) => (
                             <FilePreview
                                 key={file.id ?? idx}
                                 file={`${URL}${file.file}`}
@@ -217,26 +220,28 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                 </section>
             )}
 
-            {additionalInfo.customs_documents.length > 0 && (
+            {additionalInfo?.customs_documents?.length > 0 && (
                 <section className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">
                         Bojxona xizmatlaridan foydalanganligi bo'yicha hujjatlar
                     </h3>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {additionalInfo.customs_documents.map((doc, index) => (
-                            <FilePreview
-                                key={index}
-                                isDownload
-                                file={`${URL}${doc.file}`}
-                                fileName="Bojxona xizmatlaridan foydalanganligi boʻyicha hujjatlar"
-                            />
-                        ))}
+                        {additionalInfo?.customs_documents?.map(
+                            (doc, index) => (
+                                <FilePreview
+                                    key={index}
+                                    isDownload
+                                    file={`${URL}${doc.file}`}
+                                    fileName="Bojxona xizmatlaridan foydalanganligi boʻyicha hujjatlar"
+                                />
+                            )
+                        )}
                     </div>
                 </section>
             )}
 
-            {additionalInfo.contract_files.length > 0 && (
+            {additionalInfo?.contract_files?.length > 0 && (
                 <section className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">
                         Sotuv shartnomalari soni va summasi, asoslovchi
@@ -244,7 +249,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                     </h3>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {additionalInfo.contract_files.map((doc, index) => (
+                        {additionalInfo?.contract_files?.map((doc, index) => (
                             <FilePreview
                                 key={index}
                                 isDownload
@@ -256,7 +261,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                 </section>
             )}
 
-            {additionalInfo.production_facility_document.length > 0 && (
+            {additionalInfo?.production_facility_document?.length > 0 && (
                 <section className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">
                         Ishlanmani ishlab chiqarish joyi (kadastr pasporti va
@@ -266,7 +271,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <FilePreview
                             isDownload
-                            file={`${URL}${additionalInfo.production_facility_document}`}
+                            file={`${URL}${additionalInfo?.production_facility_document}`}
                             fileName="Kadastr pasporti"
                         />
                     </div>

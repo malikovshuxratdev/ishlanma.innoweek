@@ -28,7 +28,7 @@ const DevelopmentSection: React.FC<DevelopmentSectionProps> = ({
                             className="text-2xl font-bold text-gray-900 mb-2"
                             aria-label="Loyiha nomi"
                         >
-                            {development?.name ?? '—'}
+                            {development?.name}
                         </h3>
 
                         <p className="text-gray-700 leading-relaxed whitespace-pre-line bg-gray-50 p-4 rounded-lg">
@@ -37,8 +37,7 @@ const DevelopmentSection: React.FC<DevelopmentSectionProps> = ({
                             </span>
                             <br />
                             <span className="block mt-2 text-gray-700">
-                                {development?.description ??
-                                    'Tavsif mavjud emas.'}
+                                {development?.description}
                             </span>
                         </p>
                     </div>
@@ -52,7 +51,7 @@ const DevelopmentSection: React.FC<DevelopmentSectionProps> = ({
                                     </dt>
                                     <dd className="text-gray-900 font-medium">
                                         {moment(
-                                            development.creation_date
+                                            development?.creation_date
                                         ).format('DD MMMM YYYY')}
                                     </dd>
                                 </div>
@@ -62,7 +61,7 @@ const DevelopmentSection: React.FC<DevelopmentSectionProps> = ({
                                     </dt>
                                     <dd className="text-gray-900 font-medium">
                                         {moment(
-                                            development.certificate_date
+                                            development?.certificate_date
                                         ).format('DD MMMM YYYY')}
                                     </dd>
                                 </div>
@@ -76,7 +75,7 @@ const DevelopmentSection: React.FC<DevelopmentSectionProps> = ({
                                         Sertifikat turi
                                     </p>
                                     <p className="text-gray-900 font-semibold capitalize">
-                                        {development.certificate_type}
+                                        {development?.certificate_type}
                                     </p>
                                 </div>
                                 <div className="text-right">
@@ -84,7 +83,7 @@ const DevelopmentSection: React.FC<DevelopmentSectionProps> = ({
                                         Raqam
                                     </p>
                                     <p className="font-mono text-gray-900">
-                                        {development.certificate_number}
+                                        {development?.certificate_number}
                                     </p>
                                 </div>
                             </div>
@@ -100,14 +99,14 @@ const DevelopmentSection: React.FC<DevelopmentSectionProps> = ({
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gray-50 p-4 rounded-lg">
                         <div className="flex-1 w-full">
                             <h5 className="text-md font-semibold text-gray-900">
-                                {development.organization.short_name}
+                                {development?.organization?.short_name}
                             </h5>
 
                             <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
                                 <div>
                                     <p className="text-gray-600">TIN</p>
                                     <p className="font-mono text-gray-900">
-                                        {development.organization.tin}
+                                        {development?.organization?.tin}
                                     </p>
                                 </div>
 
@@ -117,8 +116,8 @@ const DevelopmentSection: React.FC<DevelopmentSectionProps> = ({
                                     </p>
                                     <p className="text-gray-900">
                                         {moment(
-                                            development.organization
-                                                .registration_date
+                                            development?.organization
+                                                ?.registration_date
                                         ).format('DD MMMM YYYY')}
                                     </p>
                                 </div>
@@ -128,9 +127,15 @@ const DevelopmentSection: React.FC<DevelopmentSectionProps> = ({
                         <div className="self-stretch sm:self-auto">
                             <p className="text-gray-600 text-sm">Direktor</p>
                             <p className="text-gray-900 font-medium mt-1">
-                                {development.organization.director.last_name}{' '}
-                                {development.organization.director.first_name}{' '}
-                                {development.organization.director.middle_name}
+                                {development?.organization?.director?.last_name}{' '}
+                                {
+                                    development?.organization?.director
+                                        ?.first_name
+                                }{' '}
+                                {
+                                    development?.organization?.director
+                                        ?.middle_name
+                                }
                             </p>
                         </div>
                     </div>

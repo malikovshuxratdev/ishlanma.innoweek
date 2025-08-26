@@ -29,7 +29,7 @@ const IntellectualPropertySection: React.FC<
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                     <div className="lg:col-span-2">
                         <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                            {intellectualProperty.name}
+                            {intellectualProperty?.name}
                         </h3>
 
                         <div className="bg-gray-50 rounded-lg p-4">
@@ -39,7 +39,7 @@ const IntellectualPropertySection: React.FC<
                                         Patent raqami
                                     </p>
                                     <p className="font-mono text-gray-900">
-                                        {intellectualProperty.patent_number}
+                                        {intellectualProperty?.patent_number}
                                     </p>
                                 </div>
 
@@ -49,7 +49,7 @@ const IntellectualPropertySection: React.FC<
                                     </p>
                                     <p className="text-gray-900">
                                         {moment(
-                                            intellectualProperty.registration_date
+                                            intellectualProperty?.registration_date
                                         ).format('DD MMMM YYYY')}
                                     </p>
                                 </div>
@@ -60,7 +60,7 @@ const IntellectualPropertySection: React.FC<
                                     </p>
                                     <p className="text-gray-900">
                                         {moment(
-                                            intellectualProperty.expired_at
+                                            intellectualProperty?.expired_at
                                         ).format('DD MMMM YYYY')}
                                     </p>
                                 </div>
@@ -72,27 +72,27 @@ const IntellectualPropertySection: React.FC<
                 <div className="pt-4 border-t">
                     <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                         <User className="w-5 h-5 mr-2 text-green-600" />
-                        Mualliflari ({intellectualProperty.authors.length})
+                        Mualliflari ({intellectualProperty?.authors?.length})
                     </h4>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {intellectualProperty.authors.map((author) => (
+                        {intellectualProperty?.authors?.map((author) => (
                             <article
                                 key={author.id}
                                 className="bg-gray-50 rounded-lg p-4 shadow-sm"
                             >
                                 <div className="flex items-start gap-3">
                                     <div className="h-10 w-10 rounded-full bg-white border flex items-center justify-center text-sm font-semibold text-emerald-600">
-                                        {author.full_name
+                                        {author?.full_name
                                             ?.slice(0, 2)
                                             .toUpperCase()}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="font-medium text-gray-900 text-sm leading-tight">
-                                            {author.full_name}
+                                            {author?.full_name}
                                         </p>
                                         <p className="text-xs text-gray-600 mt-1">
-                                            ID: {author.science_id}
+                                            ID: {author?.science_id}
                                         </p>
                                     </div>
                                 </div>

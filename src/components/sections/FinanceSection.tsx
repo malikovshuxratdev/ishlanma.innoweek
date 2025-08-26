@@ -34,50 +34,50 @@ const FinanceSection: React.FC<FinanceSectionProps> = ({ finance }) => {
     const financialItems = [
         {
             label: 'Mahsulot (tovar, ish va xizmat) larni sotishdan sof tushum',
-            value: finance.net_income,
+            value: finance?.net_income,
         },
         {
             label: 'Sotilgan mahsulot (tovar, ish va xizmat) larning tannarxi',
-            value: finance.cost_of_goods_sold,
+            value: finance?.cost_of_goods_sold,
         },
         {
             label: 'Mahsulot (tovar, ish va xizmat) larni sotishning yalpi foydasi (zarari)',
-            value: finance.gross_profit_or_loss,
+            value: finance?.gross_profit_or_loss,
         },
-        { label: 'Sotish xarajatlari', value: finance.selling_expenses },
+        { label: 'Sotish xarajatlari', value: finance?.selling_expenses },
         {
             label: 'Maʼmuriy xarajatlar',
-            value: finance.administrative_expenses,
+            value: finance?.administrative_expenses,
         },
         {
             label: 'Boshqa operatsion xarajatlar',
-            value: finance.other_operating_expenses,
+            value: finance?.other_operating_expenses,
         },
         {
             label: 'Asosiy faoliyatning boshqa daromadlari',
-            value: finance.other_income,
+            value: finance?.other_income,
         },
         {
             label: 'Moliyaviy ijaradan daromadlar',
-            value: finance.rental_income,
+            value: finance?.rental_income,
         },
         {
             label: 'Valyuta kursi farqidan daromadlar',
-            value: finance.foreign_exchange_gain,
+            value: finance?.foreign_exchange_gain,
         },
         {
             label: 'Moliyaviy faoliyatning boshqa daromadlari',
-            value: finance.other_financial_income,
+            value: finance?.other_financial_income,
         },
         {
             label: 'Valyuta kursi farqidan zararlar',
-            value: finance.foreign_exchange_loss,
+            value: finance?.foreign_exchange_loss,
         },
         {
             label: 'Favquloddagi foyda va zararlar',
-            value: finance.extraordinary_profit_or_loss,
+            value: finance?.extraordinary_profit_or_loss,
         },
-        { label: 'Foyda soligʻi', value: finance.income_tax },
+        { label: 'Foyda soligʻi', value: finance?.income_tax },
     ];
 
     return (

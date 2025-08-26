@@ -54,7 +54,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onLoginClick, isPending }) => {
             key: 'profile',
             label: (
                 <span className="text-gray-700 font-['Inter',sans-serif]">
-                    Profil ma'lumotlari
+                    Profil
                 </span>
             ),
         },
@@ -98,7 +98,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onLoginClick, isPending }) => {
     return (
         <>
             <Header
-                className="site-header fixed top-0 left-0 w-full z-50 shadow-2xl"
+                className="site-header fixed top-0 left-0 w-full z-[1000] shadow-2xl"
                 style={{
                     height: '80px',
                     lineHeight: '80px',
@@ -146,7 +146,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onLoginClick, isPending }) => {
                                 trigger={['click']}
                                 overlayClassName="user-dropdown"
                                 overlayStyle={{
-                                    minWidth: '280px',
+                                    minWidth: '180px',
                                     borderRadius: '16px',
                                     boxShadow:
                                         '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
@@ -283,9 +283,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onLoginClick, isPending }) => {
                                 onClick={() => setMobileMenuVisible(false)}
                                 className="flex items-center space-x-3 p-4 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 bg-white border border-gray-100 font-['Inter',sans-serif]"
                             >
-                                <span className="font-medium">
-                                    Profil ma'lumotlari
-                                </span>
+                                <span className="font-medium">Profil</span>
                             </Link>
                             <button
                                 onClick={handleLogout}

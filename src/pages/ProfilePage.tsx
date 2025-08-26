@@ -38,12 +38,12 @@ const ProfilePage: React.FC = () => {
     }
 
     return (
-        <div className="container mx-auto px-6 py-8 animate-fade-in max-w-[1100px]">
-            <Row gutter={[24, 24]}>
+        <div className="mx-auto px-4 sm:px-6 py-4 sm:py-8 animate-fade-in max-w-[1100px]">
+            <Row gutter={[16, 16]} className="sm:gutter-[24, 24]">
                 {/* Profile Card */}
-                <Col xs={24} lg={8} className="order-1">
-                    <Card className="text-center h-full">
-                        <div className="relative mb-2">
+                <Col xs={24} sm={24} md={24} lg={8} className="order-1">
+                    <Card className="text-center h-full shadow-sm">
+                        <div className="relative mb-4 sm:mb-2">
                             <Avatar
                                 size={120}
                                 src={
@@ -52,15 +52,18 @@ const ProfilePage: React.FC = () => {
                                         : undefined
                                 }
                                 icon={<UserOutlined />}
-                                className="mb-4 border-4 border-accent shadow-lg"
+                                className="mb-4 border-4 border-accent shadow-lg w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32"
                             />
                         </div>
 
-                        <Title level={4} className="mb-2 text-text">
+                        <Title
+                            level={4}
+                            className="mb-2 text-text px-2 text-lg sm:text-xl lg:text-2xl"
+                        >
                             {userProfile?.full_name}
                         </Title>
 
-                        <div className="flex justify-center space-x-2 mb-2">
+                        <div className="flex justify-center space-x-2 mb-4 sm:mb-2 px-2">
                             <div className="bg-surface-secondary px-3 py-1 rounded-full">
                                 <Text className="text-xs text-accent font-medium">
                                     Science ID: {userProfile?.science_id}
@@ -68,7 +71,7 @@ const ProfilePage: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="mb-2 flex flex-col gap-3">
+                        <div className="mb-2 flex flex-col gap-3 px-2">
                             {hasDraft ? (
                                 <Tooltip title="Sizda tugallanmagan ariza bor">
                                     <Button
@@ -79,6 +82,7 @@ const ProfilePage: React.FC = () => {
                                         onClick={() =>
                                             navigate('/submit-application')
                                         }
+                                        className="h-10 sm:h-12 text-sm sm:text-base"
                                     >
                                         Ariza topshirish
                                     </Button>
@@ -92,6 +96,7 @@ const ProfilePage: React.FC = () => {
                                     onClick={() =>
                                         navigate('/submit-application')
                                     }
+                                    className="h-10 sm:h-12 text-sm sm:text-base"
                                 >
                                     Ariza topshirish
                                 </Button>
@@ -102,7 +107,7 @@ const ProfilePage: React.FC = () => {
                                 size="large"
                                 icon={<FolderOpenOutlined />}
                                 onClick={() => navigate('/my-applications')}
-                                className="bg-surface-secondary"
+                                className="bg-surface-secondary h-10 sm:h-12 text-sm sm:text-base"
                             >
                                 Mening arizalarim
                             </Button>
@@ -111,87 +116,93 @@ const ProfilePage: React.FC = () => {
                 </Col>
 
                 {/* Profile Information */}
-                <Col xs={24} lg={16} className="order-2">
+                <Col xs={24} sm={24} md={24} lg={16} className="order-2">
                     <Card
                         title={
                             <div className="flex items-center">
                                 <IdcardOutlined className="mr-2 text-accent" />
-                                <span className="text-text">
+                                <span className="text-text text-sm sm:text-base">
                                     Shaxsiy ma'lumotlar
                                 </span>
                             </div>
                         }
+                        className="shadow-sm"
                     >
-                        <Descriptions column={1} bordered size="middle">
+                        <Descriptions
+                            column={1}
+                            bordered
+                            size="middle"
+                            className="text-sm sm:text-base"
+                        >
                             <Descriptions.Item
                                 label={
-                                    <span className="text-text-secondary">
+                                    <span className="text-text-secondary text-xs sm:text-sm">
                                         <UserOutlined className="mr-2" />
                                         To'liq ism
                                     </span>
                                 }
                             >
-                                <span className="text-text font-medium">
+                                <span className="text-text font-medium text-xs sm:text-sm">
                                     {userProfile?.full_name}
                                 </span>
                             </Descriptions.Item>
                             <Descriptions.Item
                                 label={
-                                    <span className="text-text-secondary">
+                                    <span className="text-text-secondary text-xs sm:text-sm">
                                         <PhoneOutlined className="mr-2" />
                                         Telefon raqami
                                     </span>
                                 }
                             >
-                                <span className="text-text">
+                                <span className="text-text text-xs sm:text-sm">
                                     {userProfile?.phone_number}
                                 </span>
                             </Descriptions.Item>
                             <Descriptions.Item
                                 label={
-                                    <span className="text-text-secondary">
+                                    <span className="text-text-secondary text-xs sm:text-sm">
                                         <MailOutlined className="mr-2" />
                                         Email
                                     </span>
                                 }
                             >
-                                <span className="text-text">
+                                <span className="text-text text-xs sm:text-sm">
                                     {userProfile?.email}
                                 </span>
                             </Descriptions.Item>
                             <Descriptions.Item
                                 label={
-                                    <span className="text-text-secondary">
+                                    <span className="text-text-secondary text-xs sm:text-sm">
                                         <IdcardOutlined className="mr-2" />
                                         Science ID
                                     </span>
                                 }
                             >
-                                <span className="text-accent font-medium">
+                                <span className="text-accent font-medium text-xs sm:text-sm">
                                     {userProfile?.science_id}
                                 </span>
                             </Descriptions.Item>
                             <Descriptions.Item
                                 label={
-                                    <span className="text-text-secondary">
+                                    <span className="text-text-secondary text-xs sm:text-sm">
                                         JSHSHIR
                                     </span>
                                 }
                             >
-                                <span className="text-text">
+                                <span className="text-text text-xs sm:text-sm">
                                     {userProfile?.pin}
                                 </span>
                             </Descriptions.Item>
                             <Descriptions.Item
                                 label={
-                                    <span className="text-text-secondary">
+                                    <span className="text-text-secondary text-xs sm:text-sm">
                                         <EnvironmentOutlined className="mr-2" />
-                                        Tug'ilgan joy
+                                        Doimiy yashash joyi
                                     </span>
                                 }
                             >
-                                <span className="text-text">
-                                    {userProfile?.citizen}
+                                <span className="text-text text-xs sm:text-sm">
+                                    {userProfile?.personal_address}
                                 </span>
                             </Descriptions.Item>
                         </Descriptions>

@@ -37,12 +37,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     return (
         <AntLayout
-            className={`min-h-screen`}
-            style={{ overflow: 'hidden', scrollBehavior: 'smooth' }}
+            className="min-h-screen"
+            style={{ scrollBehavior: 'smooth' }}
         >
             <SiteHeader onLoginClick={handleLogin} isPending={isPending} />
-            <div className="flex pt-16 sm:pt-0 flex-col min-h-screen">
-                <Content className="flex-1 overflow-y-auto bg-background">
+            <div className="flex flex-col min-h-screen">
+                <Content
+                    className="flex-1 bg-background"
+                    style={{ marginTop: '80px' }}
+                >
                     {children}
                 </Content>
                 <SiteFooter />
