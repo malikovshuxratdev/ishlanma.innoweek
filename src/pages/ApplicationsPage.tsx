@@ -3,6 +3,8 @@ import { Row, Col, Input, Select, Typography, Card, Pagination } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { message } from 'antd';
 import RatingModal from '../components/modals/RatingModal';
+import AllFullApplicationCard from '../components/cards/AllFullApplicationCard';
+import { useGetAllApplicationsQuery } from '../hooks/useGetApplicationQuery';
 
 const { Title } = Typography;
 const { Search } = Input;
@@ -31,10 +33,7 @@ const ApplicationsPage: React.FC = () => {
     const [ratingModalVisible, setRatingModalVisible] = useState(false);
     const [selectedApplication, setSelectedApplication] =
         useState<Application | null>(null);
-
-    // Data will be loaded from an API later. For now keep an empty list so the
-    // page renders as "no data yet" per design request.
-    const [applications, setApplications] = useState<Application[]>([]);
+    const { data: allApplications } = useGetAllApplicationsQuery();
 
     const sectors = [
         'Healthcare',
@@ -53,44 +52,11 @@ const ApplicationsPage: React.FC = () => {
         'Namangan',
     ];
 
-    const filteredApplications = applications.filter((app) => {
-        const matchesSearch =
-            app.title.toLowerCase().includes(searchText.toLowerCase()) ||
-            app.authors.some((author) =>
-                author.toLowerCase().includes(searchText.toLowerCase())
-            );
-        const matchesSector =
-            !selectedSector || app.sectors.includes(selectedSector);
-        const matchesRegion = !selectedRegion || app.region === selectedRegion;
-
-        return matchesSearch && matchesSector && matchesRegion;
-    });
-
-    // Pagination logic
-    const totalItems = filteredApplications.length;
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const currentApplications = filteredApplications.slice(
-        startIndex,
-        endIndex
-    );
-
     const handlePageChange = (page: number, size?: number) => {
         setCurrentPage(page);
         if (size) {
             setPageSize(size);
         }
-    };
-
-    // Reset to first page when filters change
-    // Reset to first page when filters or data change
-    React.useEffect(() => {
-        setCurrentPage(1);
-    }, [searchText, selectedSector, selectedRegion, applications]);
-
-    const handleRateApplication = (application: Application) => {
-        setSelectedApplication(application);
-        setRatingModalVisible(true);
     };
 
     const handleRatingSubmit = (_rating: number, _comment: string) => {
@@ -105,7 +71,7 @@ const ApplicationsPage: React.FC = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 animate-fade-in">
             <div className="mb-8">
                 <Title level={2} className="mb-2">
-                    Loyihalar
+                    Ishlanmalar
                 </Title>
             </div>
 
@@ -153,36 +119,30 @@ const ApplicationsPage: React.FC = () => {
                 </Row>
             </Card>
 
-            {/* Applications Grid */}
             <div className="space-y-6">
-                {/* {currentApplications.map((application) => (
-                    <ApplicationCard
+                {allApplications?.results.map((application) => (
+                    <AllFullApplicationCard
                         key={application.id}
                         application={application}
-                        showRating={true}
-                        onRate={handleRateApplication}
                     />
-                ))} */}
+                ))}
             </div>
 
-            {/* Pagination */}
-            {totalItems > 0 && (
-                <div className="flex justify-center mt-8">
-                    <Pagination
-                        current={currentPage}
-                        total={totalItems}
-                        pageSize={pageSize}
-                        showSizeChanger
-                        showQuickJumper
-                        showTotal={(total, range) =>
-                            `${range[0]}-${range[1]} of ${total} applications`
-                        }
-                        onChange={handlePageChange}
-                        pageSizeOptions={['6', '12', '18', '24']}
-                        className="bg-surface p-4 rounded-lg shadow-sm"
-                    />
-                </div>
-            )}
+            <div className="flex justify-center mt-8">
+                <Pagination
+                    current={currentPage}
+                    total={allApplications?.count || 0}
+                    pageSize={pageSize}
+                    showSizeChanger
+                    showQuickJumper
+                    showTotal={(total, range) =>
+                        `${range[0]}-${range[1]} of ${total} applications`
+                    }
+                    onChange={handlePageChange}
+                    pageSizeOptions={['6', '12', '18', '24']}
+                    className="bg-surface p-4 rounded-lg shadow-sm"
+                />
+            </div>
 
             <RatingModal
                 visible={ratingModalVisible}

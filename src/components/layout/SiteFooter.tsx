@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layout as AntLayout, Row, Col, Typography } from 'antd';
-import { ExperimentOutlined } from '@ant-design/icons';
 import { Mail, Phone, MapPin, Globe, Sparkles } from 'lucide-react';
+import logoImage from '../../assets/images/Logo.svg';
 
 const { Footer } = AntLayout;
 const { Title } = Typography;
@@ -37,14 +37,13 @@ const SiteFooter: React.FC = () => {
                     {/* Brand Section */}
                     <Col xs={24} md={12}>
                         <div className="text-left animate-fade-in-up">
-                            <div className="flex items-center mb-6 group">
-                                <div className="relative">
-                                    <ExperimentOutlined className="text-3xl text-blue-400 mr-3 group-hover:text-cyan-400 transition-colors duration-300" />
-                                    <div className="absolute inset-0 bg-blue-400/20 rounded-full blur-lg group-hover:bg-cyan-400/30 transition-all duration-300"></div>
-                                </div>
-                                <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
-                                    Ishlanma
-                                </span>
+                            <div className="mb-6">
+                                <img
+                                    src={logoImage}
+                                    alt="Ishlanma logo"
+                                    aria-label="Ishlanma logo"
+                                    className="w-auto h-10 max-w-[200px]"
+                                />
                             </div>
                             <p className="text-slate-300 mb-6 leading-relaxed">
                                 Yangi ishlanmalar elektron bazasi axborot

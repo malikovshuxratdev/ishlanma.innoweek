@@ -1,7 +1,6 @@
 import React from 'react';
 import { Button, Typography } from 'antd';
 import { StarOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
 import { Star, Building2, ArrowRight, Eye } from 'lucide-react';
 import { AllApplication } from '../../types/get-application/getAllApplicationsType';
 
@@ -20,11 +19,6 @@ const AllApplicationCard: React.FC<ApplicationCardProps> = ({
     application,
     onRate,
 }) => {
-    const navigate = useNavigate();
-    const viewPath = application.id
-        ? `/applications/${application.id}`
-        : '/applications';
-    const handleViewDetails = () => navigate(viewPath);
     const handleRate = () => onRate?.(application);
 
     return (
@@ -61,7 +55,6 @@ const AllApplicationCard: React.FC<ApplicationCardProps> = ({
                     <Title
                         level={4}
                         className="!text-xl !font-bold !text-gray-900 !mb-2 group-hover:!text-blue-600 transition-colors duration-300 line-clamp-2 cursor-pointer"
-                        onClick={handleViewDetails}
                     >
                         {application.name}
                     </Title>

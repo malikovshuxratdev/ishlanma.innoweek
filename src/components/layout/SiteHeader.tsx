@@ -19,7 +19,7 @@ import {
 import type { MenuProps } from 'antd';
 import { TokenService } from '../../utils/storage';
 import { useUserProfileQuery } from '../../hooks/useOauthScienceIdMutate';
-import logoImage from '../../assets/icons/logo.svg';
+import logoImage from '../../assets/images/Logo.svg';
 
 const ImageUrl = import.meta.env.VITE_BASE_URI;
 
@@ -81,7 +81,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
             key: '/applications',
             label: (
                 <Link to="/applications" className="font-medium">
-                    Loyihalar
+                    Ishlanmalar
                 </Link>
             ),
         },
@@ -107,16 +107,11 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                         to="/"
                         className="flex items-center space-x-3 group transition-all duration-300 hover:scale-105"
                     >
-                        <div className="flex items-center space-x-3">
-                            <img
-                                src={logoImage}
-                                alt="Logo"
-                                className="w-8 h-10"
-                            />
-                            <span className="text-xl font-bold">
-                                Ishlanma.ilmiy.uz
-                            </span>
-                        </div>
+                        <img
+                            src={logoImage}
+                            alt="Logo"
+                            className="w-40 md:w-full h-10"
+                        />
                     </Link>
 
                     {/* Desktop Navigation */}
@@ -216,11 +211,12 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
             {/* Mobile Drawer */}
             <Drawer
                 title={
-                    <div className="flex items-center space-x-3">
-                        <img src={logoImage} alt="Logo" className="w-8 h-10" />
-                        <span className="text-xl font-bold">
-                            Ishlanma.ilmiy.uz
-                        </span>
+                    <div className="space-x-3">
+                        <img
+                            src={logoImage}
+                            alt="Logo"
+                            className="w-40 md:w-full h-10"
+                        />
                     </div>
                 }
                 placement="right"

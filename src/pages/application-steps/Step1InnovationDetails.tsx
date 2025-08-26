@@ -489,16 +489,17 @@ const Step1InnovationDetails: React.FC<Step1Props> = ({
                                                     allowClear
                                                 >
                                                     <Select.Option value="compliance">
-                                                        Compliance
+                                                        Muvofiqlik
+                                                        sertifikatlari
                                                     </Select.Option>
                                                     <Select.Option value="hygiene">
-                                                        Hygiene
+                                                        Gigiyenik
                                                     </Select.Option>
                                                     <Select.Option value="fire">
-                                                        Fire
+                                                        Yongʻin xavfsizligi
                                                     </Select.Option>
                                                     <Select.Option value="other">
-                                                        Other
+                                                        Boshqalar
                                                     </Select.Option>
                                                 </Select>
                                             </Form.Item>
