@@ -42,7 +42,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         >
             <SiteHeader onLoginClick={handleLogin} isPending={isPending} />
             <div className="flex pt-16 sm:pt-0 flex-col min-h-screen">
-                <Content className="flex-1 overflow-y-hidden bg-background">
+                <Content className="flex-1 overflow-y-auto bg-background">
                     {children}
                 </Content>
                 <SiteFooter />

@@ -17,6 +17,8 @@ import { useGetAllApplicationsQuery } from '../hooks/useGetApplicationQuery';
 import AllApplicationCard from '../components/cards/AllApplicationCard';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { TokenService } from '../utils/storage';
+import { useLogin } from '../hooks/useLogin';
 
 const { Title, Paragraph } = Typography;
 
@@ -24,6 +26,19 @@ const HomePage: React.FC = () => {
     const [sectorAsBar, setSectorAsBar] = useState(false);
     const { data: allApplications } = useGetAllApplicationsQuery();
     const navigate = useNavigate();
+    const token = TokenService.getToken();
+    const { handleLogin } = useLogin();
+
+    const handleArizaTopshirish = () => {
+        if (token) {
+            // If token exists, navigate directly to my-applications
+            navigate('/my-applications');
+        } else {
+            // If no token, trigger login process
+            handleLogin();
+        }
+    };
+
     const sectorData = [
         {
             name: 'Kelib tushgan arizalar',
@@ -104,7 +119,7 @@ const HomePage: React.FC = () => {
                             <Button
                                 type="primary"
                                 size="large"
-                                onClick={() => navigate('/application-wizard')}
+                                onClick={handleArizaTopshirish}
                                 className="group p-4 sm:p-6 text-lg sm:text-xl font-bold border-0 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                             >
                                 <span className="flex items-center gap-2 sm:gap-3">

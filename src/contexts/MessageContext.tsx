@@ -3,20 +3,6 @@ import type { MessageInstance } from 'antd/es/message/interface';
 
 const MessageContext = createContext<MessageInstance | null>(null);
 
-export const MessageProvider = ({
-    value,
-    children,
-}: {
-    value: MessageInstance;
-    children: React.ReactNode;
-}) => {
-    return (
-        <MessageContext.Provider value={value}>
-            {children}
-        </MessageContext.Provider>
-    );
-};
-
 export const useAppMessage = (): MessageInstance => {
     const ctx = useContext(MessageContext);
 
@@ -34,6 +20,20 @@ export const useAppMessage = (): MessageInstance => {
     }
 
     return ctx;
+};
+
+export const MessageProvider = ({
+    value,
+    children,
+}: {
+    value: MessageInstance;
+    children: React.ReactNode;
+}) => {
+    return (
+        <MessageContext.Provider value={value}>
+            {children}
+        </MessageContext.Provider>
+    );
 };
 
 export default MessageContext;
