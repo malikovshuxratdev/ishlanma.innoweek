@@ -41,7 +41,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             style={{ overflow: 'hidden', scrollBehavior: 'smooth' }}
         >
             <SiteHeader onLoginClick={handleLogin} isPending={isPending} />
-            <div className="flex flex-col min-h-screen">
+            <div className="flex pt-16 sm:pt-0 flex-col min-h-screen">
                 <Content className="flex-1 overflow-y-hidden bg-background">
                     {children}
                 </Content>

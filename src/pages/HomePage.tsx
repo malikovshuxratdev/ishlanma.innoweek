@@ -15,13 +15,15 @@ import {
 import InformationRegion from '../components/InformationRegion';
 import { useGetAllApplicationsQuery } from '../hooks/useGetApplicationQuery';
 import AllApplicationCard from '../components/cards/AllApplicationCard';
+import { ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const { Title, Paragraph } = Typography;
 
 const HomePage: React.FC = () => {
     const [sectorAsBar, setSectorAsBar] = useState(false);
     const { data: allApplications } = useGetAllApplicationsQuery();
-
+    const navigate = useNavigate();
     const sectorData = [
         {
             name: 'Kelib tushgan arizalar',
@@ -47,19 +49,18 @@ const HomePage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-white">
-            {/* Modern Hero Section */}
-            <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
-                {/* Animated Background Elements */}
+            <section className="relative min-h-[60vh] sm:min-h-[65vh] md:min-h-[70vh] lg:min-h-[75vh] xl:min-h-[80vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
                 <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-40 -right-32 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
-                    <div className="absolute -bottom-40 -left-32 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse-slow animation-delay-2000"></div>
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-400/10 rounded-full blur-2xl animate-pulse-slow animation-delay-4000"></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-slate-800/80 to-slate-900/90"></div>
 
-                    {/* Floating particles */}
-                    {[...Array(20)].map((_, i) => (
+                    <div className="absolute -top-40 -right-32 w-80 h-80 bg-yellow-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
+                    <div className="absolute -bottom-40 -left-32 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl animate-pulse-slow animation-delay-2000"></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-blue-400/10 rounded-full blur-2xl animate-pulse-slow animation-delay-4000"></div>
+
+                    {[...Array(15)].map((_, i) => (
                         <div
                             key={i}
-                            className={`absolute w-2 h-2 bg-white/20 rounded-full animate-float-${
+                            className={`absolute w-2 h-2 bg-yellow-400/30 rounded-full animate-float-${
                                 i % 3
                             }`}
                             style={{
@@ -72,48 +73,77 @@ const HomePage: React.FC = () => {
                     ))}
                 </div>
 
-                <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-10">
-                    <div className="text-center">
-                        <div className="mb-6 overflow-hidden">
-                            <Title
-                                level={1}
-                                className="!text-white !mb-0 !font-black !text-3xl md:!text-5xl lg:!text-6xl !leading-tight animate-slide-in-up"
-                            >
-                                <span className="inline-block animate-fade-in-up animation-delay-800">
-                                    Yagona
-                                </span>{' '}
-                                <span className="inline-block animate-fade-in-up animation-delay-800">
-                                    Ishlanmalar
-                                </span>{' '}
-                                <span className="inline-block animate-fade-in-up animation-delay-800">
-                                    Bazasi
-                                </span>
-                            </Title>
+                <div className="relative z-10 w-full max-w-[1400px] mx-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center py-12 sm:py-16 md:py-20 lg:py-24">
+                        <div className="text-center lg:text-left space-y-6 sm:space-y-8">
+                            <div className="overflow-hidden">
+                                <Title
+                                    level={1}
+                                    className="!text-white !mb-0 !font-black !text-3xl sm:!text-4xl md:!text-5xl lg:!text-6xl xl:!text-7xl !leading-tight animate-slide-in-up font-['Inter',sans-serif]"
+                                >
+                                    <span className="inline-block animate-fade-in-up animation-delay-800">
+                                        Yagona
+                                    </span>{' '}
+                                    <span className="inline-block animate-fade-in-up animation-delay-800">
+                                        Ishlanmalar
+                                    </span>{' '}
+                                    <span className="inline-block animate-fade-in-up animation-delay-1200">
+                                        Bazasi
+                                    </span>
+                                </Title>
+                            </div>
+
+                            <Paragraph className="!text-base sm:!text-lg md:!text-xl lg:!text-2xl !text-slate-200 !mb-0 !leading-relaxed font-light animate-fade-in-up animation-delay-1400 font-['Inter',sans-serif] max-w-2xl mx-auto lg:mx-0">
+                                Yangi ishlanmalar elektron bazasi axborot
+                                tizimi. Innovatsiyalar va ilmiy ishlanmalarni
+                                rivojlantirish uchun zamonaviy platforma.
+                            </Paragraph>
                         </div>
 
-                        {/* Subtitle with Animation */}
-                        <Paragraph className="!text-xl md:!text-2xl !text-slate-200 !mb-12 max-w-4xl mx-auto !leading-relaxed font-light animate-fade-in-up animation-delay-1400">
-                            Yangi ishlanmalar elektron bazasi axborot tizimi.
-                            Innovatsiyalar va ilmiy ishlanmalarni rivojlantirish
-                            uchun zamonaviy platforma.
-                        </Paragraph>
-
-                        {/* CTA Buttons with Animation */}
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 animate-fade-in-up animation-delay-1600">
+                        <div className="flex flex-col items-center lg:items-end justify-center space-y-4 sm:space-y-6 animate-fade-in-up animation-delay-1600">
                             <Button
                                 type="primary"
                                 size="large"
-                                className="group h-14 px-8 text-lg font-semibold border-0 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105 hover:-translate-y-1 transition-all duration-500 text-white"
+                                onClick={() => navigate('/application-wizard')}
+                                className="group p-4 sm:p-6 text-lg sm:text-xl font-bold border-0 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                             >
-                                <span className="flex items-center gap-2">
+                                <span className="flex items-center gap-2 sm:gap-3">
                                     Ariza topshirish
+                                    <svg
+                                        className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform duration-300"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M13 7l5 5m0 0l-5 5m5-5H6"
+                                        />
+                                    </svg>
                                 </span>
                             </Button>
+
                             <Button
                                 size="large"
-                                className="group h-14 px-8 text-lg font-semibold bg-white/10 backdrop-blur-md border-white/20 text-white rounded-2xl hover:bg-white/20 hover:border-white/40 transition-all duration-500 shadow-lg hover:shadow-xl hover:-translate-y-1 hover:scale-105"
+                                onClick={() => navigate('/applications')}
+                                className="group p-4 sm:p-6 text-lg sm:text-xl font-semibold bg-white/10 backdrop-blur-md border-white/20 text-white rounded-xl hover:bg-white/20 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                             >
-                                <span className="flex items-center gap-2">
+                                <span className="flex items-center gap-2 sm:gap-3">
+                                    <svg
+                                        className="w-5 h-5 sm:w-6 sm:h-6"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                                        />
+                                    </svg>
                                     Loyihalar
                                 </span>
                             </Button>
@@ -122,42 +152,89 @@ const HomePage: React.FC = () => {
                 </div>
             </section>
 
-            {/* Application Section */}
-            <div className=" max-w-[1400px] mx-auto">
-                <div className="py-12">
-                    <div className="flex items-center justify-between mb-6">
-                        <Title level={2} className="!mb-0">
+            <div className="max-w-[1400px] mx-auto">
+                <div className="py-6 px-10 sm:px-0">
+                    <div className="flex items-center justify-between mb-8">
+                        <Title
+                            level={2}
+                            className="!mb-0 font-['Inter',sans-serif] !text-3xl"
+                        >
                             Ishlanmalar
                         </Title>
                         <Button
-                            type="primary"
-                            href="/applications"
-                            className="text-lg"
+                            type="link"
+                            onClick={() => navigate('/applications')}
+                            className="text-sm text-white font-['Inter',sans-serif] flex items-center gap-2"
                         >
                             Hammasi
+                            <ArrowRight className="w-4 h-4" />
                         </Button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 py-4 mx-auto">
-                        {allApplications?.results
-                            .slice(0, 3)
-                            .map((application) => (
-                                <AllApplicationCard
-                                    key={application.id}
-                                    application={application}
-                                />
-                            ))}
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 mx-auto">
+                        {allApplications?.results &&
+                        allApplications.results.length > 0 ? (
+                            allApplications.results
+                                .slice(0, 4)
+                                .map((application) => (
+                                    <AllApplicationCard
+                                        key={application.id}
+                                        application={application}
+                                    />
+                                ))
+                        ) : (
+                            // Fallback when no data
+                            <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+                                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                                    <svg
+                                        className="w-12 h-12 text-gray-400"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                                        />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-semibold text-gray-900 mb-2 font-['Inter',sans-serif]">
+                                    Hali ishlanmalar mavjud emas
+                                </h3>
+                                <p className="text-gray-600 max-w-md font-['Inter',sans-serif]">
+                                    Yangi ishlanmalar qo'shilganda ular bu yerda
+                                    ko'rinadi
+                                </p>
+                            </div>
+                        )}
                     </div>
+
+                    {/* Responsive grid centering for single items */}
+                    {allApplications?.results &&
+                        allApplications.results.length === 1 && (
+                            <style>{`
+                            @media (min-width: 1024px) {
+                                .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3 {
+                                    display: flex;
+                                    justify-content: center;
+                                }
+                                .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3 > * {
+                                    max-width: 400px;
+                                    width: 100%;
+                                }
+                            }
+                        `}</style>
+                        )}
                 </div>
 
-                {/* Statistics Section */}
-
-                <div className="mx-auto ">
+                <div className="mx-auto">
                     <Card
                         title={
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="text-xl ">
+                                    <div className="text-xl font-['Inter',sans-serif] font-semibold">
                                         Ishlanmalar statistikasi
                                     </div>
                                 </div>
@@ -178,21 +255,22 @@ const HomePage: React.FC = () => {
                                 </AntTooltip>
                             </div>
                         }
-                        bodyStyle={{ padding: '32px' }}
+                        bodyStyle={{ padding: '24px' }}
+                        className="shadow-lg border-0 rounded-2xl overflow-visible"
                     >
-                        <div className="flex flex-col lg:flex-row items-center gap-8">
+                        <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
                             <ResponsiveContainer
                                 width="100%"
-                                height={400}
+                                height={350}
                                 className="lg:w-1/2"
                             >
                                 {sectorAsBar ? (
                                     <BarChart
                                         data={sectorData}
                                         margin={{
-                                            top: 20,
-                                            right: 30,
-                                            left: 20,
+                                            top: 10,
+                                            right: 20,
+                                            left: 10,
                                             bottom: 5,
                                         }}
                                     >
@@ -229,8 +307,8 @@ const HomePage: React.FC = () => {
                                             data={sectorData}
                                             cx="50%"
                                             cy="50%"
-                                            innerRadius={60}
-                                            outerRadius={120}
+                                            innerRadius={40}
+                                            outerRadius={80}
                                             paddingAngle={3}
                                             dataKey="value"
                                         >
@@ -254,15 +332,15 @@ const HomePage: React.FC = () => {
                                 )}
                             </ResponsiveContainer>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full lg:w-1/2">
                                 {sectorData.map((item) => (
                                     <div
                                         key={item.name}
-                                        className="group flex items-center gap-4 p-4 rounded-2xl hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-300 border border-transparent hover:border-blue-100"
+                                        className="group flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-300 border border-transparent hover:border-blue-100"
                                     >
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2 sm:gap-3">
                                             <div
-                                                className="w-4 h-4 rounded-full group-hover:scale-125 transition-transform duration-300"
+                                                className="w-3 h-3 sm:w-4 sm:h-4 rounded-full group-hover:scale-125 transition-transform duration-300"
                                                 style={{
                                                     backgroundColor: item.color,
                                                     boxShadow: `0 0 20px ${item.color}40`,
@@ -270,15 +348,15 @@ const HomePage: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="text-sm font-semibold text-gray-900 truncate group-hover:text-blue-900 transition-colors duration-300">
+                                            <div className="text-xs sm:text-sm font-semibold text-gray-900 truncate group-hover:text-blue-900 transition-colors duration-300 font-['Inter',sans-serif]">
                                                 {item.name}
                                             </div>
-                                            <div className="text-xs text-gray-500 font-medium">
+                                            <div className="text-xs text-gray-500 font-medium font-['Inter',sans-serif]">
                                                 {item.value} ta loyiha
                                             </div>
                                         </div>
                                         <div
-                                            className="text-2xl font-bold"
+                                            className="text-lg sm:text-xl lg:text-2xl font-bold font-['Inter',sans-serif]"
                                             style={{ color: item.color }}
                                         >
                                             {item.value}
@@ -292,7 +370,10 @@ const HomePage: React.FC = () => {
 
                 <InformationRegion />
             </div>
+
             <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+                
                 @keyframes fade-in-up {
                     from {
                         opacity: 0;
@@ -378,18 +459,34 @@ const HomePage: React.FC = () => {
                 .animation-delay-2000 { animation-delay: 2.0s; }
                 .animation-delay-4000 { animation-delay: 4.0s; }
 
-                /* Ensure animations start hidden */
                 .animate-fade-in-up,
                 .animate-slide-in-up {
                     opacity: 0;
                 }
 
-                /* Gradient text support for older browsers */
                 .gradient-text {
                     background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                     background-clip: text;
+                }
+
+                ::-webkit-scrollbar {
+                    width: 8px;
+                }
+
+                ::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 4px;
+                }
+
+                ::-webkit-scrollbar-thumb {
+                    background: #c1c1c1;
+                    border-radius: 4px;
+                }
+
+                ::-webkit-scrollbar-thumb:hover {
+                    background: #a8a8a8;
                 }
             `}</style>
         </div>
