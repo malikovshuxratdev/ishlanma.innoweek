@@ -1,6 +1,13 @@
 import React from 'react';
 import { Layout as AntLayout, Row, Col, Typography } from 'antd';
-import { Mail, Phone, MapPin, Globe, Sparkles } from 'lucide-react';
+import {
+    Mail,
+    Phone,
+    MapPin,
+    Globe,
+    Sparkles,
+    ExternalLink,
+} from 'lucide-react';
 import logoImage from '../../assets/images/Logo.svg';
 
 const { Footer } = AntLayout;
@@ -8,90 +15,61 @@ const { Title } = Typography;
 
 const SiteFooter: React.FC = () => {
     return (
-        <Footer className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white overflow-hidden">
-            {/* Animated Background Elements */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
-                <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl animate-pulse-slow animation-delay-2000"></div>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-cyan-400/5 rounded-full blur-2xl animate-pulse-slow animation-delay-4000"></div>
-
-                {/* Floating particles */}
-                {[...Array(15)].map((_, i) => (
-                    <div
-                        key={i}
-                        className={`absolute w-1 h-1 bg-white/20 rounded-full animate-float-${
-                            i % 3
-                        }`}
-                        style={{
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
-                            animationDelay: `${Math.random() * 5}s`,
-                            animationDuration: `${3 + Math.random() * 4}s`,
-                        }}
-                    ></div>
-                ))}
+        <Footer className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white">
+            {/* Subtle background pattern */}
+            <div className="absolute inset-0 opacity-5">
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                    }}
+                ></div>
             </div>
 
-            <div className="relative z-10 container mx-auto px-6 py-12">
-                <Row gutter={[32, 32]}>
+            <div className="relative z-10 container mx-auto px-6 py-8">
+                <Row gutter={[24, 24]} align="middle">
                     {/* Brand Section */}
-                    <Col xs={24} md={12}>
-                        <div className="text-left animate-fade-in-up">
-                            <div className="mb-6">
+                    <Col xs={24} md={10}>
+                        <div className="text-left">
+                            <div className="mb-4">
                                 <img
                                     src={logoImage}
                                     alt="Ishlanma logo"
                                     aria-label="Ishlanma logo"
-                                    className="w-auto h-10 max-w-[200px]"
+                                    className="w-auto h-8 max-w-[160px]"
                                 />
                             </div>
-                            <p className="text-slate-300 mb-6 leading-relaxed">
+                            <p className="text-slate-300 text-sm leading-relaxed mb-4">
                                 Yangi ishlanmalar elektron bazasi axborot
                                 tizimi. Innovatsiyalar va ilmiy ishlanmalarni
                                 rivojlantirish uchun zamonaviy platforma.
                             </p>
-
-                            {/* Social Links */}
-                            <div className="flex gap-4">
-                                {[
-                                    { icon: '📧', label: 'Email' },
-                                    { icon: '📱', label: 'Telegram' },
-                                    { icon: '🌐', label: 'Website' },
-                                    { icon: '📞', label: 'Phone' },
-                                ].map((social, index) => (
-                                    <div
-                                        key={index}
-                                        className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all duration-300 cursor-pointer group"
-                                    >
-                                        <span className="text-lg group-hover:scale-110 transition-transform duration-300">
-                                            {social.icon}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
                         </div>
                     </Col>
 
-                    <Col xs={24} md={12}>
-                        <div className="text-left animate-fade-in-up animation-delay-500">
+                    {/* Contact Section */}
+                    <Col xs={24} md={8}>
+                        <div className="text-left">
                             <Title
-                                level={4}
-                                className="!text-white !mb-6 flex items-center gap-2"
+                                level={5}
+                                className="!text-white !mb-4 flex items-center gap-2 text-base"
                             >
-                                <Sparkles className="w-5 h-5 text-blue-400" />
+                                <Sparkles className="w-4 h-4 text-blue-400" />
                                 Aloqa ma'lumotlari
                             </Title>
-                            <div className="space-y-2">
+                            <div className="space-y-2 grid grid-cols-2 gap-2">
                                 {[
                                     {
                                         icon: Mail,
                                         text: 'info@scicommerz.uz',
                                         color: 'text-blue-400',
+                                        link: 'mailto:info@scicommerz.uz',
                                     },
                                     {
                                         icon: Phone,
                                         text: '+998 71 123 45 67',
                                         color: 'text-green-400',
+                                        link: 'tel:+998711234567',
                                     },
                                     {
                                         icon: MapPin,
@@ -102,100 +80,63 @@ const SiteFooter: React.FC = () => {
                                         icon: Globe,
                                         text: 'www.scicommerz.uz',
                                         color: 'text-purple-400',
+                                        link: 'https://www.scicommerz.uz',
                                     },
                                 ].map((item, index) => (
                                     <div
                                         key={index}
-                                        className="group flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-all duration-300 cursor-pointer"
+                                        className={`group flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-all duration-200 ${
+                                            item.link ? 'cursor-pointer' : ''
+                                        }`}
+                                        onClick={() =>
+                                            item.link &&
+                                            window.open(item.link, '_blank')
+                                        }
                                     >
                                         <div
-                                            className={`p-2 rounded-lg bg-white/10 ${item.color} group-hover:scale-110 transition-transform duration-300`}
+                                            className={`p-1.5 rounded-md bg-white/10 ${item.color}`}
                                         >
-                                            <item.icon className="w-4 h-4" />
+                                            <item.icon className="w-3.5 h-3.5" />
                                         </div>
-                                        <span className="text-slate-300 group-hover:text-white transition-colors duration-300">
+                                        <span className="text-slate-300 text-sm group-hover:text-white transition-colors duration-200 flex-1">
                                             {item.text}
                                         </span>
+                                        {item.link && (
+                                            <ExternalLink className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                                        )}
                                     </div>
                                 ))}
                             </div>
                         </div>
                     </Col>
                 </Row>
+
+                {/* Bottom Bar */}
+                <div className="border-t border-white/10 mt-6 pt-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div className="text-slate-400 text-xs">
+                            © 2025 Ishlanma. Barcha huquqlar himoyalangan.
+                        </div>
+                        <div className="flex gap-4">
+                            {[
+                                { icon: '📧', label: 'Email' },
+                                { icon: '📱', label: 'Telegram' },
+                                { icon: '🌐', label: 'Website' },
+                            ].map((social, index) => (
+                                <div
+                                    key={index}
+                                    className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 hover:scale-105 transition-all duration-200 cursor-pointer"
+                                    title={social.label}
+                                >
+                                    <span className="text-sm">
+                                        {social.icon}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <style>{`
-                @keyframes fade-in-up {
-                    from {
-                        opacity: 0;
-                        transform: translate3d(0, 30px, 0);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translate3d(0, 0, 0);
-                    }
-                }
-
-                @keyframes pulse-slow {
-                    0%, 100% { 
-                        opacity: 0.4;
-                        transform: scale(1);
-                    }
-                    50% { 
-                        opacity: 0.8;
-                        transform: scale(1.1);
-                    }
-                }
-
-                @keyframes float-0 {
-                    0%, 100% { transform: translateY(0px) translateX(0px); }
-                    25% { transform: translateY(-10px) translateX(5px); }
-                    50% { transform: translateY(-5px) translateX(-5px); }
-                    75% { transform: translateY(-15px) translateX(3px); }
-                }
-
-                @keyframes float-1 {
-                    0%, 100% { transform: translateY(0px) translateX(0px); }
-                    33% { transform: translateY(-15px) translateX(-8px); }
-                    66% { transform: translateY(-8px) translateX(8px); }
-                }
-
-                @keyframes float-2 {
-                    0%, 100% { transform: translateY(0px) translateX(0px); }
-                    50% { transform: translateY(-20px) translateX(-10px); }
-                }
-
-                .animate-fade-in-up {
-                    animation: fade-in-up 0.8s ease-out forwards;
-                }
-
-                .animate-pulse-slow {
-                    animation: pulse-slow 4s ease-in-out infinite;
-                }
-
-                .animate-float-0 {
-                    animation: float-0 6s ease-in-out infinite;
-                }
-
-                .animate-float-1 {
-                    animation: float-1 8s ease-in-out infinite;
-                }
-
-                .animate-float-2 {
-                    animation: float-2 7s ease-in-out infinite;
-                }
-
-                .animation-delay-500 { animation-delay: 0.5s; }
-                .animation-delay-1000 { animation-delay: 1.0s; }
-                .animation-delay-1500 { animation-delay: 1.5s; }
-                .animation-delay-2000 { animation-delay: 2.0s; }
-                .animation-delay-4000 { animation-delay: 4.0s; }
-
-                /* Ensure animations start hidden */
-                .animate-fade-in-up {
-                    opacity: 0;
-                }
-            `}</style>
         </Footer>
     );
 };

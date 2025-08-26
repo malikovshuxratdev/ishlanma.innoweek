@@ -98,26 +98,26 @@ const HomePage: React.FC = () => {
                                     level={1}
                                     className="!text-white !mb-0 !font-black !text-3xl sm:!text-4xl md:!text-5xl lg:!text-6xl xl:!text-7xl !leading-tight animate-slide-in-up font-['Inter',sans-serif]"
                                 >
-                                    <span className="inline-block animate-fade-in-up animation-delay-800">
+                                    <span className="inline-block animate-fade-in-up animation-delay-600">
                                         Yagona
                                     </span>{' '}
-                                    <span className="inline-block animate-fade-in-up animation-delay-800">
+                                    <span className="inline-block animate-fade-in-up animation-delay-600">
                                         Ishlanmalar
                                     </span>{' '}
-                                    <span className="inline-block animate-fade-in-up animation-delay-1200">
+                                    <span className="inline-block animate-fade-in-up animation-delay-600">
                                         Bazasi
                                     </span>
                                 </Title>
                             </div>
 
-                            <Paragraph className="!text-base sm:!text-lg md:!text-xl lg:!text-2xl !text-slate-200 !mb-0 !leading-relaxed font-light animate-fade-in-up animation-delay-1400 font-['Inter',sans-serif] max-w-2xl mx-auto lg:mx-0">
+                            <Paragraph className="!text-base sm:!text-lg md:!text-xl lg:!text-2xl !text-slate-200 !mb-0 !leading-relaxed font-light animate-fade-in-up animation-delay-800 font-['Inter',sans-serif] max-w-2xl mx-auto lg:mx-0">
                                 Yangi ishlanmalar elektron bazasi axborot
                                 tizimi. Innovatsiyalar va ilmiy ishlanmalarni
                                 rivojlantirish uchun zamonaviy platforma.
                             </Paragraph>
                         </div>
 
-                        <div className="flex flex-col items-center lg:items-end justify-center space-y-4 sm:space-y-6 animate-fade-in-up animation-delay-1600">
+                        <div className="flex flex-col items-center lg:items-end justify-center space-y-4 sm:space-y-6 animate-fade-in-up animation-delay-800">
                             <Button
                                 type="primary"
                                 size="large"

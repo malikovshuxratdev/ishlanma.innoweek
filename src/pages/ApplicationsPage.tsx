@@ -129,7 +129,7 @@ const ApplicationsPage: React.FC = () => {
                 </div>
 
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <div className="animate-fade-in-up animation-delay-800">
+                    <div className="animate-fade-in-up animation-delay-600">
                         <Title
                             level={1}
                             className="!text-white !mb-6 !font-black !text-2xl sm:!text-3xl lg:!text-4xl !leading-tight font-['Inter',sans-serif]"
