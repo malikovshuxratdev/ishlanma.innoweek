@@ -10,12 +10,7 @@ import {
     Divider,
 } from 'antd';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import {
-    UserOutlined,
-    LogoutOutlined,
-    MenuOutlined,
-    DownOutlined,
-} from '@ant-design/icons';
+import { UserOutlined, LogoutOutlined, MenuOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { TokenService } from '../../utils/storage';
 import {
@@ -89,15 +84,11 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onLoginClick, isPending }) => {
     return (
         <>
             <Header
-                className="fixed top-0 left-0 w-full z-50 shadow-lg"
+                className="site-header fixed top-0 left-0 w-full z-50 shadow-lg"
                 style={{
-                    background:
-                        'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%)',
-                    backdropFilter: 'blur(10px)',
-                    borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
-                    padding: '0 24px',
                     height: '72px',
                     lineHeight: '72px',
+                    color: '#ffffff',
                 }}
             >
                 <div className="flex items-center justify-between w-full max-w-[1400px] mx-auto h-full">
@@ -117,7 +108,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onLoginClick, isPending }) => {
                             mode="horizontal"
                             selectedKeys={[location.pathname]}
                             items={menuItems}
-                            className="border-0 bg-transparent min-w-0"
+                            className="border-0 bg-transparent min-w-0 site-header-links"
                             style={{
                                 fontSize: '16px',
                                 fontWeight: 500,
@@ -144,7 +135,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onLoginClick, isPending }) => {
                                 }}
                             >
                                 <div className="cursor-pointer">
-                                    <Space className="rounded-xl border border-gray-200">
+                                    <Space className="">
                                         <Avatar
                                             src={
                                                 userProfile?.photo
@@ -156,15 +147,14 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onLoginClick, isPending }) => {
                                             className="border-2 border-white shadow-sm"
                                         />
                                         <div className="hidden lg:block text-left">
-                                            <div className="text-sm font-semibold text-gray-900 max-w-full truncate">
+                                            <div className="text-sm font-semibold text-white max-w-full truncate">
                                                 {userProfile?.sur_name ?? ''}{' '}
                                                 {userProfile?.first_name ?? ''}
                                             </div>
-                                            <div className="text-xs text-gray-500 max-w-32 truncate">
+                                            <div className="text-xs text-gray-200 max-w-32 truncate">
                                                 {userProfile?.science_id || ''}
                                             </div>
                                         </div>
-                                        <DownOutlined className="text-gray-400 text-xs" />
                                     </Space>
                                 </div>
                             </Dropdown>
@@ -189,7 +179,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onLoginClick, isPending }) => {
                             type="text"
                             icon={<MenuOutlined />}
                             onClick={() => setMobileMenuVisible(true)}
-                            className="md:hidden w-12 h-12 rounded-xl text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center"
+                            className="md:hidden w-12 h-12 rounded-xl text-white hover:text-white hover:bg-white/10 transition-all duration-200 flex items-center justify-center"
                             style={{ fontSize: '18px' }}
                         />
                     </div>
@@ -356,6 +346,21 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onLoginClick, isPending }) => {
                 
                 .ant-drawer-body {
                     padding: 24px !important;
+                }
+                /* Header-specific color overrides for translucent blurred background */
+                .site-header-links a,
+                .site-header-links .ant-menu-item,
+                .site-header-links .ant-menu-item a {
+                    color: #ffffff !important;
+                }
+
+                .site-header-links .ant-menu-item:hover {
+                    background: rgba(255,255,255,0.06) !important;
+                    color: #ffffff !important;
+                }
+
+                .site-header .ant-avatar {
+                    border-color: rgba(255,255,255,0.12) !important;
                 }
             `}</style>
         </>
