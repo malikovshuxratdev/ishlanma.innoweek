@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import MapContainer from './cards/MapContainer';
 import RegionsGrid from './cards/RegionsGrid';
 import { Card } from 'antd';
+import { useStatisticsQuery } from '../hooks/useStatisticsQuery';
 
 function StatCard({ title, value }: { title: string; value: string }) {
     return (
@@ -17,48 +18,36 @@ function StatCard({ title, value }: { title: string; value: string }) {
 }
 
 const InformationRegion = () => {
-    const data = useMemo(
+    const { data: statisticsData, isLoading } = useStatisticsQuery();
+    const [selectedRegion, setSelectedRegion] = useState<string>('TN'); // Default to Andijon
+    const [regionStats, setRegionStats] = useState<
+        { label: string; value: string }[]
+    >([]);
+
+    // Mapping between map region codes and data region codes
+    const regionCodeMapping = useMemo(
         () => ({
-            regions: [
-                {
-                    code: 'TN',
-                    name: { uz: 'Toshkent' },
-                    users_count: 1200,
-                    male_count: 600,
-                    female_count: 600,
-                    less40_count: 800,
-                    scientific_degree_count: 300,
-                    scientific_title_count: 150,
-                },
-                {
-                    code: 'AN',
-                    name: { uz: 'Andijon' },
-                    users_count: 950,
-                    male_count: 500,
-                    female_count: 450,
-                    less40_count: 620,
-                    scientific_degree_count: 210,
-                    scientific_title_count: 90,
-                },
-                {
-                    code: 'BU',
-                    name: { uz: 'Buxoro' },
-                    users_count: 760,
-                    male_count: 400,
-                    female_count: 360,
-                    less40_count: 500,
-                    scientific_degree_count: 180,
-                    scientific_title_count: 70,
-                },
-            ],
+            AN: 1703, // Andijon viloyati
+            BX: 1706, // Buxoro viloyati
+            JZ: 1708, // Jizzax viloyati
+            QD: 1710, // Qashqadaryo viloyati
+            NV: 1712, // Navoiy viloyati
+            NM: 1714, // Namangan viloyati
+            SN: 1718, // Samarqand viloyati
+            SD: 1722, // Surxondaryo viloyati
+            SR: 1724, // Sirdaryo viloyati
+            TN: 1726, // Toshkent shahri
+            TV: 1727, // Toshkent viloyati
+            FR: 1730, // Farg'ona viloyati
+            XR: 1733, // Xorazm viloyati
+            QR: 1735, // Qoraqalpog'iston Respublikasi
         }),
         []
     );
-    const [selectedRegion, setSelectedRegion] = useState('TN');
-    const isPending = false;
+
     const RegionStatisticsLoader = () => (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6">
-            {Array.from({ length: 6 }).map((_, idx) => (
+            {Array.from({ length: 4 }).map((_, idx) => (
                 <div
                     key={idx}
                     className="h-20 animate-pulse rounded-lg bg-gray-100 border border-gray-200"
@@ -66,34 +55,44 @@ const InformationRegion = () => {
             ))}
         </div>
     );
-    const [regionStats, setRegionStats] = useState<
-        { label: string; value: string }[]
-    >([]);
 
     const getRegionName = (regionCode: string) => {
-        const region = data.regions?.find((r) => r.code === regionCode);
+        const numericCode =
+            regionCodeMapping[regionCode as keyof typeof regionCodeMapping];
+        if (!numericCode) return 'Maʼlumot yoʻq';
+
+        const region = statisticsData?.regions?.find(
+            (r) => r.code === numericCode
+        );
         return region ? String(region.name.uz) : 'Maʼlumot yoʻq';
     };
 
     useEffect(() => {
-        const regionData = data.regions?.find((r) => r.code === selectedRegion);
+        const numericCode =
+            regionCodeMapping[selectedRegion as keyof typeof regionCodeMapping];
+        if (!numericCode) return;
+
+        const regionData = statisticsData?.regions?.find(
+            (r) => r.code === numericCode
+        );
+
         if (regionData) {
             setRegionStats([
                 {
                     label: 'Kelib tushgan arizalar',
-                    value: `${regionData.users_count}`,
+                    value: `${regionData.draft}`,
                 },
                 {
                     label: 'Moderatsiyadagi arizalar',
-                    value: `${regionData.male_count}`,
+                    value: `${regionData.submitted}`,
                 },
                 {
                     label: 'Qabul qilingan',
-                    value: `${regionData.female_count}`,
+                    value: `${regionData.approved}`,
                 },
                 {
-                    label: 'Sohalar bo‘yicha ishlanmalar',
-                    value: `${regionData.less40_count}`,
+                    label: 'Bekor qilingan',
+                    value: `${regionData.rejected}`,
                 },
             ]);
         } else {
@@ -102,18 +101,21 @@ const InformationRegion = () => {
                     label: 'Kelib tushgan arizalar',
                     value: '0',
                 },
-                { label: 'Moderatsiyadagi arizalar', value: '0' },
+                {
+                    label: 'Moderatsiyadagi arizalar',
+                    value: '0',
+                },
                 {
                     label: 'Qabul qilingan',
                     value: '0',
                 },
                 {
-                    label: 'Sohalar bo‘yicha ishlanmalar',
+                    label: 'Bekor qilingan',
                     value: '0',
                 },
             ]);
         }
-    }, [selectedRegion, data]);
+    }, [selectedRegion, statisticsData, regionCodeMapping]);
 
     return (
         <div className="py-12">
@@ -121,7 +123,7 @@ const InformationRegion = () => {
                 title={
                     <div className="flex items-center justify-between">
                         <div className="text-lg font-semibold text-gray-900">
-                            Hududlar bo‘yicha maʼlumotlar
+                            Hududlar boʻyicha maʼlumotlar
                         </div>
                     </div>
                 }
@@ -139,7 +141,7 @@ const InformationRegion = () => {
                             onSelectedRegion={setSelectedRegion}
                             selectedRegion={selectedRegion}
                         />
-                        {isPending ? (
+                        {isLoading ? (
                             <RegionStatisticsLoader />
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6">

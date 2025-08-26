@@ -19,12 +19,14 @@ import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { TokenService } from '../utils/storage';
 import { useLogin } from '../hooks/useLogin';
+import { useStatisticsQuery } from '../hooks/useStatisticsQuery';
 
 const { Title, Paragraph } = Typography;
 
 const HomePage: React.FC = () => {
     const [sectorAsBar, setSectorAsBar] = useState(false);
     const { data: allApplications } = useGetAllApplicationsQuery();
+    const { data: statisticsData } = useStatisticsQuery();
     const navigate = useNavigate();
     const token = TokenService.getToken();
     const { handleLogin } = useLogin();
@@ -42,22 +44,22 @@ const HomePage: React.FC = () => {
     const sectorData = [
         {
             name: 'Kelib tushgan arizalar',
-            value: 320,
+            value: statisticsData?.overall?.draft,
             color: '#3B82F6',
         },
         {
             name: 'Moderatsiyadagi arizalar',
-            value: 245,
+            value: statisticsData?.overall?.submitted,
             color: '#10B981',
         },
         {
             name: 'Qabul qilingan',
-            value: 180,
+            value: statisticsData?.overall?.approved,
             color: '#F59E0B',
         },
         {
-            name: "Sohalar bo'yicha ishlanmalar",
-            value: 156,
+            name: 'Bekor qilingan',
+            value: statisticsData?.overall?.rejected,
             color: '#EF4444',
         },
     ];
@@ -275,7 +277,7 @@ const HomePage: React.FC = () => {
                     >
                         <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
                             <ResponsiveContainer
-                                width="100%"
+                                width="50%"
                                 height={350}
                                 className="lg:w-1/2"
                             >
@@ -322,8 +324,8 @@ const HomePage: React.FC = () => {
                                             data={sectorData}
                                             cx="50%"
                                             cy="50%"
-                                            innerRadius={40}
-                                            outerRadius={80}
+                                            innerRadius={50}
+                                            outerRadius={100}
                                             paddingAngle={3}
                                             dataKey="value"
                                         >
