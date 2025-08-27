@@ -28,9 +28,13 @@ export class ApplicationGetApi {
         return result.data;
     };
 
-    getAllApplications = async () => {
+    getAllApplications = async (params: {
+        page: number;
+        size: number;
+        search: string;
+    }) => {
         const result: AxiosResponse<GetAllApplicationsType> =
-            await this.api.get(urls.getAllApplications);
+            await this.api.get(urls.getAllApplications, params);
         return result.data;
     };
 

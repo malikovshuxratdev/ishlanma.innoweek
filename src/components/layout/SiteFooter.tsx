@@ -26,7 +26,7 @@ const SiteFooter: React.FC = () => {
                 ></div>
             </div>
 
-            <div className="relative z-10 container mx-auto px-6 py-8">
+            <div className=" container mx-auto px-6 py-8">
                 <Row gutter={[24, 24]} align="middle">
                     {/* Brand Section */}
                     <Col xs={24} md={10}>

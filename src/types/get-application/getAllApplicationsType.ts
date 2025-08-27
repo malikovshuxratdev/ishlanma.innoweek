@@ -1,7 +1,11 @@
 export interface GetAllApplicationsType {
-    count: number;
     next: any;
     previous: any;
+    page_size: number;
+    current_page: number;
+    total_pages: number;
+    page_items: number;
+    total: number;
     results: AllApplication[];
 }
 
