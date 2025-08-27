@@ -41,6 +41,7 @@ export class TokenService {
 
     static clearApplication() {
         localStorage.removeItem(SessionKeys.application);
+        localStorage.removeItem(SessionKeys.STEP_STORAGE_KEY);
     }
 
     static clearApplicationStep() {

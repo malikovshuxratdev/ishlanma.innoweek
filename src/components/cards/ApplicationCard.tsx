@@ -138,12 +138,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                                 <Button
                                     type="default"
                                     icon={<EditOutlined />}
-                                    onClick={() => {
-                                        navigate(`/submit-application`);
-                                        TokenService.setApplication(
-                                            application.detail
-                                        );
-                                    }}
+                                    onClick={() => {}}
                                     size="middle"
                                 >
                                     Tahrirlash

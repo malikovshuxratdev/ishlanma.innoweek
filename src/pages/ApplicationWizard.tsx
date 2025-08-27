@@ -1,23 +1,29 @@
 import React, { useEffect, useState } from 'react';
+import { Steps, Button, Card, Typography } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import Step1InnovationDetails from './application-steps/Step1InnovationDetails';
 import Step2IntellectualProperty from './application-steps/Step2IntellectualProperty';
 import Step3ScientificBackground from './application-steps/Step3ScientificBackground';
 import Step4AdditionalInfo from './application-steps/Step4AdditionalInfo';
 import Step5FinancialPerformance from './application-steps/Step5FinancialPerformance';
 import { TokenService } from '../utils/storage';
+import { useNavigate } from 'react-router-dom';
+
+const { Title } = Typography;
 
 const STEPS: { id: number; label: string }[] = [
-    { id: 1, label: 'Ishlanmalar to‘g‘risida ma’lumot' },
+    { id: 1, label: "Ishlanmalar to'g'risida ma'lumot" },
     { id: 2, label: 'Intellektual mulk huquqi' },
     {
         id: 3,
         label: 'Ishlanma yaratilishi uchun avval bajarilgan ilmiy-tadqiqot loyihasi',
     },
-    { id: 4, label: 'Qo‘shimcha ma’lumot' },
-    { id: 5, label: 'Moliyaviy ko‘rsatkichlar' },
+    { id: 4, label: "Qo'shimcha ma'lumot" },
+    { id: 5, label: "Moliyaviy ko'rsatkichlar" },
 ];
 
 const ApplicationWizard: React.FC = () => {
+    const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState<number>(
         TokenService.getApplicationStep()
             ? Number(TokenService.getApplicationStep())
@@ -45,7 +51,7 @@ const ApplicationWizard: React.FC = () => {
     };
 
     const handleBack = () => {
-        setCurrentStep((prev) => prev - 1);
+        navigate(-1);
     };
 
     const renderStep = () => {
@@ -80,137 +86,56 @@ const ApplicationWizard: React.FC = () => {
         }
     };
 
-    const progressPercent = ((currentStep - 1) / (STEPS.length - 1)) * 100;
-    const currentStepObj = STEPS.find((s) => s.id === currentStep);
+    const antSteps = STEPS.map((step, index) => ({
+        title: step.label,
+        status: (index + 1 < currentStep
+            ? 'finish'
+            : index + 1 === currentStep
+            ? 'process'
+            : 'wait') as 'finish' | 'process' | 'wait',
+    }));
 
     return (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
-            <h1 className="text-2xl font-semibold mb-4 sm:mb-6">
-                Ariza topshirish
-            </h1>
-            {/* Step Indicator (progress bar + steps) */}
-            <div className="mb-6 sm:mb-8">
-                {/* Mobile compact header */}
-                <div className="sm:hidden flex items-center justify-between mb-3">
-                    <div className="text-sm font-medium text-gray-800">
-                        {currentStep}. {currentStepObj?.label}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                        {currentStep}/{STEPS.length}
-                    </div>
+        <div className="min-h-screen bg-gray-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+                {/* Header Section */}
+                <div className="text-center mb-6">
+                    <Title level={2} className="mb-2">
+                        Ariza topshirish
+                    </Title>
                 </div>
-                <div className="relative mb-4 h-1 bg-gray-200 rounded overflow-hidden">
-                    <div
-                        className="absolute left-0 top-0 h-1 bg-blue-600 transition-all duration-300"
-                        style={{ width: `${progressPercent}%` }}
-                        aria-hidden="true"
+
+                {/* Steps Section */}
+                <Card className="mb-6" size="small">
+                    <Steps
+                        current={currentStep - 1}
+                        size="small"
+                        progressDot
+                        items={antSteps}
+                        onChange={(current) => {
+                            if (current + 1 <= currentStep) {
+                                setCurrentStep(current + 1);
+                            }
+                        }}
                     />
+                </Card>
+
+                <div className="mb-4">
+                    <Button
+                        icon={<ArrowLeftOutlined />}
+                        onClick={handleBack}
+                        size="large"
+                        className="shadow-sm"
+                    >
+                        Ortga qaytish
+                    </Button>
                 </div>
-                {/* Mobile horizontal scroll steps */}
-                <div className="sm:hidden -mx-4 px-4 overflow-x-auto pb-2 scrollbar-thin">
-                    <div className="flex gap-3 min-w-max">
-                        {STEPS.map((step) => {
-                            const isActive = step.id === currentStep;
-                            const isCompleted = step.id < currentStep;
-                            return (
-                                <button
-                                    key={step.id}
-                                    type="button"
-                                    aria-current={isActive ? 'step' : undefined}
-                                    onClick={() => {
-                                        if (isCompleted)
-                                            setCurrentStep(step.id);
-                                    }}
-                                    disabled={!isCompleted && !isActive}
-                                    className={[
-                                        'shrink-0 flex flex-col items-center text-center focus:outline-none',
-                                        !isActive && !isCompleted
-                                            ? 'opacity-70'
-                                            : '',
-                                    ].join(' ')}
-                                >
-                                    <span
-                                        className={[
-                                            'w-8 h-8 flex items-center justify-center rounded-full border text-xs font-medium mb-1 transition-colors',
-                                            isActive
-                                                ? 'bg-blue-600 text-white border-blue-600 shadow'
-                                                : '',
-                                            isCompleted && !isActive
-                                                ? 'bg-green-500 border-green-500 text-white'
-                                                : '',
-                                            !isCompleted && !isActive
-                                                ? 'bg-white border-gray-300 text-gray-500'
-                                                : '',
-                                        ].join(' ')}
-                                    >
-                                        {isCompleted && !isActive
-                                            ? '✓'
-                                            : step.id}
-                                    </span>
-                                    <span className="text-[10px] leading-tight font-medium text-gray-600 max-w-[70px] truncate">
-                                        {step.label}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-                {/* Desktop grid steps */}
-                <ol
-                    className="hidden sm:grid gap-2 sm:gap-4"
-                    style={{
-                        gridTemplateColumns: `repeat(${STEPS.length}, minmax(0,1fr))`,
-                    }}
-                >
-                    {STEPS.map((step) => {
-                        const isActive = step.id === currentStep;
-                        const isCompleted = step.id < currentStep;
-                        return (
-                            <li
-                                key={step.id}
-                                className="flex flex-col items-center text-center group"
-                            >
-                                <button
-                                    type="button"
-                                    aria-current={isActive ? 'step' : undefined}
-                                    disabled={!isCompleted && !isActive}
-                                    onClick={() => {
-                                        if (isCompleted)
-                                            setCurrentStep(step.id);
-                                    }}
-                                    className={[
-                                        'w-9 h-9 flex items-center justify-center rounded-full border text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500',
-                                        isActive
-                                            ? 'bg-blue-600 text-white border-blue-600 shadow'
-                                            : '',
-                                        isCompleted && !isActive
-                                            ? 'bg-green-500 border-green-500 text-white hover:bg-green-600'
-                                            : '',
-                                        !isCompleted && !isActive
-                                            ? 'bg-white border-gray-300 text-gray-500'
-                                            : '',
-                                    ].join(' ')}
-                                >
-                                    {isCompleted && !isActive ? '✓' : step.id}
-                                </button>
-                                <span
-                                    className={[
-                                        'mt-2 text-xs sm:text-[13px] leading-tight font-medium',
-                                        isActive
-                                            ? 'text-blue-700'
-                                            : isCompleted
-                                            ? 'text-green-600'
-                                            : 'text-gray-500',
-                                    ].join(' ')}
-                                >
-                                    {step.label}
-                                </span>
-                            </li>
-                        );
-                    })}
-                </ol>
+
+                {/* Step Content */}
+                <Card className="shadow-sm overflow-visible scrollbar-hide">
+                    {renderStep()}
+                </Card>
             </div>
-            <div className="bg-white rounded-lg shadow">{renderStep()}</div>
         </div>
     );
 };

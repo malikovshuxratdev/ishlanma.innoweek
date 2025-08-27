@@ -4,6 +4,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import ApplicationCard from '../components/cards/ApplicationCard';
 import { useGetMyApplicationQuery } from '../hooks/useGetApplicationQuery';
 import { useNavigate } from 'react-router-dom';
+import { TokenService } from '../utils/storage';
 
 const { Title } = Typography;
 
@@ -17,6 +18,8 @@ const MyApplicationsPage: React.FC = () => {
 
     const handleCreate = () => {
         navigate('/submit-application');
+        TokenService.clearApplication();
+        TokenService.clearApplicationStep();
     };
 
     return (
