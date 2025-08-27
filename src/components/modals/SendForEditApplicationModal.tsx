@@ -1,8 +1,8 @@
 import React from 'react';
-import { Modal, Button, Form, Input } from 'antd';
+import { Modal, Button, Form, Input, message } from 'antd';
 import { EditOutlined } from '@ant-design/icons';
 import { useModeratorApplicationCheckQuery } from '../../hooks/useModeratorQuery';
-
+import { useNavigate } from 'react-router-dom';
 const { TextArea } = Input;
 
 interface SendForEditApplicationModalProps {
@@ -21,14 +21,23 @@ const SendForEditApplicationModal: React.FC<
     const { mutate: checkApplication, isPending } =
         useModeratorApplicationCheckQuery();
     const [form] = Form.useForm<EditFormData>();
-
+    const navigate = useNavigate();
     const handleSendForEdit = async () => {
         try {
             const values = await form.validateFields();
-            checkApplication({
-                id: applicationId,
-                body: { status: -2, comment: values.comment }, // RE_EDIT status
-            });
+            checkApplication(
+                {
+                    id: applicationId,
+                    body: { status: -2, comment: values.comment }, // RE_EDIT status
+                },
+                {
+                    onSuccess: () => {
+                        message.success('Ariza tahrirlandi');
+                        onClose();
+                        navigate('/moderator-applications');
+                    },
+                }
+            );
             onClose();
         } catch (error) {
             // Form validation error

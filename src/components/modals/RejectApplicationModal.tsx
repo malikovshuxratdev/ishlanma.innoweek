@@ -1,7 +1,8 @@
 import React from 'react';
-import { Modal, Button, Form, Input, Typography } from 'antd';
+import { Modal, Button, Form, Input, Typography, message } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import { useModeratorApplicationCheckQuery } from '../../hooks/useModeratorQuery';
+import { useNavigate } from 'react-router-dom';
 
 const { TextArea } = Input;
 const { Title } = Typography;
@@ -24,14 +25,24 @@ const RejectApplicationModal: React.FC<RejectApplicationModalProps> = ({
     const { mutate: checkApplication, isPending } =
         useModeratorApplicationCheckQuery();
     const [form] = Form.useForm<RejectFormData>();
+    const navigate = useNavigate();
 
     const handleReject = async () => {
         try {
             const values = await form.validateFields();
-            checkApplication({
-                id: applicationId,
-                body: { status: -1, comment: values.comment },
-            });
+            checkApplication(
+                {
+                    id: applicationId,
+                    body: { status: -1, comment: values.comment },
+                },
+                {
+                    onSuccess: () => {
+                        message.success('Ariza qaytarildi');
+                        onClose();
+                        navigate('/moderator-applications');
+                    },
+                }
+            );
             onClose();
         } catch (error) {
             // Form validation error
