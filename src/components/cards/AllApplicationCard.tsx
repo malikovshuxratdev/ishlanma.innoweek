@@ -1,10 +1,8 @@
 import React from 'react';
 import { Button, Typography, Tag } from 'antd';
-import { ArrowUpRight, Award, Building2 } from 'lucide-react';
+import { ArrowUpRight, Building2 } from 'lucide-react';
 import { AllApplication } from '../../types/get-application/getAllApplicationsType';
 import { useNavigate } from 'react-router-dom';
-import { BuildOutlined } from '@ant-design/icons';
-import { BiBuildingHouse } from 'react-icons/bi';
 
 const { Title } = Typography;
 const URL = import.meta.env.VITE_BASE_URI;
