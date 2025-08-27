@@ -29,12 +29,28 @@ const AllFullApplicationCard: React.FC<ApplicationCardProps> = ({
             <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-shrink-0">
                     <div className="relative w-full lg:w-64 h-48 lg:h-40">
-                        <img
-                            alt={application.name}
-                            src={`${URL + application.image}` || fallbackImage}
-                            loading="lazy"
-                            className="w-full h-full object-cover rounded-lg cursor-pointer"
-                        />
+                        {application.image ? (
+                            <img
+                                alt={application.name}
+                                src={
+                                    `${URL + application.image}` ||
+                                    fallbackImage
+                                }
+                                loading="lazy"
+                                className="w-full h-full object-cover rounded-lg cursor-pointer"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                                <div className="w-12 h-12 text-gray-400">
+                                    <svg
+                                        fill="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                    </svg>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className="flex-1 flex flex-col justify-between min-h-0">
