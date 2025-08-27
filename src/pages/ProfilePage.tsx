@@ -21,6 +21,7 @@ import {
 import { useUserProfileQuery } from '../hooks/useOauthScienceIdMutate';
 import { useNavigate } from 'react-router-dom';
 import { useGetMyApplicationQuery } from '../hooks/useGetApplicationQuery';
+import ModeratorStatisticsCard from '../components/admin-cards/ModeratorStatisticsCard';
 
 const { Title, Text } = Typography;
 const ImageUrl = import.meta.env.VITE_BASE_URI;
@@ -33,8 +34,14 @@ const ProfilePage: React.FC = () => {
         (app) => app.status_display === 'Draft'
     );
 
+    const isModerator = userProfile?.role_display === 'Moderator';
+
     if (userLoading) {
-        return <Spin className="flex justify-center items-center h-full" />;
+        return (
+            <div className="flex justify-center items-center h-full">
+                <Spin className="flex justify-center items-center h-full" />
+            </div>
+        );
     }
 
     return (
@@ -155,7 +162,7 @@ const ProfilePage: React.FC = () => {
                                 }
                             >
                                 <span className="text-text text-xs sm:text-sm">
-                                    {userProfile?.phone_number}
+                                    +{userProfile?.phone_number}
                                 </span>
                             </Descriptions.Item>
                             <Descriptions.Item
@@ -207,6 +214,13 @@ const ProfilePage: React.FC = () => {
                             </Descriptions.Item>
                         </Descriptions>
                     </Card>
+
+                    {/* Moderator Statistics Card - Only show for moderators */}
+                    {isModerator && (
+                        <div className="mt-6">
+                            <ModeratorStatisticsCard />
+                        </div>
+                    )}
                 </Col>
             </Row>
         </div>

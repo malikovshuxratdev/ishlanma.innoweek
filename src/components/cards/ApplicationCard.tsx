@@ -1,8 +1,9 @@
 import React from 'react';
-import { Card, Rate, Button, Tag, Typography } from 'antd';
+import { Card, Rate, Button, Typography } from 'antd';
 import { EyeOutlined, EditOutlined, StarOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import fallbackImage from '../../assets/images/hero-bg.svg';
+import StatusBadge from '../shared/StatusBadge';
 import { MyApplication } from '../../types/get-application/getApplicationType';
 import { TokenService } from '../../utils/storage';
 import moment from 'moment';
@@ -29,28 +30,6 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
     const handleViewDetails = () => navigate(`/applications/${application.id}`);
     const handleRate = () => onRate?.(application);
     const handleEdit = () => onEdit?.(application);
-
-    const getStatusColor = (statusDisplay?: string) => {
-        if (!statusDisplay) return undefined;
-        const s = statusDisplay.toLowerCase();
-        if (s.includes('approved') || s.includes('submitted')) return 'green';
-        if (s.includes('rejected')) return 'red';
-        if (s.includes('revision') || s.includes('revisions')) return 'orange';
-        return undefined;
-    };
-
-    const getStatusText = (statusDisplay?: string) => {
-        if (!statusDisplay) return '';
-        const s = statusDisplay.toLowerCase();
-        if (s.includes('submitted')) return 'Yuborilgan';
-        if (s.includes('draft')) return 'Tugallanmagan';
-        // Keep other common statuses localized where sensible
-        if (s.includes('approved')) return 'Tasdiqlangan';
-        if (s.includes('rejected')) return 'Rad etilgan';
-        if (s.includes('revision') || s.includes('revisions'))
-            return 'Tahrir talab etiladi';
-        return statusDisplay;
-    };
 
     const statusLower = application.status_display?.toLowerCase() || '';
     const isSubmitted = statusLower.includes('submitted');
@@ -95,17 +74,10 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                                 {application.project.name}
                             </Title>
                             <div className="flex items-center gap-2 flex-shrink-0">
-                                {application.status_display && (
-                                    <Tag
-                                        color={getStatusColor(
-                                            application.status_display
-                                        )}
-                                    >
-                                        {getStatusText(
-                                            application.status_display
-                                        )}
-                                    </Tag>
-                                )}
+                                <StatusBadge
+                                    status={application.status}
+                                    size="sm"
+                                />
                                 <Rate
                                     disabled
                                     value={application.project.rate_avg}

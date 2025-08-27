@@ -1,10 +1,11 @@
 import React from 'react';
-import { FileText, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import DevelopmentSection from '../components/sections/DevelopmentSection';
 import IntellectualPropertySection from '../components/sections/IntellectualPropertySection';
 import ResearchProjectSection from '../components/sections/ResearchProjectSection';
 import AdditionalInfoSection from '../components/sections/AdditionalInfoSection';
 import FinanceSection from '../components/sections/FinanceSection';
+import StatusBadge from '../components/shared/StatusBadge';
 import { useGetApplicationByIdQuery } from '../hooks/useGetApplicationQuery';
 import { useParams } from 'react-router-dom';
 import moment from 'moment';
@@ -24,31 +25,6 @@ const ApplicationDetail: React.FC = () => {
             </div>
         );
     }
-    const getStatusColor = (status: number) => {
-        switch (status) {
-            case 1:
-                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-            case 2:
-                return 'bg-blue-100 text-blue-800 border-blue-200';
-            case 3:
-                return 'bg-green-100 text-green-800 border-green-200';
-            case 4:
-                return 'bg-red-100 text-red-800 border-red-200';
-            default:
-                return 'bg-gray-100 text-gray-800 border-gray-200';
-        }
-    };
-
-    const getStatusIcon = (status: number) => {
-        switch (status) {
-            case 1:
-                return <Clock className="w-4 h-4" />;
-            case 3:
-                return <CheckCircle className="w-4 h-4" />;
-            default:
-                return <FileText className="w-4 h-4" />;
-        }
-    };
 
     return (
         <div className="min-h-screen bg-gray-100">
@@ -66,16 +42,10 @@ const ApplicationDetail: React.FC = () => {
                         </div>
 
                         <div className="flex items-center space-x-4">
-                            <div
-                                className={`px-4 py-2 rounded-full border flex items-center space-x-2 ${getStatusColor(
-                                    application.status
-                                )}`}
-                            >
-                                {getStatusIcon(application.status)}
-                                <span className="font-medium">
-                                    {application.status_display}
-                                </span>
-                            </div>
+                            <StatusBadge
+                                status={application.status}
+                                size="sm"
+                            />
 
                             <div className="flex items-center space-x-2 text-sm text-gray-600">
                                 <Calendar className="w-4 h-4" />

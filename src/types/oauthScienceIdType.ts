@@ -35,6 +35,7 @@ export interface ResponseData {
 export interface UserProfileResponse {
     id: number;
     photo: string;
+    role_display: string;
     role: number;
     science_id: string;
     username: any;

@@ -153,7 +153,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onLoginClick, isPending }) => {
                                 }}
                             >
                                 <div className="cursor-pointer group">
-                                    <Space className="p-2 rounded-xl hover:bg-white/10 transition-all duration-300">
+                                    <Space className=" rounded-xl hover:bg-white/10 transition-all duration-300">
                                         <Avatar
                                             src={
                                                 userProfile?.photo
