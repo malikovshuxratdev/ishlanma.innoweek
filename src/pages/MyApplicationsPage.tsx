@@ -11,8 +11,6 @@ const MyApplicationsPage: React.FC = () => {
     const { data } = useGetMyApplicationQuery();
     const navigate = useNavigate();
 
-    const handleEdit = () => {};
-
     const hasDraft = (data?.results ?? []).some(
         (app) => app.status_display === 'Draft'
     );
@@ -56,8 +54,6 @@ const MyApplicationsPage: React.FC = () => {
                     <ApplicationCard
                         key={application.id}
                         application={application}
-                        showEdit={true}
-                        onEdit={handleEdit}
                     />
                 ))}
             </div>

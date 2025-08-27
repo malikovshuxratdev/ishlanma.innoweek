@@ -25,10 +25,7 @@ const AllFullApplicationCard: React.FC<ApplicationCardProps> = ({
     const handleRate = () => onRate?.(application);
 
     return (
-        <Card
-            className="application-card animate-slide-up"
-            onClick={handleViewDetails}
-        >
+        <Card className="application-card animate-slide-up">
             <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-shrink-0">
                     <div className="relative w-full lg:w-64 h-48 lg:h-40">

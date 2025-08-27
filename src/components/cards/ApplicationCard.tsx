@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Rate, Button, Typography } from 'antd';
+import { Card, Button, Typography } from 'antd';
 import { EyeOutlined, EditOutlined, StarOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import fallbackImage from '../../assets/images/hero-bg.svg';
@@ -7,6 +7,7 @@ import StatusBadge from '../shared/StatusBadge';
 import { MyApplication } from '../../types/get-application/getApplicationType';
 import { TokenService } from '../../utils/storage';
 import moment from 'moment';
+import { ApplicationStatus } from '../../types/application-status';
 
 const { Title } = Typography;
 const URL = import.meta.env.VITE_BASE_URI;
@@ -14,28 +15,32 @@ const URL = import.meta.env.VITE_BASE_URI;
 interface ApplicationCardProps {
     application: MyApplication;
     showRating?: boolean;
-    showEdit?: boolean;
-    onRate?: (application: MyApplication) => void;
-    onEdit?: (application: MyApplication) => void;
 }
 
 const ApplicationCard: React.FC<ApplicationCardProps> = ({
     application,
     showRating = false,
-    showEdit = false,
-    onRate,
-    onEdit,
 }) => {
     const navigate = useNavigate();
     const handleViewDetails = () => navigate(`/applications/${application.id}`);
-    const handleRate = () => onRate?.(application);
-    const handleEdit = () => onEdit?.(application);
 
     const statusLower = application.status_display?.toLowerCase() || '';
     const isSubmitted = statusLower.includes('submitted');
-    const isRejected = statusLower.includes('rejected');
     const isDraft = statusLower.includes('draft');
-    const shouldShowEdit = isRejected ? true : isSubmitted ? false : showEdit;
+    const isReEdit =
+        statusLower.includes('qayta tahrir') ||
+        application.status === ApplicationStatus.RE_EDIT;
+    const isApproved =
+        statusLower.includes('tasdiqlangan') ||
+        application.status === ApplicationStatus.APPROVED;
+    const isRejectedStatus =
+        statusLower.includes('rad etilgan') ||
+        application.status === ApplicationStatus.REJECTED;
+
+    const shouldShowViewButton =
+        isApproved || isRejectedStatus || isReEdit || isSubmitted;
+    const shouldShowEditButton = isReEdit;
+    const shouldShowContinueButton = isDraft;
 
     const handleContinue = () => {
         navigate(`/submit-application`);
@@ -43,10 +48,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
     };
 
     return (
-        <Card
-            className="application-card animate-slide-up"
-            onClick={isDraft ? undefined : handleViewDetails}
-        >
+        <Card className="application-card animate-slide-up">
             <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-shrink-0">
                     <div className="relative w-full lg:w-64 h-48 lg:h-40">
@@ -78,15 +80,6 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                                     status={application.status}
                                     size="sm"
                                 />
-                                <Rate
-                                    disabled
-                                    value={application.project.rate_avg}
-                                    allowHalf
-                                    className="text-sm"
-                                />
-                                <span className="text-sm text-text-secondary">
-                                    ({application.project.comment_count})
-                                </span>
                             </div>
                         </div>
                         <div></div>
@@ -116,19 +109,20 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                                 'DD MMMM YYYY'
                             )}
                         </div>
-                        <div>
+                        <div className="flex gap-2">
                             {showRating && (
                                 <Button
                                     type="text"
                                     icon={<StarOutlined />}
-                                    onClick={handleRate}
                                     className="text-yellow-500"
                                     size="small"
                                 >
                                     Rate
                                 </Button>
                             )}
-                            {isDraft && (
+
+                            {/* Show continue button only for Draft status */}
+                            {shouldShowContinueButton && (
                                 <Button
                                     type="primary"
                                     icon={<EditOutlined />}
@@ -138,17 +132,26 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                                     Davom etish
                                 </Button>
                             )}
-                            {shouldShowEdit && !isDraft && (
+
+                            {/* Show edit button for ReEdit status */}
+                            {shouldShowEditButton && (
                                 <Button
-                                    type="text"
+                                    type="default"
                                     icon={<EditOutlined />}
-                                    onClick={handleEdit}
+                                    onClick={() => {
+                                        navigate(`/submit-application`);
+                                        TokenService.setApplication(
+                                            application.detail
+                                        );
+                                    }}
                                     size="middle"
                                 >
                                     Tahrirlash
                                 </Button>
                             )}
-                            {!isDraft && (
+
+                            {/* Show view button for Approved, Rejected, and ReEdit statuses */}
+                            {shouldShowViewButton && (
                                 <Button
                                     type="primary"
                                     icon={<EyeOutlined />}

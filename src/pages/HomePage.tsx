@@ -48,17 +48,17 @@ const HomePage: React.FC = () => {
             color: '#3B82F6',
         },
         {
-            name: 'Moderatsiyadagi arizalar',
+            name: 'Kutilayotgan arizalar',
             value: statisticsData?.overall?.submitted,
-            color: '#10B981',
-        },
-        {
-            name: 'Qabul qilingan',
-            value: statisticsData?.overall?.approved,
             color: '#F59E0B',
         },
         {
-            name: 'Bekor qilingan',
+            name: 'Tasdiqlangan arizalar',
+            value: statisticsData?.overall?.approved,
+            color: '#10B981',
+        },
+        {
+            name: 'Rad etilgan arizalar',
             value: statisticsData?.overall?.rejected,
             color: '#EF4444',
         },
@@ -272,12 +272,12 @@ const HomePage: React.FC = () => {
                                 </AntTooltip>
                             </div>
                         }
-                        style={{ padding: '24px' }}
+                        style={{ padding: '10px' }}
                         className="shadow-lg border-0 rounded-2xl overflow-visible"
                     >
                         <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
                             <ResponsiveContainer
-                                width="50%"
+                                width="100%"
                                 height={350}
                                 className="lg:w-1/2"
                             >

@@ -36,14 +36,16 @@ const ApplicationDetail: React.FC = () => {
                             <h1 className="text-2xl font-bold text-gray-900">
                                 Ariza ma'lumotlari
                             </h1>
-                            <p className="text-gray-600 font-mono mt-1">
-                                Loyiha kodi: {application.code}
-                            </p>
+                            {application?.code && (
+                                <p className="text-gray-600 font-mono mt-1">
+                                    Loyiha kodi: {application?.code}
+                                </p>
+                            )}
                         </div>
 
                         <div className="flex items-center space-x-4">
                             <StatusBadge
-                                status={application.status}
+                                status={application?.status}
                                 size="sm"
                             />
 
@@ -51,7 +53,7 @@ const ApplicationDetail: React.FC = () => {
                                 <Calendar className="w-4 h-4" />
                                 <span>
                                     Yaratilgan sana:{' '}
-                                    {moment(application.created_at).format(
+                                    {moment(application?.created_at).format(
                                         'DD MMMM YYYY'
                                     )}
                                 </span>
@@ -61,32 +63,32 @@ const ApplicationDetail: React.FC = () => {
                 </div>
 
                 <div className="space-y-8">
-                    {application.project ? (
+                    {application?.project ? (
                         <>
                             <DevelopmentSection
-                                development={application.project.development}
+                                development={application?.project?.development}
                             />
 
                             <IntellectualPropertySection
                                 intellectualProperty={
-                                    application.project.intellectual_property
+                                    application?.project?.intellectual_property
                                 }
                             />
 
                             <ResearchProjectSection
                                 researchProject={
-                                    application.project.research_project
+                                    application?.project?.research_project
                                 }
                             />
 
                             <AdditionalInfoSection
                                 additionalInfo={
-                                    application.project.additional_info
+                                    application?.project?.additional_info
                                 }
                             />
 
                             <FinanceSection
-                                finance={application.project.finance}
+                                finance={application?.project?.finance}
                             />
                         </>
                     ) : (
