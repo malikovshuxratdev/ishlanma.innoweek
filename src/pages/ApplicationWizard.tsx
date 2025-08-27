@@ -36,7 +36,6 @@ const ApplicationWizard: React.FC = () => {
             if (saved && saved >= 1 && saved <= STEPS.length) {
                 setCurrentStep(saved);
             }
-            document.title = 'Ariza topshirish';
         }
     }, []);
 
