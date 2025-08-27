@@ -43,7 +43,7 @@ const ModeratorStatisticsCard: React.FC = () => {
     const statItems = [
         {
             key: 'submitted',
-            label: 'Yuborilgan arizalar',
+            label: 'Kelib tushgan arizalar',
             value: data?.submitted,
             color: '#1890ff',
             icon: <FileTextOutlined />,
@@ -57,7 +57,7 @@ const ModeratorStatisticsCard: React.FC = () => {
         },
         {
             key: 'rejected',
-            label: 'Rad etilgan arizalar',
+            label: 'Rad qilinadigan arizalar',
             value: data?.rejected,
             color: '#ff4d4f',
             icon: <CloseCircleOutlined />,
