@@ -109,11 +109,11 @@ const ResearchProjectSection: React.FC<ResearchProjectSectionProps> = ({
                                 <p className="text-gray-600">Director</p>
                                 <p className="text-gray-900">
                                     {
-                                        researchProject.executor_organization
+                                        researchProject?.executor_organization
                                             ?.director?.last_name
                                     }{' '}
                                     {
-                                        researchProject.executor_organization
+                                        researchProject?.executor_organization
                                             ?.director?.first_name
                                     }
                                 </p>

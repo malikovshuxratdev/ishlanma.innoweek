@@ -8,7 +8,8 @@ import ProfilePage from '../pages/ProfilePage';
 import MyApplicationsPage from '../pages/MyApplicationsPage';
 import ApplicationWizard from '../pages/ApplicationWizard';
 import ModeratorApplicationList from '../pages/ModeratorApplicationList';
-import ModeratorApplicationDetail from '../pages/ModeratorApplicationDetail.tsx';
+import ModeratorApplicationDetail from '../pages/ModeratorApplicationDetail';
+import ApplicationViewPage from '../pages/ApplicationViewPage';
 
 const AppRouter: React.FC = () => {
     return (
@@ -22,6 +23,10 @@ const AppRouter: React.FC = () => {
                             <Route
                                 path="/applications"
                                 element={<ApplicationsPage />}
+                            />
+                            <Route
+                                path="/application-view/:id"
+                                element={<ApplicationViewPage />}
                             />
                             <Route
                                 path="/applications/:id"

@@ -11,14 +11,17 @@ const URL = import.meta.env.VITE_BASE_URI;
 interface ApplicationCardProps {
     application: AllApplication;
     onRate?: (application: AllApplication) => void;
+    applicationId?: number;
 }
 
 const AllFullApplicationCard: React.FC<ApplicationCardProps> = ({
     application,
     onRate,
+    applicationId,
 }) => {
     const navigate = useNavigate();
-    const handleViewDetails = () => navigate(``);
+    const handleViewDetails = () =>
+        navigate(`/application-view/${applicationId}`);
     const handleRate = () => onRate?.(application);
 
     return (

@@ -133,7 +133,7 @@ export interface QualityLevel {
 }
 
 export interface ExportIndicator {
-    '2023': number;
+    [key: string]: number;
 }
 
 export interface ConsumerOrganization {

@@ -27,3 +27,12 @@ export const useGetAllApplicationsQuery = () => {
         },
     });
 };
+
+export const useGetAllApplicationsByIdQuery = (id: number) => {
+    return useQuery({
+        queryKey: ['getAllApplicationsById', id],
+        queryFn: async () => {
+            return await applicationGetApi.getAllApplicationsById(id);
+        },
+    });
+};

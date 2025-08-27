@@ -87,19 +87,21 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
                                 </h4>
                                 <div className="space-y-1">
                                     {/* Individual year values */}
-                                    {Object.entries(
-                                        additionalInfo?.export_indicator
-                                    ).map(([year, value]) => (
-                                        <p
-                                            key={year}
-                                            className="text-sm text-gray-600"
-                                        >
-                                            {year}-yilda{' '}
-                                            <span className="font-semibold text-gray-900">
-                                                {value.toLocaleString()} so'm
-                                            </span>
-                                        </p>
-                                    ))}
+                                    {additionalInfo?.export_indicator &&
+                                        Object.entries(
+                                            additionalInfo.export_indicator
+                                        ).map(([year, value]) => (
+                                            <p
+                                                key={year}
+                                                className="text-sm text-gray-600"
+                                            >
+                                                {year}-yilda{' '}
+                                                <span className="font-semibold text-gray-900">
+                                                    {value.toLocaleString()}{' '}
+                                                    so'm
+                                                </span>
+                                            </p>
+                                        ))}
                                 </div>
                             </div>
 

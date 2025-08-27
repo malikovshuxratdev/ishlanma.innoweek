@@ -239,6 +239,7 @@ const ApplicationsPage: React.FC = () => {
                             >
                                 <AllFullApplicationCard
                                     application={application}
+                                    applicationId={application.id}
                                 />
                             </div>
                         ))

@@ -2,6 +2,7 @@ import React from 'react';
 import { Button, Typography } from 'antd';
 import { Star, Building2, ArrowRight, Eye } from 'lucide-react';
 import { AllApplication } from '../../types/get-application/getAllApplicationsType';
+import { useNavigate } from 'react-router-dom';
 
 const { Title } = Typography;
 const URL = import.meta.env.VITE_BASE_URI;
@@ -13,6 +14,11 @@ interface ApplicationCardProps {
 const AllApplicationCard: React.FC<ApplicationCardProps> = ({
     application,
 }) => {
+    const navigate = useNavigate();
+    const handleClick = () => {
+        navigate(`application-view/${application.id}`);
+    };
+
     return (
         <div className="group bg-white rounded-2xl transition-all overflow-hidden border border-gray-100 w-full max-w-sm lg:max-w-md xl:max-w-lg mx-auto hover:shadow-xl hover:-translate-y-2 transform will-change-transform duration-300">
             {/* Image Section - Responsive Height */}
@@ -55,6 +61,7 @@ const AllApplicationCard: React.FC<ApplicationCardProps> = ({
                     <Title
                         level={4}
                         className="!text-lg !font-bold !text-gray-900 !mb-2 group-hover:!text-blue-600 transition-colors duration-300 line-clamp-2 cursor-pointer font-['Inter',sans-serif]"
+                        onClick={handleClick}
                     >
                         {application.name}
                     </Title>
@@ -72,6 +79,7 @@ const AllApplicationCard: React.FC<ApplicationCardProps> = ({
                     <Button
                         type="primary"
                         className="flex-1 h-9 rounded-lg font-semibold flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border-0 shadow-md hover:shadow-lg transition-all duration-200 font-['Inter',sans-serif] text-sm"
+                        onClick={handleClick}
                     >
                         <Eye className="w-3.5 h-3.5" />
                         Tafsilotlar
